@@ -218,254 +218,68 @@ console.log("page",matchType)
             <div className={styles.Auto}>
               <Header headerName={"Auto"}/>
               <Checkbox visibleName={"Leave"} internalName={"leave"} />
-              <div className={styles.Coral}>
-                <SubHeader subHeaderName={"Coral"}/>
-                <table className={styles.Table}>
-                <thead >
-                <tr>
-                    <th></th>
-                      <th>Success</th>
-                      <th>Fail</th>
-                    </tr>
-                </thead>
-                  <tbody>
-                  <tr>
-                    <td><h2>L4</h2></td>
-                    <td><NumericInput 
-                      pieceType={"Success"}
-                      internalName={"autol4success"}/>
-                      </td>
-                    <td><NumericInput 
-                      pieceType={"Fail"}
-                      internalName={"autol4fail"}/>
-                      </td>
-                    </tr> 
-                  <tr>
-                  <td><h2>L3</h2></td>
-                  <td><NumericInput 
-                    pieceType={"Success"}
-                    internalName={"autol3success"}/>
-                    </td>
-                  <td><NumericInput 
-                    pieceType={"Fail"}
-                    internalName={"autol3fail"}/>
-                    </td>
-                  </tr>
-                   <tr>
-                  <td><h2>L2</h2></td>
-                  <td><NumericInput 
-                    pieceType={"Success"}
-                    internalName={"autol2success"}/>
-                    </td>
-                  <td><NumericInput 
-                    pieceType={"Fail"}
-                    internalName={"autol2fail"}/>
-                    </td>
-                  </tr>
-                   <tr>
-                  <td><h2>L1</h2></td>
-                  <td><NumericInput 
-                    pieceType={"Success"}
-                    internalName={"autol1success"}/>
-                    </td>
-                  <td><NumericInput 
-                    pieceType={"Fail"}
-                    internalName={"autol1fail"}/>
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-                </div>
-              </div>
-              <div className={styles.AlgaeRemoved}>
-                <SubHeader subHeaderName={"Algae Removed Intentionally"}/>
-                <div className={styles.HBox}>
-                  <NumericInput 
-                    pieceType={"Counter"}
-                    internalName={"autoalgaeremoved"}/>
-                </div>
-              </div>
-              <div className={styles.Processor}>
-                <SubHeader subHeaderName={"Processor"} />
-                <div className={styles.HBox}>
-                  <NumericInput 
-                    visibleName={"Success"}
-                    pieceType={"Success"}
-                    internalName={"autoprocessorsuccess"}/>
-                  <NumericInput 
-                    visibleName={"Fail"}
-                    pieceType={"Fail"}
-                    internalName={"autoprocessorfail"}/>
-                </div>
-              </div>
-              <div className={styles.Net}>
-                <SubHeader subHeaderName={"Net"} />
-                <div className={styles.HBox}>
-                  <NumericInput 
-                    visibleName={"Success"}
-                    pieceType={"Success"}
-                    internalName={"autonetsuccess"}/>
-                  <NumericInput 
-                    visibleName={"Fail"}
-                    pieceType={"Fail"}
-                    internalName={"autonetfail"}/>
-                </div>
-              </div>
-            <div className={styles.Auto}>
-              <Header headerName={"Tele"}/>
-              <div className={styles.Coral}>
-                <SubHeader subHeaderName={"Coral"}/>
-                <table className={styles.Table}>
-                <thead>
-                <tr>
-                    <th></th>
-                      <th>Success</th>
-                      <th>Fail</th>
-                    </tr>
-                </thead>
-                  <tbody>
-                  <tr>
-                    <td><h2>L4</h2></td>
-                    <td><NumericInput 
-                      pieceType={"Success"}
-                      internalName={"telel4success"}/>
-                      </td>
-                    <td><NumericInput 
-                      pieceType={"Fail"}
-                      internalName={"telel4fail"}/>
-                      </td>
-                    </tr> 
-                  <tr>
-                  <td><h2>L3</h2></td>
-                  <td><NumericInput 
-                    pieceType={"Success"}
-                    internalName={"telel3success"}/>
-                    </td>
-                  <td><NumericInput 
-                    pieceType={"Fail"}
-                    internalName={"telel3fail"}/>
-                    </td>
-                  </tr>
-                   <tr>
-                  <td><h2>L2</h2></td>
-                  <td><NumericInput 
-                    pieceType={"Success"}
-                    internalName={"telel2success"}/>
-                    </td>
-                  <td><NumericInput 
-                    pieceType={"Fail"}
-                    internalName={"telel2fail"}/>
-                    </td>
-                  </tr>
-                   <tr>
-                  <td><h2>L1</h2></td>
-                  <td><NumericInput 
-                    pieceType={"Success"}
-                    internalName={"telel1success"}/>
-                    </td>
-                  <td><NumericInput 
-                    pieceType={"Fail"}
-                    internalName={"telel1fail"}/>
-                    </td>
-                  </tr>
-                  </tbody>
-                </table>
-                </div>
-              </div>
-              <div className={styles.AlgaeRemoved}>
-                <SubHeader subHeaderName={"Algae Removed Intentionally"}/>
-                <div className={styles.HBox}>
-                  <NumericInput 
-                    pieceType={"Counter"}
-                    internalName={"telealgaeremoved"}/>
-                </div>
-              </div>
-              <div className={styles.Processor}>
-                <SubHeader subHeaderName={"Processor"} />
-                <div className={styles.HBox}>
-                  <NumericInput 
-                    visibleName={"Success"}
-                    pieceType={"Success"}
-                    internalName={"teleprocessorsuccess"}/>
-                  <NumericInput 
-                    visibleName={"Fail"}
-                    pieceType={"Fail"}
-                    internalName={"teleprocessorfail"}/>
-                </div>
-              </div>
-              <div className={styles.Net}>
-                <SubHeader subHeaderName={"Net"} />
-                <div className={styles.HBox}>
-                <NumericInput 
-                      visibleName={"Success"}
-                      pieceType={"Success"}
-                      internalName={"telenetsuccess"}/>
-                    <NumericInput 
-                      visibleName={"Fail"}
-                      pieceType={"Fail"}
-                      internalName={"telenetfail"}/>
-                </div>
-              </div>
-            <div className={styles.Endgame}>
-              <Header headerName={"Endgame"}/>
-              <EndPlacement/>
+
+              <p>climb</p>
+
+              <p>fuel</p>
+
+              <p>win/lose</p>
             </div>
+              
+              
+            <div className={styles.Tele}>
+              <Header headerName={"Tele"}/>
+
+              <p>fuel</p>
+
+              <p>intake</p>
+
+              <p>passing</p>
+
+              <p>shoot while move?</p>
+            </div>
+
+
             <div className={styles.PostMatch}>
               <br></br>
               <Header headerName={"Post-Match"}/>
-              <span className={styles.subsubheading}>Intake</span>
-              <hr className={styles.subsubheading}></hr>
-              <div className={styles.Intake}>
-                <Checkbox
-                  visibleName={"Coral Ground"}
-                  internalName={"coralgndintake"}
-                />
-                <Checkbox
-                  visibleName={"Coral Station"}
-                  internalName={"coralstationintake"}
-                />
-                <Checkbox
-                  visibleName={"Algae Ground"}
-                  internalName={"algaegndintake"}
-                />
-                <Checkbox
-                  visibleName={"Algae High Reef"}
-                  internalName={"algaehighreefintake"}
-                />
-                <Checkbox
-                  visibleName={"Algae Low Reef"}
-                  internalName={"algaelowreefintake"}
-                />
-              </div>
+                <p>shooting mechanism</p>
+                <p>hopper capacity</p>
+                <p>bump or trench?</p>
+                <p>defense quality</p>
+                <p>defense location</p>
+                <p>breakdown</p>
+                <p>stuck on fuel</p>
+              
                 <div className={styles.Qual}>
                   <Qualitative                   
-                    visibleName={"Coral Speed"}
-                    internalName={"coralspeed"}
-                    description={"Coral Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Processor Speed"}
-                    internalName={"processorspeed"}
-                    description={"Processor Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Net Speed"}
-                    internalName={"netspeed"}
-                    description={"Net Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Algae Removal Speed"}
-                    internalName={"algaeremovalspeed"}
-                    description={"Algae Removal Speed"}/>
+                    visibleName={"Fuel Speed"}
+                    internalName={"fuelspeed"}
+                    description={"Fuel Speed"}/>
                   <Qualitative                   
                     visibleName={"Climb Speed"}
                     internalName={"climbspeed"}
                     description={"Climb Speed"}/>
                   <Qualitative                   
+                    visibleName={"Passing Speed"}
+                    internalName={"passingspeed"}
+                    description={"Passing Speed"}/>
+                  <Qualitative                   
+                    visibleName={"Auto Declimb Speed"}
+                    internalName={"autodeclimbspeed"}
+                    description={"Auto Declimb Speed"}/>
+                  <Qualitative                   
+                    visibleName={"Bump Speed"}
+                    internalName={"bumpspeed"}
+                    description={"Bump Speed"}/>
+                  <Qualitative                   
                     visibleName={"Maneuverability"}
                     internalName={"maneuverability"}
                     description={"Maneuverability"}/>
                   <Qualitative                   
-                    visibleName={"Defense Played"}
-                    internalName={"defenseplayed"}
-                    description={"Ability to Play Defense"}/>
+                    visibleName={"Durability"}
+                    internalName={"durability"}
+                    description={"Durability"}/>
                   <Qualitative                   
                     visibleName={"Defense Evasion"}
                     internalName={"defenseevasion"}
@@ -476,9 +290,9 @@ console.log("page",matchType)
                     description={"Aggression"}
                     symbol={"ⵔ"}/>
                   <Qualitative
-                    visibleName={"Cage Hazard"}
-                    internalName={"cagehazard"}
-                    description={"Cage Hazard"}
+                    visibleName={"Climb Hazard"}
+                    internalName={"climbhazard"}
+                    description={"Climb Hazard"}
                     symbol={"ⵔ"}/>
                 </div>
               <br></br>
@@ -488,13 +302,6 @@ console.log("page",matchType)
                 <CommentBox
                   visibleName={"Breakdown Elaboration"}
                   internalName={"breakdowncomments"}
-                />
-              }
-              <Checkbox visibleName={"Played Defense?"} internalName={"defense"} changeListener={onDefenseChange}/>
-              { defense &&
-                <CommentBox
-                  visibleName={"Defense Elaboration"}
-                  internalName={"defensecomments"}
                 />
               }
               <CommentBox
