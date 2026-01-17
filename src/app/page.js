@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import Header from "./form-components/Header";
 import TextInput from "./form-components/TextInput";
 import styles from "./page.module.css";
-import NumericInput from "./form-components/NumericInput";
+import FuelCounter from "./form-components/FuelCounter";
 import Checkbox from "./form-components/Checkbox";
 import CommentBox from "./form-components/CommentBox";
 import EndPlacement from "./form-components/EndPlacement";
