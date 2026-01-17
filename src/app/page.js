@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import Header from "./form-components/Header";
 import TextInput from "./form-components/TextInput";
 import styles from "./page.module.css";
-import FuelCounter from "./form-components/FuelCounter";
 import Checkbox from "./form-components/Checkbox";
 import CommentBox from "./form-components/CommentBox";
 import EndPlacement from "./form-components/EndPlacement";
@@ -11,6 +10,7 @@ import Qualitative from "./form-components/Qualitative";
 import SubHeader from "./form-components/SubHeader";
 import MatchType from "./form-components/MatchType";
 import JSConfetti from 'js-confetti';
+import FuelCounter from "./form-components/FuelCounter";
 
 
 export default function Home() {
@@ -217,13 +217,12 @@ console.log("page",matchType)
           <>
             <div className={styles.Auto}>
               <Header headerName={"Auto"}/>
-              <Checkbox visibleName={"Leave"} internalName={"leave"} />
 
-              <p>climb</p>
+              <FuelCounter internalName={"auto fuel"}/>
 
-              <p>fuel</p>
+              <SubHeader subHeaderName={"Climb"}></SubHeader>
 
-              <p>win/lose</p>
+              <Checkbox visibleName={"Win Auto?"} internalName={"win auto"}/>
             </div>
               
               
@@ -253,25 +252,9 @@ console.log("page",matchType)
               
                 <div className={styles.Qual}>
                   <Qualitative                   
-                    visibleName={"Fuel Speed"}
-                    internalName={"fuelspeed"}
-                    description={"Fuel Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Climb Speed"}
-                    internalName={"climbspeed"}
-                    description={"Climb Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Passing Speed"}
-                    internalName={"passingspeed"}
-                    description={"Passing Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Auto Declimb Speed"}
-                    internalName={"autodeclimbspeed"}
-                    description={"Auto Declimb Speed"}/>
-                  <Qualitative                   
-                    visibleName={"Bump Speed"}
-                    internalName={"bumpspeed"}
-                    description={"Bump Speed"}/>
+                    visibleName={"Hopper Capacity"}
+                    internalName={"Hopper Capacity"}
+                    description={"Hopper Capacity"}/>
                   <Qualitative                   
                     visibleName={"Maneuverability"}
                     internalName={"maneuverability"}
@@ -280,6 +263,26 @@ console.log("page",matchType)
                     visibleName={"Durability"}
                     internalName={"durability"}
                     description={"Durability"}/>
+                  <Qualitative                   
+                    visibleName={"Fuel Speed"}
+                    internalName={"fuelspeed"}
+                    description={"Fuel Speed"}/>
+                  <Qualitative                   
+                    visibleName={"Passing Speed"}
+                    internalName={"passingspeed"}
+                    description={"Passing Speed"}/>
+                  <Qualitative                   
+                    visibleName={"Climb Speed"}
+                    internalName={"climbspeed"}
+                    description={"Climb Speed"}/>
+                  <Qualitative                   
+                    visibleName={"Auto Declimb Speed"}
+                    internalName={"autodeclimbspeed"}
+                    description={"Auto Declimb Speed"}/>
+                  <Qualitative                   
+                    visibleName={"Bump Speed"}
+                    internalName={"bumpspeed"}
+                    description={"Bump Speed"}/>
                   <Qualitative                   
                     visibleName={"Defense Evasion"}
                     internalName={"defenseevasion"}

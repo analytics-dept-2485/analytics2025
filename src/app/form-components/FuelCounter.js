@@ -48,19 +48,33 @@ export default function FuelCounter({ visibleName, internalName, pieceType, min,
         <div className={styles.FuelCounter}>
             <label className={styles.label} htmlFor={internalName}>{visibleName}</label>
             <div className={styles.Container}>
-                <button type="button" className={styles[pieceType + 'ButtonLeft']} onClick={decrementOne}><h1><strong>-</strong></h1></button>
-                <button type="button" className={styles[pieceType + 'ButtonLeft']} onClick={decrementThree}><h1><strong>-</strong></h1></button>
-                
-            
-                <input
-                    className={styles[pieceType]}
-                    type="number"
-                    id={internalName}
-                    name={internalName}
-                    value={value}
-                    readOnly
-                />
-                <button type="button" className={styles[pieceType + 'ButtonRight']} onClick={increment}><h1><strong>+</strong></h1></button>
+                <div className={styles.decrementBox}>
+                    <button type="button" className={styles.DecButton} onClick={decrementOne}><h1><strong>-1</strong></h1></button>
+                    <button type="button" className={styles.DecButton} onClick={decrementThree}><h1><strong>-3</strong></h1></button>
+                    <button type="button" className={styles.DecButton} onClick={decrementTen}><h1><strong>-10</strong></h1></button>
+                </div>
+
+                <div className={styles.inputBox}>
+                    
+                    <h1>Fuel</h1>
+                    <div className={styles.inputBox2}>
+                        <hr className={styles.line}></hr>
+                        <input 
+                            className={styles.input}
+                            type="number"
+                            id={internalName}
+                            name={internalName}
+                            value={value}
+                            readOnly
+                        />
+                    </div>
+                </div>
+
+                <div className={styles.incrementBox}>
+                    <button type="button" className={styles.IncButton} onClick={incrementOne}><h1><strong>+1</strong></h1></button>
+                    <button type="button" className={styles.IncButton} onClick={incrementThree}><h1><strong>+3</strong></h1></button>
+                    <button type="button" className={styles.IncButton} onClick={incrementTen}><h1><strong>+10</strong></h1></button>
+                </div>
             </div>
             <br/>
         </div>
