@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import _ from "lodash";
 
+export const dynamic = 'force-dynamic'; // Prevent static generation during build
+
 export async function POST(req) {
   let body = await req.json();
   console.log(body);

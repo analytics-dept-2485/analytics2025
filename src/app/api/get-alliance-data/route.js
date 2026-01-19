@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { sql } from "@vercel/postgres";
 import { calcAuto, calcTele, calcEnd } from "@/util/calculations";
 
+export const dynamic = 'force-dynamic'; // Prevent static generation during build
 export const revalidate = 300; // Cache for 5 minutes
 
 const avgNonNegative = (values) => {

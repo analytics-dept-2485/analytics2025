@@ -3,6 +3,8 @@ import { sql } from '@vercel/postgres';
 import { tidy, mutate, arrange, desc, mean, select, summarizeAll, summarize, max, groupBy } from '@tidyjs/tidy';
 import { calcAuto, calcTele, calcEnd, calcEPA } from "@/util/calculations";
 
+export const dynamic = 'force-dynamic'; // Prevent static generation during build
+
 export async function POST(request) {
 
   const requestBody = await request.json(); // Weight inputs
