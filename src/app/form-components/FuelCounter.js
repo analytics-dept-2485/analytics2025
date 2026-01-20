@@ -53,9 +53,8 @@ export default function FuelCounter({ visibleName, internalName, pieceType, min,
                     <button type="button" className={styles.DecButton} onClick={decrementThree}><h1><strong>-3</strong></h1></button>
                     <button type="button" className={styles.DecButton} onClick={decrementTen}><h1><strong>-10</strong></h1></button>
                 </div>
-
-                <div className={styles.inputBox}>
-                    
+                
+                <div className={styles.inputBox}>  
                     <h1>Fuel</h1>
                     <div className={styles.inputBox2}>
                         <hr className={styles.line}></hr>
@@ -69,7 +68,6 @@ export default function FuelCounter({ visibleName, internalName, pieceType, min,
                         />
                     </div>
                 </div>
-
                 <div className={styles.incrementBox}>
                     <button type="button" className={styles.IncButton} onClick={incrementOne}><h1><strong>+1</strong></h1></button>
                     <button type="button" className={styles.IncButton} onClick={incrementThree}><h1><strong>+3</strong></h1></button>

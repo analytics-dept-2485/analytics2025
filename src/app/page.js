@@ -11,7 +11,8 @@ import SubHeader from "./form-components/SubHeader";
 import MatchType from "./form-components/MatchType";
 import JSConfetti from 'js-confetti';
 import FuelCounter from "./form-components/FuelCounter";
-
+import AutoClimb from "./form-components/AutoClimb";
+import autoClimbStyles from "./form-components/AutoClimb.module.css";
 
 export default function Home() {
   const [noShow, setNoShow] = useState(false);
@@ -19,6 +20,8 @@ export default function Home() {
   const [defense, setDefense] = useState(false);
   const [matchType, setMatchType] = useState("2");
   const [scoutProfile, setScoutProfile] = useState(null);
+  const [climbYesNo, setClimbYesNo] = useState("0");
+  const [climbPosition, setClimbPosition] = useState("0");
 
   const form = useRef();
 
@@ -51,8 +54,18 @@ export default function Home() {
   function handleMatchTypeChange(value){
     setMatchType(value);
     console.log("Selected match type:", value);
+
 };
 
+  function handleClimbYesNo (value) {
+    setClimbYesNo(value);
+    console.log("Selected climb type:", value);
+};
+
+  function handleClimbPosition (value) {
+    setClimbPosition(value);
+    console.log("Selected climb position:", value);
+};
 
   // added from last years code (still review)
   async function submit(e) {
@@ -222,6 +235,48 @@ console.log("page",matchType)
 
               <SubHeader subHeaderName={"Climb"}></SubHeader>
 
+              <AutoClimb 
+                onClimbChange={handleClimbYesNo} 
+                defaultValue={climbYesNo}
+              />
+              
+              {climbYesNo === "1" && (
+                <div className={autoClimbStyles.ClimbYesNo}>
+                  <div className={autoClimbStyles.radioGroup}>
+                    <label>
+                      <input
+                        type="radio"
+                        name="climbPosition"
+                        value="1"
+                        checked={climbPosition === "1"}
+                        onChange={(e) => handleClimbPosition(e.target.value)}
+                      />
+                      Left
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="climbPosition"
+                        value="2"
+                        checked={climbPosition === "2"}
+                        onChange={(e) => handleClimbPosition(e.target.value)}
+                      />
+                      Center
+                    </label>
+                    <label>
+                      <input
+                        type="radio"
+                        name="climbPosition"
+                        value="3"
+                        checked={climbPosition === "3"}
+                        onChange={(e) => handleClimbPosition(e.target.value)}
+                      />
+                      Right
+                    </label>
+                  </div>
+                </div>
+              )}
+              
               <Checkbox visibleName={"Win Auto?"} internalName={"win auto"}/>
             </div>
               
