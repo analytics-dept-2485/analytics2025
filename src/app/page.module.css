@@ -164,6 +164,19 @@ hr.subsubheading {
   gap: -5px;
 }
 
+.Auto {
+  display: flex;
+  flex-direction: column;
+  align-content: center;
+  align-self: center;
+  margin: -30px;
+}
+
+.AutoClimb {
+  width: 200px;
+  align-self: center;
+}
+
 .MainDiv input:focus,
 .MainDiv textarea:focus {
     border-color: rgb(87, 171, 254);

@@ -1,11 +1,15 @@
 .subHeader {
     text-align: center;
-    margin: 8px 0px;
+    justify-content: center;
+    margin-top: 20px;
+    margin-bottom: 10px;
     font-size: 30px;
-    width: 200px;
+    align-self: center;
+    margin: -1px;
 }
 
-.centered {
+
+/*.centered {
     width: 100%;
     display: flex;
     justify-content: center;
@@ -16,3 +20,4 @@
     justify-content: center;
     align-content: center;
 }
+*/

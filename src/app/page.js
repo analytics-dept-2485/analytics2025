@@ -232,13 +232,14 @@ console.log("page",matchType)
               <Header headerName={"Auto"}/>
 
               <FuelCounter internalName={"auto fuel"}/>
-
+            <div className={styles.AutoClimb}>
               <SubHeader subHeaderName={"Climb"}></SubHeader>
 
               <AutoClimb 
                 onClimbChange={handleClimbYesNo} 
                 defaultValue={climbYesNo}
               />
+            
               
               {climbYesNo === "1" && (
                 <div className={autoClimbStyles.ClimbYesNo}>
@@ -276,7 +277,7 @@ console.log("page",matchType)
                   </div>
                 </div>
               )}
-              
+          </div>
               <Checkbox visibleName={"Win Auto?"} internalName={"win auto"}/>
             </div>
               
