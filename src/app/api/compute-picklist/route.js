@@ -15,11 +15,11 @@ export async function POST(request) {
 
   function averageField(index) {
     // Boolean fields - return true if any row has it as true
-    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto'].includes(index)) {
+    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto', 'climbtf'].includes(index)) {
       return arr => arr.some(row => row[index] === true);
     }
     // String/Text fields - join with comma
-    if (['scoutname', 'generalcomments', 'breakdowncomments', 'autoclimb', 'autoclimbposition', 'endclimb', 'endclimbposition', 'shootingmechanism', 'defense', 'fuelpercent'].includes(index)) {
+    if (['scoutname', 'generalcomments', 'breakdowncomments', 'defensecomments'].includes(index)) {
       return arr => arr.map(row => row[index]).filter(a => a != null).join(', ') || null;
     }
     // Numeric fields - calculate mean
@@ -101,16 +101,19 @@ export async function POST(request) {
     const fuelNormalized = Math.min((totalFuel / 80) * 100, 100);
     
     // Climb success consistency
-    const autoClimbSuccess = dr.autoclimb === 'Success' ? 100 : (dr.autoclimb === 'Fail' ? 50 : 0);
+    // autoclimb: 0=None, 1=Success, 2=Fail
+    const autoClimbSuccess = dr.autoclimb === 1 ? 100 : (dr.autoclimb === 2 ? 50 : 0);
     
     // End climb success (higher levels = better consistency)
+    // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
     let endClimbSuccess = 0;
-    if (dr.endclimb) {
-      const endClimb = String(dr.endclimb).toUpperCase();
-      switch (endClimb) {
-        case 'L3': endClimbSuccess = 100; break;
-        case 'L2': endClimbSuccess = 67; break;
-        case 'L1': endClimbSuccess = 33; break;
+    if (dr.endclimbposition != null && dr.endclimbposition !== undefined) {
+      // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+      const level = dr.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+      switch (level) {
+        case 0: endClimbSuccess = 100; break; // L3
+        case 1: endClimbSuccess = 67; break;  // L2
+        case 2: endClimbSuccess = 33; break;  // L1
         default: endClimbSuccess = 0;
       }
     }
@@ -153,23 +156,26 @@ export async function POST(request) {
       return (d.autofuel || 0) + (d.telefuel || 0);
     },
     tower: d => {
-      // Endgame climb points based on EndClimb level
-      if (!d.endclimb) return 0;
-      const endClimb = String(d.endclimb).toUpperCase();
-      switch (endClimb) {
-        case 'L1': return 10; // L1 = 10 points
-        case 'L2': return 20; // L2 = 20 points
-        case 'L3': return 30; // L3 = 30 points
+      // Endgame climb points based on EndClimbPosition level
+      // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+      if (d.endclimbposition == null || d.endclimbposition === undefined) return 0;
+      // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+      const level = d.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+      switch (level) {
+        case 0: return 30; // L3 = 30 points
+        case 1: return 20; // L2 = 20 points
+        case 2: return 10; // L1 = 10 points
         default: return 0;
       }
     },
     defense: d => {
       // Defense score based on PlayedDefense and Defense type
+      // defense: 0=weak, 1=harassment, 2=game changing
       if (!d.playeddefense) return 0;
       
       let score = 10; // Base score for playing defense
-      if (d.defense === 'harassment') score += 5;
-      if (d.defense === 'game changing') score += 10;
+      if (d.defense === 1) score += 5; // harassment
+      if (d.defense === 2) score += 10; // game changing
       
       return score;
     },

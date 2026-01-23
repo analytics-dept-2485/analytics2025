@@ -43,8 +43,8 @@ export async function POST(req) {
   // Validate Auto Data
   if (
     !(
-      _.isString(body.autoclimb) && // None, Success, Fail
-      (body.autoclimb === 'None' || body.autoclimb === 'Success' || body.autoclimb === 'Fail') &&
+      _.isNumber(body.autoclimb) && // 0=None, 1=Success, 2=Fail
+      (body.autoclimb === 0 || body.autoclimb === 1 || body.autoclimb === 2) &&
       _.isNumber(body.autofuel) &&
       _.isBoolean(body.winauto)
     )
@@ -52,11 +52,16 @@ export async function POST(req) {
     return NextResponse.json({ message: "Invalid Auto Data!" }, { status: 400 });
   }
 
-  // If AutoClimb is Success, validate position
-  if (body.autoclimb === 'Success' && body.autoclimbposition) {
-    if (!['Left', 'Center', 'Right'].includes(body.autoclimbposition)) {
-      return NextResponse.json({ message: "Invalid Auto Climb Position!" }, { status: 400 });
+  // If AutoClimb is Success (1), validate position
+  if (body.autoclimb === 1) {
+    if (body.autoclimbposition !== null && body.autoclimbposition !== undefined) {
+      if (!_.isNumber(body.autoclimbposition) || ![0, 1, 2].includes(body.autoclimbposition)) {
+        return NextResponse.json({ message: "Invalid Auto Climb Position! Must be 0 (Left), 1 (Center), or 2 (Right)" }, { status: 400 });
+      }
     }
+  } else {
+    // If not Success, position should be null
+    body.autoclimbposition = null;
   }
   
   // Validate Tele Data
@@ -69,8 +74,9 @@ export async function POST(req) {
       _.isBoolean(body.passingdump) &&
       _.isBoolean(body.shootwhilemove) &&
       _.isNumber(body.telefuel) &&
-      _.isBoolean(body.defenselocationazoutpost) &&
-      _.isBoolean(body.defenselocationaztower) &&
+      _.isBoolean(body.defenselocationoutpost) &&
+      _.isBoolean(body.defenselocationtower) &&
+      _.isBoolean(body.defenselocationhub) &&
       _.isBoolean(body.defenselocationnz) &&
       _.isBoolean(body.defenselocationtrench) &&
       _.isBoolean(body.defenselocationbump)
@@ -80,32 +86,42 @@ export async function POST(req) {
   }
   
   // Validate Endgame Data
-  if (body.endclimb !== null && body.endclimb !== undefined) {
-    if (!_.isString(body.endclimb) || !['L1', 'L2', 'L3'].includes(body.endclimb.toUpperCase())) {
-      return NextResponse.json({ message: "Invalid Endgame Data! EndClimb must be L1, L2, L3, or null" }, { status: 400 });
+  // EndClimbPosition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1 (NULL if None)
+  if (body.endclimbposition !== null && body.endclimbposition !== undefined) {
+    if (!_.isNumber(body.endclimbposition) || !(body.endclimbposition >= 0 && body.endclimbposition <= 8)) {
+      return NextResponse.json({ message: "Invalid End Climb Position! Must be 0-8 (0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1)" }, { status: 400 });
     }
-    
-    // If EndClimb is set, validate position
-    if (body.endclimbposition && !['Left', 'Center', 'Right'].includes(body.endclimbposition)) {
-      return NextResponse.json({ message: "Invalid End Climb Position!" }, { status: 400 });
-    }
+  }
+  
+  // ClimbTF: True if climb attempt failed (None checkbox checked)
+  if (!_.isBoolean(body.climbtf)) {
+    return NextResponse.json({ message: "Invalid ClimbTF! Must be boolean" }, { status: 400 });
   }
   
   // Validate Postmatch Data
   if (
     !(
-      _.isString(body.shootingmechanism) &&
-      (body.shootingmechanism === 'Static' || body.shootingmechanism === 'Turret') &&
+      _.isNumber(body.shootingmechanism) &&
+      (body.shootingmechanism === 0 || body.shootingmechanism === 1) && // 0=Static, 1=Turret
       _.isBoolean(body.bump) &&
       _.isBoolean(body.trench) &&
       _.isBoolean(body.stuckonfuel) &&
-      (_.isString(body.fuelpercent) || _.isNumber(body.fuelpercent)) &&
-      _.isBoolean(body.playeddefense) &&
-      _.isString(body.defense) &&
-      (body.defense === 'weak' || body.defense === 'harassment' || body.defense === 'game changing')
+      _.isNumber(body.fuelpercent) &&
+      (body.fuelpercent >= 0 && body.fuelpercent <= 100) &&
+      _.isBoolean(body.playeddefense)
     )
   ) {
     return NextResponse.json({ message: "Invalid Postmatch Data!" }, { status: 400 });
+  }
+  
+  // Validate Defense (only required if playeddefense is true)
+  if (body.playeddefense) {
+    if (!_.isNumber(body.defense) || ![0, 1, 2].includes(body.defense)) {
+      return NextResponse.json({ message: "Invalid Defense! Must be 0 (weak), 1 (harassment), or 2 (game changing)" }, { status: 400 });
+    }
+  } else {
+    // If not playing defense, defense should be null
+    body.defense = null;
   }
 
   // Validate Qualitative Ratings (0-5 scale, -1 for not rated)
@@ -125,7 +141,8 @@ export async function POST(req) {
   if (
     !(
       _.isString(body.generalcomments) &&
-      (_.isString(body.breakdowncomments) || _.isNull(body.breakdowncomments) || body.breakdowncomments === undefined)
+      (_.isString(body.breakdowncomments) || _.isNull(body.breakdowncomments) || body.breakdowncomments === undefined) &&
+      (_.isString(body.defensecomments) || _.isNull(body.defensecomments) || body.defensecomments === undefined)
     )
   ) {
     return NextResponse.json({ message: "Invalid Comments!" }, { status: 400 });
@@ -137,23 +154,23 @@ export async function POST(req) {
       scoutname, scoutteam, team, match, matchtype, noshow,
       autoclimb, autoclimbposition, autofuel, winauto,
       intakeground, intakeoutpost, passingbulldozer, passingshooter, passingdump, shootwhilemove, telefuel,
-      defenselocationazoutpost, defenselocationaztower, defenselocationnz, defenselocationtrench, defenselocationbump,
-      endclimb, endclimbposition,
+      defenselocationoutpost, defenselocationtower, defenselocationhub, defenselocationnz, defenselocationtrench, defenselocationbump,
+      endclimbposition, climbtf,
       shootingmechanism, bump, trench, stuckonfuel, fuelpercent, playeddefense, defense,
       aggression, climbhazard, hoppercapacity, maneuverability, durability, defenseevasion,
       climbspeed, fuelspeed, passingspeed, autodeclimbspeed, bumpspeed,
-      generalcomments, breakdowncomments
+      generalcomments, breakdowncomments, defensecomments
     )
     VALUES (
       ${body.scoutname}, ${body.scoutteam}, ${body.team}, ${adjustedMatch}, ${body.matchType}, ${body.noshow},
-      ${body.autoclimb}, ${body.autoclimb === 'Success' ? body.autoclimbposition : null}, ${body.autofuel}, ${body.winauto},
+      ${body.autoclimb}, ${body.autoclimb === 1 ? body.autoclimbposition : null}, ${body.autofuel}, ${body.winauto},
       ${body.intakeground}, ${body.intakeoutpost}, ${body.passingbulldozer}, ${body.passingshooter}, ${body.passingdump}, ${body.shootwhilemove}, ${body.telefuel},
-      ${body.defenselocationazoutpost}, ${body.defenselocationaztower}, ${body.defenselocationnz}, ${body.defenselocationtrench}, ${body.defenselocationbump},
-      ${body.endclimb || null}, ${body.endclimb && body.endclimbposition ? body.endclimbposition : null},
+      ${body.defenselocationoutpost}, ${body.defenselocationtower}, ${body.defenselocationhub}, ${body.defenselocationnz}, ${body.defenselocationtrench}, ${body.defenselocationbump},
+      ${body.endclimbposition || null}, ${body.climbtf},
       ${body.shootingmechanism}, ${body.bump}, ${body.trench}, ${body.stuckonfuel}, ${body.fuelpercent}, ${body.playeddefense}, ${body.defense},
       ${body.aggression}, ${body.climbhazard}, ${body.hoppercapacity}, ${body.maneuverability}, ${body.durability}, ${body.defenseevasion},
       ${body.climbspeed}, ${body.fuelspeed}, ${body.passingspeed}, ${body.autodeclimbspeed}, ${body.bumpspeed},
-      ${body.generalcomments}, ${body.breakdowncomments || null}
+      ${body.generalcomments}, ${body.breakdowncomments || null}, ${body.defensecomments || null}
     )
   `;
 
