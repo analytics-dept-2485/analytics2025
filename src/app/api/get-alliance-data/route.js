@@ -67,14 +67,16 @@ function initializeTeamData(row, auto, tele, end, frcAPITeamInfo) {
   // Calculate fuel and climb points
   const fuel = (row.autofuel || 0) + (row.telefuel || 0);
   
-  // Calculate climb points (auto climb = 15 if Success, end climb = 10/20/30 for L1/L2/L3)
+  // Calculate climb points (auto climb = 15 if Success (1), end climb = 10/20/30 for L1/L2/L3)
   let climbPoints = 0;
-  if (row.autoclimb === 'Success') climbPoints += 15;
-  if (row.endclimb) {
-    const endClimb = String(row.endclimb).toUpperCase();
-    if (endClimb === 'L1') climbPoints += 10;
-    else if (endClimb === 'L2') climbPoints += 20;
-    else if (endClimb === 'L3') climbPoints += 30;
+  if (row.autoclimb === 1) climbPoints += 15; // 1 = Success
+  if (row.endclimbposition != null && row.endclimbposition !== undefined) {
+    // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+    // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+    const level = row.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+    if (level === 0) climbPoints += 30; // L3
+    else if (level === 1) climbPoints += 20; // L2
+    else if (level === 2) climbPoints += 10; // L1
   }
   
   return {
@@ -94,7 +96,7 @@ function initializeTeamData(row, auto, tele, end, frcAPITeamInfo) {
       shooter: row.passingshooter ? 1 : 0,
       dump: row.passingdump ? 1 : 0,
     },
-    endgame: createEndgameData(row.endclimb),
+    endgame: createEndgameData(row.endclimbposition),
     qualitative: {
       aggression: row.aggression,
       climbhazard: row.climbhazard,
@@ -122,12 +124,14 @@ function accumulateTeamData(teamData, row, auto, tele, end) {
 
   // Accumulate climb points
   let climbPoints = 0;
-  if (row.autoclimb === 'Success') climbPoints += 15;
-  if (row.endclimb) {
-    const endClimb = String(row.endclimb).toUpperCase();
-    if (endClimb === 'L1') climbPoints += 10;
-    else if (endClimb === 'L2') climbPoints += 20;
-    else if (endClimb === 'L3') climbPoints += 30;
+  if (row.autoclimb === 1) climbPoints += 15; // 1 = Success
+  if (row.endclimbposition != null && row.endclimbposition !== undefined) {
+    // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+    // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+    const level = row.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+    if (level === 0) climbPoints += 30; // L3
+    else if (level === 1) climbPoints += 20; // L2
+    else if (level === 2) climbPoints += 10; // L1
   }
   teamData.climb += climbPoints;
 
@@ -141,7 +145,7 @@ function accumulateTeamData(teamData, row, auto, tele, end) {
   if (row.passingdump) teamData.passing.dump += 1;
 
   // Accumulate endgame data
-  const endgameData = createEndgameData(row.endclimb);
+  const endgameData = createEndgameData(row.endclimbposition);
   for (let key in endgameData) {
     teamData.endgame[key] += endgameData[key];
   }
@@ -160,15 +164,17 @@ function accumulateTeamData(teamData, row, auto, tele, end) {
   teamData.qualitative.bumpspeed += row.bumpspeed || 0;
 }
 
-function createEndgameData(endclimb) {
-  if (!endclimb || endclimb === null) {
+function createEndgameData(endclimbposition) {
+  // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+  if (!endclimbposition || endclimbposition === null || endclimbposition === undefined) {
     return { L1: 0, L2: 0, L3: 0, None: 1 };
   }
-  const climb = String(endclimb).toUpperCase();
+  // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+  const level = endclimbposition % 3; // 0=L3, 1=L2, 2=L1
   return {
-    L1: climb === 'L1' ? 1 : 0,
-    L2: climb === 'L2' ? 1 : 0,
-    L3: climb === 'L3' ? 1 : 0,
+    L1: level === 2 ? 1 : 0,
+    L2: level === 1 ? 1 : 0,
+    L3: level === 0 ? 1 : 0,
     None: 0,
   };
 }
