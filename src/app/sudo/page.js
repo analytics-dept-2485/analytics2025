@@ -143,49 +143,44 @@ export default function Sudo() {
       simple: true,
     },
     "noshow",
-    "leave",
-    "autol1success",
-    "autol1fail",
-    "autol2success",
-    "autol2fail",
-    "autol3success",
-    "autol3fail",
-    "autol4success",
-    "autol4fail",
-    "autoalgaeremoved",
-    "autoprocessorsuccess",
-    "autoprocessorfail",
-    "autonetsuccess",
-    "autonetfail",
-    "telel1success",
-    "telel1fail",
-    "telel2success",
-    "telel2fail",
-    "telel3success",
-    "telel3fail",
-    "telel4success",
-    "telel4fail",
-    "telealgaeremoved",
-    "teleprocessorsuccess",
-    "teleprocessorfail",
-    "telenetsuccess",
-    "telenetfail",
-    "endlocation",
-    "coralspeed",
-    "processorspeed",
-    "netspeed",
-    "algaeremovalspeed",
-    "climbspeed",
-    "maneuverability",
-    "defenseplayed",
-    "defenseevasion",
+    "matchtype",
+    "autoclimb",
+    "autoclimbposition",
+    "autofuel",
+    "winauto",
+    "intakeground",
+    "intakeoutpost",
+    "passingbulldozer",
+    "passingshooter",
+    "passingdump",
+    "shootwhilemove",
+    "telefuel",
+    "defenselocationoutpost",
+    "defenselocationtower",
+    "defenselocationhub",
+    "defenselocationnz",
+    "defenselocationtrench",
+    "defenselocationbump",
+    "endclimbposition",
+    "climbtf",
+    "shootingmechanism",
+    "bump",
+    "trench",
+    "stuckonfuel",
+    "fuelpercent",
+    "playeddefense",
+    "defense",
     "aggression",
-    "cagehazard",
-    "coralgrndintake",
-    "coralstationintake",
-    "algaegrndintake",
-    "algaelowreefintake",
-    "algaehighreefintake",
+    "climbhazard",
+    "hoppercapacity",
+    "maneuverability",
+    "durability",
+    "defenseevasion",
+    "climbspeed",
+    "fuelspeed",
+    "passingspeed",
+    "autodeclimbspeed",
+    "bumpspeed",
     "generalcomments",
     "breakdowncomments",
     "defensecomments",
@@ -209,9 +204,31 @@ export default function Sudo() {
         if (typeof text == "boolean") {
           visibleValue = text ? "✅" : "❌";
         }
-        //show red if 0
+        
+        // Format integer enum fields for readability
+        const fieldName = element.toLowerCase();
+        if (fieldName === "autoclimb") {
+          const map = {0: "None", 1: "Success", 2: "Fail"};
+          visibleValue = map[text] ?? text;
+        } else if (fieldName === "autoclimbposition") {
+          const map = {0: "Left", 1: "Center", 2: "Right"};
+          visibleValue = map[text] ?? text;
+        } else if (fieldName === "endclimbposition") {
+          const map = {0: "LeftL3", 1: "LeftL2", 2: "LeftL1", 3: "CenterL3", 4: "CenterL2", 5: "CenterL1", 6: "RightL3", 7: "RightL2", 8: "RightL1"};
+          visibleValue = map[text] ?? text;
+        } else if (fieldName === "shootingmechanism") {
+          const map = {0: "Static", 1: "Turret"};
+          visibleValue = map[text] ?? text;
+        } else if (fieldName === "defense") {
+          const map = {0: "weak", 1: "harassment", 2: "game changing"};
+          visibleValue = map[text] ?? text;
+        } else if (fieldName === "fuelpercent") {
+          visibleValue = text != null ? `${text}%` : text;
+        }
+        
+        //show red if 0 (but not for boolean false)
         let style = {};
-        if (text == 0) {
+        if (text == 0 && typeof text !== "boolean") {
           style = { color: "red" };
         }
         return <div style={style}>{visibleValue}</div>;

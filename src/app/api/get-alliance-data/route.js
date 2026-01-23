@@ -186,12 +186,6 @@ function calculateAverages(responseObject, rows) {
     teamData.fuel = average(teamData.fuel, count);
     teamData.climb = average(teamData.climb, count);
 
-    // Calculate intake percentages (percentage of matches using each intake type)
-    teamData.intake = {
-      ground: count > 0 ? Math.round((100 * teamData.intake.ground) / count) : 0,
-      outpost: count > 0 ? Math.round((100 * teamData.intake.outpost) / count) : 0,
-    };
-
     // Calculate passing percentages (percentage of matches using each passing type)
     teamData.passing = {
       bulldozer: count > 0 ? Math.round((100 * teamData.passing.bulldozer) / count) : 0,
