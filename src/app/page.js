@@ -13,6 +13,7 @@ import JSConfetti from 'js-confetti';
 import FuelCounter from "./form-components/FuelCounter";
 import AutoClimb from "./form-components/AutoClimb";
 import autoClimbStyles from "./form-components/AutoClimb.module.css";
+import ClimbCheckbox from "./form-components/ClimbCheckbox";
 
 export default function Home() {
   const [noShow, setNoShow] = useState(false);
@@ -228,6 +229,7 @@ console.log("page",matchType)
         </div>
         {!noShow && (
           <>
+          <br></br>
             <div className={styles.Auto}>
               <Header headerName={"Auto"}/>
 
@@ -281,30 +283,122 @@ console.log("page",matchType)
               <Checkbox visibleName={"Win Auto?"} internalName={"win auto"}/>
             </div>
               
-              
+              <br></br>
+              <br></br>
             <div className={styles.Tele}>
-              <Header headerName={"Tele"}/>
+             <Header headerName={"Tele"}/>
 
-              <p>fuel</p>
 
-              <p>intake</p>
+             <br></br>
 
-              <p>passing</p>
 
-              <p>shoot while move?</p>
+             <SubHeader subHeaderName={"Intake"}></SubHeader>
+             <br></br>
+             <div className={styles.intakeBox}>
+               <Checkbox visibleName={"Ground"}></Checkbox>
+               <Checkbox visibleName={"Outpost"}></Checkbox>
+             </div>
+
+
+             <br></br>
+             <br></br>
+
+
+             <FuelCounter internalName={"tele fuel"}/>
+
+
+             <Checkbox visibleName={"Shoot while move?"}></Checkbox>
+
+
+             <br></br>
+             <br></br>
+
+
+             <SubHeader subHeaderName={"Passing?"}></SubHeader>
+             <div className={styles.passingBox}>
+               <Checkbox visibleName={"Bulldozer"}></Checkbox>
+               <Checkbox visibleName={"Dumper"}></Checkbox>
+               <Checkbox visibleName={"Shooter"}></Checkbox>
+             </div>
+
+
+             <br></br>
+
+
+
+             <SubHeader subHeaderName={"Defense Location"}></SubHeader>
+             <br></br>
+             <div className={styles.defenseBox}>
+               <Checkbox visibleName={"Alliance Zone"}></Checkbox>
+               <Checkbox visibleName={"Neutral Zone"}></Checkbox>
+               <Checkbox visibleName={"Trench"}></Checkbox>
+               <Checkbox visibleName={"Bump"}></Checkbox>
+               <Checkbox visibleName={"Outpost"}></Checkbox>
+               <Checkbox visibleName={"Tower"}></Checkbox>
+               <Checkbox visibleName={"Hub"}></Checkbox>
+             </div>
+            
+           </div>
+
+           <div className={styles.PostMatch}>
+            <Header headerName={"Endgame"}/>
+            <br></br>
+            <SubHeader subHeaderName={"Climb"}></SubHeader>
+            <div>
+              <ClimbCheckbox></ClimbCheckbox>
             </div>
 
+            <Checkbox visibleName={"None"} internalName={"noClimb"} />
 
-            <div className={styles.PostMatch}>
-              <br></br>
+           </div>
+
+
+            <div className={styles.PostMatch}>       
               <Header headerName={"Post-Match"}/>
-                <p>shooting mechanism</p>
-                <p>hopper capacity</p>
-                <p>bump or trench?</p>
-                <p>defense quality</p>
-                <p>defense location</p>
-                <p>breakdown</p>
-                <p>stuck on fuel</p>
+              <br></br>
+                <div className={styles.percentFuel}>
+                  <TextInput 
+                    visibleName={"% of Alliance Fuel Scored by Robot:"} 
+                    internalName={"percentfuel"} 
+                    defaultValue={""}
+                    type={"text"}
+                  />
+                  {/*<h1>%</h1>*/}
+                </div>
+
+                <br></br>
+
+                <SubHeader subHeaderName={"Shooting Mechanism"}></SubHeader>
+                <div className= {styles.shootingBox}>
+                  <div className={autoClimbStyles.radioGroup}>
+                    <label>
+                        <input
+                          type="radio"
+                          name="staticShooting"
+                        />
+                        Static
+                    </label>
+
+                    <label>
+                        <input
+                          type="radio"
+                          name="staticShooting"
+                        />
+                        Turret
+                    </label>
+                  </div>
+                </div>
+                <br></br>
+
+                <SubHeader subHeaderName={"Terrain Capability"}></SubHeader>
+                <br></br>
+                <div className={styles.terrainBox}>
+                  <Checkbox visibleName={"Bump"}></Checkbox>
+                  <Checkbox visibleName={"Trench"}></Checkbox>
+                </div>
+
+                <br></br>
+                <Checkbox visibleName={"Stuck on Fuel Easily?"} internalName={"stuckOnFuel"} />
               
                 <div className={styles.Qual}>
                   <Qualitative                   

@@ -187,6 +187,59 @@ hr.subsubheading {
     border-color: rgb(184, 0, 0);
 }
 
+.defenseBox {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.passingBox {
+  display: flex;
+  flex-direction: column;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.intakeBox {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #676767;
+  border-radius: 10px;
+}
+.percentFuel {
+  margin-top: 5px;
+}
+
+.shootingBox {
+  background-color: #d9d26E;
+  color: black;
+  border-radius: 8px;
+  margin: 10px;
+  padding: 7px;
+  width: 225px;
+  justify-self: center;
+}
+
+.terrainBox {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 295px;
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #676767;
+  border-radius: 10px;
+}
+
+
+
 
 
 

@@ -1,0 +1,69 @@
+.box {
+    display: flex;
+    flex-direction: column;
+    background-color: #3F3F3F;
+    padding: 1rem;
+    border: 2px solid #888484;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 5px 15px;
+    margin: 5px auto;
+    display: inline-block;
+    text-align: center;
+    gap: 5px;
+}
+
+.row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+
+}
+
+.checkbox {
+    background-color:#cdf3ff;
+    color: black;
+    padding: 1rem;
+    border: 2px solid #888484;
+    border-radius: 5px;
+    cursor: pointer;
+    display: inline-block;
+    text-align: center;
+    height: 30px;
+    width: 30px;
+    margin: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center
+}
+
+
+
+.box:has(input:checked) {
+    border: 2px solid #888484;
+    background-color: #3F3F3F;
+}
+.checkbox:has(input:checked) {
+    background-color: #9DE387;
+}
+
+.box label {
+    margin-left: 10px;
+}
+
+.boxContainer {
+    display: flex;
+    align-content: center;
+    flex-grow: 1;
+}
+
+.radioGroup {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    justify-self: center;
+    width: 400px;
+    gap: 5px;
+  }

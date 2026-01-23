@@ -7,10 +7,12 @@ export default function Checkbox ({ visibleName, internalName, changeListener })
     return (
         <div className={styles.boxContainer}>
             <div className={styles.box}>
-                <input type="checkbox" id={internalName} name={internalName} checked={checked} onChange={(e) => {
-                    setChecked(e.target.checked);
-                    if (changeListener) changeListener(e);
-                }}></input>
+                    <label>
+                        <input
+                          type="checkbox"
+                          name="staticShooting"
+                        />
+                    </label>
                 <label htmlFor={internalName}>{visibleName}</label>
             </div>
         </div>
