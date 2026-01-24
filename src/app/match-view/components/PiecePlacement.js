@@ -3,10 +3,9 @@ import { useEffect, useRef } from 'react';
 import { Chart, registerables } from 'chart.js';
 Chart.register(...registerables);
 
-export default function PiecePlacement({ colors, matchMax, L1, L2, L3, L4, net, processor }) {
+export default function PiecePlacement({ colors, matchMax, fuel }) {
   const chartRef = useRef(null);
   const chartInstance = useRef(null);
-
 
   useEffect(() => {
     // Destroy existing chart if it exists
@@ -19,10 +18,10 @@ export default function PiecePlacement({ colors, matchMax, L1, L2, L3, L4, net, 
       chartInstance.current = new Chart(ctx, {
         type: 'bar',
         data: {
-          labels: ['L1', 'L2', 'L3', 'L4', 'Net', 'Prcsr'],
+          labels: ['Fuel'],
           datasets: [
             {
-              data: [L1, L2, L3, L4, net, processor],
+              data: [fuel],
               backgroundColor: colors[0],
               borderColor: colors[2],
               borderWidth: 1,
@@ -35,11 +34,22 @@ export default function PiecePlacement({ colors, matchMax, L1, L2, L3, L4, net, 
             y: {
               beginAtZero: true,
               max: matchMax,
+              title: {
+                display: true,
+                text: 'Average Fuel Scored'
+              }
             },
           },
           plugins: {
             legend: {
               display: false // Disable the legend entirely
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return `Fuel: ${context.raw}`;
+                }
+              }
             }
           }
         }
@@ -51,7 +61,7 @@ export default function PiecePlacement({ colors, matchMax, L1, L2, L3, L4, net, 
         chartInstance.current.destroy();
       }
     };
-  }, [L1, L2, L3, L4, net, processor, matchMax]);
+  }, [fuel, matchMax, colors]);
 
   return <canvas ref={chartRef} />;
 }

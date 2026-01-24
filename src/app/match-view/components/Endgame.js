@@ -13,10 +13,13 @@ export default function Endgame({ colors, endgameData }) {
     return null;
   }
 
+  // Filter out zero values for cleaner display
+  const filteredData = endgameData.filter(item => item.y > 0);
+
   return (
     <VictoryPie
       padding={100}
-      data={endgameData}
+      data={filteredData}
       colorScale={colors}
       labels={({ datum }) => `${datum.x}: ${Math.round(datum.y)}%`}
       style={{
@@ -24,6 +27,10 @@ export default function Endgame({ colors, endgameData }) {
           stroke: '#000', // Black border
           strokeWidth: 1.5, // Border width
         },
+        labels: {
+          fontSize: 14,
+          fontWeight: 'bold'
+        }
       }}
     />
   );
