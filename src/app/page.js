@@ -275,7 +275,7 @@ export default function Home() {
         alert("Thank you!");
         const jsConfetti = new JSConfetti();
         jsConfetti.addConfetti({
-        emojis: ['🐠', '🐡', '🦀', '🪸'],
+        emojis: ['🪲', '🪲','🟡', '🟡', '🟡', '🔎', '🟡'],
         emojiSize: 100,
         confettiRadius: 3,
         confettiNumber: 100,
