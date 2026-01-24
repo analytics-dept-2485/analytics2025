@@ -13,6 +13,8 @@ import JSConfetti from 'js-confetti';
 import FuelCounter from "./form-components/FuelCounter";
 import AutoClimb from "./form-components/AutoClimb";
 import autoClimbStyles from "./form-components/AutoClimb.module.css";
+import ClimbCheckbox from "./form-components/ClimbCheckbox";
+import DefenseBreakdown from "./form-components/DefenseBreakdown";
 
 export default function Home() {
   const [noShow, setNoShow] = useState(false);
@@ -22,6 +24,7 @@ export default function Home() {
   const [scoutProfile, setScoutProfile] = useState(null);
   const [climbYesNo, setClimbYesNo] = useState("0");
   const [climbPosition, setClimbPosition] = useState("0");
+  const [defenseType, setDefenseType] = useState("");
 
   const form = useRef();
 
@@ -48,13 +51,18 @@ export default function Home() {
   function onDefenseChange(e) {
     let checked = e.target.checked;
     setDefense(checked);
+    if (!checked) {
+      setDefenseType(""); // Clear defense type when unchecked
+    }
   }
 
+  function onDefenseTypeChange(value) {
+    setDefenseType(value);
+  }
   
   function handleMatchTypeChange(value){
     setMatchType(value);
     console.log("Selected match type:", value);
-
 };
 
   function handleClimbYesNo (value) {
@@ -75,7 +83,7 @@ export default function Home() {
     submitButton.disabled = true;
     //import values from form to data variable
 
-    let data = {noshow: false, leave: false, algaelowreefintake: false, algaehighreefintake: false, algaegrndintake: false, coralgrndintake: false, coralstationintake: false, srcintake: false, breakdown: false, defense: false, stageplacement: -1, breakdowncomments: null, defensecomments: null, generalcomments: null };
+    let data = {noshow: false, leave: false, algaelowreefintake: false, algaehighreefintake: false, algaegrndintake: false, coralgrndintake: false, coralstationintake: false, srcintake: false, breakdown: false, defense: false, stageplacement: -1, breakdowncomments: null, defensecomments: null, generalcomments: null, defensetype: null };
     [...new FormData(form.current).entries()].forEach(([name, value]) => {
       if (value == 'on') {
         data[name] = true;
@@ -91,6 +99,7 @@ export default function Home() {
     //clear unneeded checkbox values
     data.breakdown = undefined;
     data.defense = undefined;
+    data.defensetype = defenseType;
 
     //check pre-match data
     let preMatchInputs = document.querySelectorAll(".preMatchInput"); //todo: use the data object
@@ -228,6 +237,7 @@ console.log("page",matchType)
         </div>
         {!noShow && (
           <>
+          <br></br>
             <div className={styles.Auto}>
               <Header headerName={"Auto"}/>
 
@@ -281,30 +291,121 @@ console.log("page",matchType)
               <Checkbox visibleName={"Win Auto?"} internalName={"win auto"}/>
             </div>
               
-              
+              <br></br>
+              <br></br>
             <div className={styles.Tele}>
-              <Header headerName={"Tele"}/>
+             <Header headerName={"Tele"}/>
 
-              <p>fuel</p>
 
-              <p>intake</p>
+             <br></br>
 
-              <p>passing</p>
 
-              <p>shoot while move?</p>
+             <SubHeader subHeaderName={"Intake"}></SubHeader>
+             <br></br>
+             <div className={styles.intakeBox}>
+               <Checkbox visibleName={"Ground"}></Checkbox>
+               <Checkbox visibleName={"Outpost"}></Checkbox>
+             </div>
+
+
+             <br></br>
+             <br></br>
+
+
+             <FuelCounter internalName={"tele fuel"}/>
+
+
+             <Checkbox visibleName={"Shoot while move?"}></Checkbox>
+
+
+             <br></br>
+             <br></br>
+
+
+             <SubHeader subHeaderName={"Passing?"}></SubHeader>
+             <div className={styles.passingBox}>
+               <Checkbox visibleName={"Bulldozer"}></Checkbox>
+               <Checkbox visibleName={"Dumper"}></Checkbox>
+               <Checkbox visibleName={"Shooter"}></Checkbox>
+             </div>
+
+
+             <br></br>
+
+
+
+             <SubHeader subHeaderName={"Defense Location"}></SubHeader>
+             <br></br>
+             <div className={styles.defenseBox}>
+               <Checkbox visibleName={"Alliance Zone"}></Checkbox>
+               <Checkbox visibleName={"Neutral Zone"}></Checkbox>
+               <Checkbox visibleName={"Trench"}></Checkbox>
+               <Checkbox visibleName={"Bump"}></Checkbox>
+               <Checkbox visibleName={"Outpost"}></Checkbox>
+               <Checkbox visibleName={"Tower"}></Checkbox>
+               <Checkbox visibleName={"Hub"}></Checkbox>
+             </div>
+            
+           </div>
+
+           <div className={styles.PostMatch}>
+            <Header headerName={"Endgame"}/>
+            <br></br>
+            <SubHeader subHeaderName={"Climb"}></SubHeader>
+            <div>
+              <ClimbCheckbox></ClimbCheckbox>
             </div>
 
+            <Checkbox visibleName={"None"} internalName={"noClimb"} />
 
-            <div className={styles.PostMatch}>
-              <br></br>
+           </div>
+
+
+            <div className={styles.PostMatch}>       
               <Header headerName={"Post-Match"}/>
-                <p>shooting mechanism</p>
-                <p>hopper capacity</p>
-                <p>bump or trench?</p>
-                <p>defense quality</p>
-                <p>defense location</p>
-                <p>breakdown</p>
-                <p>stuck on fuel</p>
+              <br></br>
+                <div className={styles.percentFuel}>
+                  <TextInput 
+                    visibleName={"% of Alliance Fuel Scored by Robot:"} 
+                    internalName={"percentfuel"} 
+                    defaultValue={""}
+                    type={"text"}
+                  />
+                </div>
+
+                <br></br>
+
+                <SubHeader subHeaderName={"Shooting Mechanism"}></SubHeader>
+                <div className= {styles.shootingBox}>
+                  <div className={autoClimbStyles.radioGroup}>
+                    <label>
+                        <input
+                          type="radio"
+                          name="staticShooting"
+                        />
+                        Static
+                    </label>
+
+                    <label>
+                        <input
+                          type="radio"
+                          name="staticShooting"
+                        />
+                        Turret
+                    </label>
+                  </div>
+                </div>
+                <br></br>
+
+                <SubHeader subHeaderName={"Terrain Capability"}></SubHeader>
+                <br></br>
+                <div className={styles.terrainBox}>
+                  <Checkbox visibleName={"Bump"}></Checkbox>
+                  <Checkbox visibleName={"Trench"}></Checkbox>
+                </div>
+
+                <br></br>
+                <Checkbox visibleName={"Stuck on Fuel Easily?"} internalName={"stuckOnFuel"} />
               
                 <div className={styles.Qual}>
                   <Qualitative                   
@@ -356,13 +457,14 @@ console.log("page",matchType)
                 </div>
               <br></br>
 
-              <Checkbox visibleName={"Broke down?"} internalName={"breakdown"} changeListener={onBreakdownChange} />
-              { breakdown &&
-                <CommentBox
-                  visibleName={"Breakdown Elaboration"}
-                  internalName={"breakdowncomments"}
-                />
-              }
+              <DefenseBreakdown 
+                onBreakdownChange={onBreakdownChange}
+                onDefenseChange={onDefenseChange}
+                onDefenseTypeChange={onDefenseTypeChange}
+                breakdownValue={breakdown}
+                defenseValue={defense}
+                defenseTypeValue={defenseType}
+              />
               <CommentBox
                 visibleName={"General Comments"}
                 internalName={"generalcomments"}

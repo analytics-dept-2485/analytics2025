@@ -1,0 +1,115 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin: 20px 0;
+    width: 100%; /* Make it full width */
+}
+
+.section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.defenseTypeContainer {
+    margin-left: 0; /* Remove left margin */
+    width: 100%;
+}
+
+.defenseTypeBox {
+    background-color: #d9d26E;
+    color: black;
+    border-radius: 8px;
+    margin: 10px 0; /* Remove left/right margin, keep top/bottom */
+    padding: 7px;
+    width: 357px; /* Make it full width */
+    justify-self: center;
+}
+
+.radioGroup {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    justify-self: center;
+    width: 100%; /* Full width */
+    gap: 5px;
+}
+
+.radioGroup input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    
+    /* Create a custom circle */
+    width: 1.2rem;
+    height: 1.2rem;
+    border: 2px solid black;     
+    border-radius: 50%;        
+    background-color: #fff;
+    cursor: pointer;
+    outline: none;             
+    margin-right: 0.5rem;      
+}
+
+.radioGroup input[type="radio"]:checked::before {
+    content: "";
+    display: block;
+    width: 0.8rem;
+    height: 0.8rem;
+    background-color: black;  
+    border-radius: 50%;
+    margin: 0.08rem auto;    
+}
+
+.radioGroup label {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.6rem;
+    border: 2px solid Black;
+    border-radius: 0.5rem;
+    background-color: #FFFFBA;
+    color: black;
+    cursor: pointer;
+    font-family: "Belleza", sans-serif;
+    font-size: 18px;
+}
+
+.commentContainer {
+    margin-left: 0; /* Remove left margin */
+    width: 100%;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Hover effects */
+.radioGroup label:hover {
+    background-color: #f0f08f;
+    transform: scale(1.02);
+    transition: transform 0.2s;
+}
+
+.radioGroup input[type="radio"]:hover {
+    border-color: #666;
+}
+
+.radioGroup input[type="radio"]:checked {
+    border-color: #000;
+}
+
+/* Make the checkbox labels consistent */
+.checkboxLabel {
+    font-size: 25px;
+    color: white;
+    font-family: "Belleza", sans-serif;
+    margin-left: 10px;
+}
