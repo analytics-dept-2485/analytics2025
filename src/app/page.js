@@ -226,39 +226,39 @@ export default function Home() {
         return;
       } 
     }
-    if (matchType == 2) {
-      try {
-        const response = await fetch(`/api/get-valid-team?team=${data.team}&match=${data.match}`)
-        const validationData = await response.json();
+    // if (matchType == 2) {
+    //   try {
+    //     const response = await fetch(`/api/get-valid-team?team=${data.team}&match=${data.match}`)
+    //     const validationData = await response.json();
         
-        if (!validationData.valid) {
-          alert("Invalid Team and Match Combination!");
-          submitButton.disabled = false;
-          return;
-        }
-      } catch (error) {
-        console.error("Validation error:", error);
-        alert("Error validating team and match. Please try again.");
-        submitButton.disabled = false;
-        return;
-      } 
-    } else {
-      try {
-        const response = await fetch(`/api/get-valid-match-teams?team=${data.team}`)
-        const validationData = await response.json();
+    //     if (!validationData.valid) {
+    //       alert("Invalid Team and Match Combination!");
+    //       submitButton.disabled = false;
+    //       return;
+    //     }
+    //   } catch (error) {
+    //     console.error("Validation error:", error);
+    //     alert("Error validating team and match. Please try again.");
+    //     submitButton.disabled = false;
+    //     return;
+    //   } 
+    // } else {
+    //   try {
+    //     const response = await fetch(`/api/get-valid-match-teams?team=${data.team}`)
+    //     const validationData = await response.json();
         
-        if (!validationData.valid) {
-          alert("Invalid Team!");
-          submitButton.disabled = false;
-          return;
-        }
-      } catch (error) {
-        console.error("Validation error:", error);
-        alert("Error validating team. Please try again.");
-        submitButton.disabled = false;
-        return;
-      } 
-    }
+    //     if (!validationData.valid) {
+    //       alert("Invalid Team!");
+    //       submitButton.disabled = false;
+    //       return;
+    //     }
+    //   } catch (error) {
+    //     console.error("Validation error:", error);
+    //     alert("Error validating team. Please try again.");
+    //     submitButton.disabled = false;
+    //     return;
+    //   } 
+    // }
     //confirm and submit
     if (confirm("Are you sure you want to submit?") == true) {
       fetch('/api/add-match-data', {
