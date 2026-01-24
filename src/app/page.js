@@ -23,7 +23,7 @@ export default function Home() {
   const [matchType, setMatchType] = useState("2");
   const [scoutProfile, setScoutProfile] = useState(null);
   const [climbYesNo, setClimbYesNo] = useState("0");
-  const [climbPosition, setClimbPosition] = useState("0");
+  const [climbPosition, setClimbPosition] = useState(null); // Will be "0", "1", or "2" for auto climb position
   const [defenseType, setDefenseType] = useState("");
 
   const form = useRef();
@@ -79,7 +79,7 @@ export default function Home() {
   async function submit(e) {
     e.preventDefault();
     //disable submit
-    let submitButton = document.querySelector("#submit");//todo: get changed to a useRef
+    let submitButton = document.querySelector("#submit");
     submitButton.disabled = true;
     //import values from form to data variable
 
@@ -96,10 +96,126 @@ export default function Home() {
       }
     });
      
-    //clear unneeded checkbox values
+    // Map form field names to API field names and convert data types
+    
+    // Auto Climb: climbYesNo (string "0","1","2") -> autoclimb (integer 0,1,2)
+    if (data.climbYesNo !== undefined) {
+      data.autoclimb = parseInt(data.climbYesNo);
+      delete data.climbYesNo;
+    }
+    
+    if (data.autoClimbPosition !== undefined && data.autoclimb === 1) {
+      data.autoclimbposition = parseInt(data.autoClimbPosition);
+      delete data.autoClimbPosition;
+    } else {
+      data.autoclimbposition = null;
+      delete data.autoClimbPosition;
+    }
+    
+  
+    // 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+    if (data.endClimbPosition !== undefined && data.endClimbPosition !== null && data.endClimbPosition !== "") {
+      data.endclimbposition = parseInt(data.endClimbPosition);
+      delete data.endClimbPosition;
+    } else {
+      data.endclimbposition = null;
+      delete data.endClimbPosition;
+    }
+    
+    // ClimbTF: Map from "noClimb" checkbox (true if checked = climb failed/none)
+    if (data.noClimb !== undefined) {
+      data.climbtf = data.noClimb === true;
+      delete data.noClimb;
+    } else {
+      data.climbtf = false;
+    }
+    
+    // Shooting Mechanism: staticShooting radio -> shootingmechanism (0=Static, 1=Turret)
+    const staticShootingRadio = document.querySelector('input[name="staticShooting"]:checked');
+    if (staticShootingRadio) {
+      const label = staticShootingRadio.closest('label');
+      const labelText = label ? label.textContent.trim() : "";
+      if (labelText === "Static") {
+        data.shootingmechanism = 0;
+      } else if (labelText === "Turret") {
+        data.shootingmechanism = 1;
+      } else {
+
+        data.shootingmechanism = 0;
+      }
+    } else {
+
+      data.shootingmechanism = 0;
+    }
+    delete data.staticShooting;
+    
+
+    if (data.percentfuel !== undefined) {
+
+      let fuelPercent = data.percentfuel.toString().replace('%', '').trim();
+      data.fuelpercent = parseInt(fuelPercent) || 0;
+      delete data.percentfuel;
+    }
+    
+
+    const playedDefenseValue = data.defense === true;
+    data.playeddefense = playedDefenseValue;
+    delete data.defense; 
+    
+   
+    if (playedDefenseValue && defenseType) {
+      const defenseMap = {
+        "weak": 0,
+        "harassment": 1,
+        "game-changing": 2
+      };
+      data.defense = defenseMap[defenseType] !== undefined ? defenseMap[defenseType] : null;
+    } else {
+      data.defense = null;
+    }
+    delete data.defensetype;
+    
+    
+    if (Array.isArray(data.defenselocationoutpost)) {
+      data.defenselocationoutpost = data.defenselocationoutpost.some(v => v === true);
+    } else if (data.defenselocationoutpost === undefined) {
+      data.defenselocationoutpost = false;
+    }
+    if (data.defenselocationtower === undefined) data.defenselocationtower = false;
+    if (data.defenselocationhub === undefined) data.defenselocationhub = false;
+    if (data.defenselocationnz === undefined) data.defenselocationnz = false;
+    if (data.defenselocationtrench === undefined) data.defenselocationtrench = false;
+    if (data.defenselocationbump === undefined) data.defenselocationbump = false;
+    
+    // Field name fixes: normalize to lowercase with no spaces
+    // "win auto" -> "winauto"
+    if (data["win auto"] !== undefined) {
+      data.winauto = data["win auto"];
+      delete data["win auto"];
+    }
+
+    if (data["auto fuel"] !== undefined) {
+      data.autofuel = data["auto fuel"];
+      delete data["auto fuel"];
+    }
+
+    if (data["tele fuel"] !== undefined) {
+      data.telefuel = data["tele fuel"];
+      delete data["tele fuel"];
+    }
+
+    if (data["shoot while move"] !== undefined) {
+      data.shootwhilemove = data["shoot while move"];
+      delete data["shoot while move"];
+    }
+
+    if (data["stuckOnFuel"] !== undefined) {
+      data.stuckonfuel = data["stuckOnFuel"];
+      delete data["stuckOnFuel"];
+    }
+    
+
     data.breakdown = undefined;
-    data.defense = undefined;
-    data.defensetype = defenseType;
 
     //check pre-match data
     let preMatchInputs = document.querySelectorAll(".preMatchInput"); //todo: use the data object
@@ -257,9 +373,9 @@ console.log("page",matchType)
                     <label>
                       <input
                         type="radio"
-                        name="climbPosition"
-                        value="1"
-                        checked={climbPosition === "1"}
+                        name="autoClimbPosition"
+                        value="0"
+                        checked={climbPosition === "0"}
                         onChange={(e) => handleClimbPosition(e.target.value)}
                       />
                       Left
@@ -267,9 +383,9 @@ console.log("page",matchType)
                     <label>
                       <input
                         type="radio"
-                        name="climbPosition"
-                        value="2"
-                        checked={climbPosition === "2"}
+                        name="autoClimbPosition"
+                        value="1"
+                        checked={climbPosition === "1"}
                         onChange={(e) => handleClimbPosition(e.target.value)}
                       />
                       Center
@@ -277,9 +393,9 @@ console.log("page",matchType)
                     <label>
                       <input
                         type="radio"
-                        name="climbPosition"
-                        value="3"
-                        checked={climbPosition === "3"}
+                        name="autoClimbPosition"
+                        value="2"
+                        checked={climbPosition === "2"}
                         onChange={(e) => handleClimbPosition(e.target.value)}
                       />
                       Right
@@ -303,8 +419,8 @@ console.log("page",matchType)
              <SubHeader subHeaderName={"Intake"}></SubHeader>
              <br></br>
              <div className={styles.intakeBox}>
-               <Checkbox visibleName={"Ground"}></Checkbox>
-               <Checkbox visibleName={"Outpost"}></Checkbox>
+               <Checkbox visibleName={"Ground"} internalName={"intakeground"}></Checkbox>
+               <Checkbox visibleName={"Outpost"} internalName={"intakeoutpost"}></Checkbox>
              </div>
 
 
@@ -315,7 +431,7 @@ console.log("page",matchType)
              <FuelCounter internalName={"tele fuel"}/>
 
 
-             <Checkbox visibleName={"Shoot while move?"}></Checkbox>
+             <Checkbox visibleName={"Shoot while move?"} internalName={"shootwhilemove"}></Checkbox>
 
 
              <br></br>
@@ -324,9 +440,9 @@ console.log("page",matchType)
 
              <SubHeader subHeaderName={"Passing?"}></SubHeader>
              <div className={styles.passingBox}>
-               <Checkbox visibleName={"Bulldozer"}></Checkbox>
-               <Checkbox visibleName={"Dumper"}></Checkbox>
-               <Checkbox visibleName={"Shooter"}></Checkbox>
+               <Checkbox visibleName={"Bulldozer"} internalName={"passingbulldozer"}></Checkbox>
+               <Checkbox visibleName={"Dumper"} internalName={"passingdump"}></Checkbox>
+               <Checkbox visibleName={"Shooter"} internalName={"passingshooter"}></Checkbox>
              </div>
 
 
@@ -337,13 +453,13 @@ console.log("page",matchType)
              <SubHeader subHeaderName={"Defense Location"}></SubHeader>
              <br></br>
              <div className={styles.defenseBox}>
-               <Checkbox visibleName={"Alliance Zone"}></Checkbox>
-               <Checkbox visibleName={"Neutral Zone"}></Checkbox>
-               <Checkbox visibleName={"Trench"}></Checkbox>
-               <Checkbox visibleName={"Bump"}></Checkbox>
-               <Checkbox visibleName={"Outpost"}></Checkbox>
-               <Checkbox visibleName={"Tower"}></Checkbox>
-               <Checkbox visibleName={"Hub"}></Checkbox>
+               <Checkbox visibleName={"Alliance Zone"} internalName={"defenselocationoutpost"}></Checkbox>
+               <Checkbox visibleName={"Neutral Zone"} internalName={"defenselocationnz"}></Checkbox>
+               <Checkbox visibleName={"Trench"} internalName={"defenselocationtrench"}></Checkbox>
+               <Checkbox visibleName={"Bump"} internalName={"defenselocationbump"}></Checkbox>
+               <Checkbox visibleName={"Outpost"} internalName={"defenselocationoutpost"}></Checkbox>
+               <Checkbox visibleName={"Tower"} internalName={"defenselocationtower"}></Checkbox>
+               <Checkbox visibleName={"Hub"} internalName={"defenselocationhub"}></Checkbox>
              </div>
             
            </div>
@@ -400,8 +516,8 @@ console.log("page",matchType)
                 <SubHeader subHeaderName={"Terrain Capability"}></SubHeader>
                 <br></br>
                 <div className={styles.terrainBox}>
-                  <Checkbox visibleName={"Bump"}></Checkbox>
-                  <Checkbox visibleName={"Trench"}></Checkbox>
+                  <Checkbox visibleName={"Bump"} internalName={"bump"}></Checkbox>
+                  <Checkbox visibleName={"Trench"} internalName={"trench"}></Checkbox>
                 </div>
 
                 <br></br>
@@ -410,7 +526,7 @@ console.log("page",matchType)
                 <div className={styles.Qual}>
                   <Qualitative                   
                     visibleName={"Hopper Capacity"}
-                    internalName={"Hopper Capacity"}
+                    internalName={"hoppercapacity"}
                     description={"Hopper Capacity"}/>
                   <Qualitative                   
                     visibleName={"Maneuverability"}

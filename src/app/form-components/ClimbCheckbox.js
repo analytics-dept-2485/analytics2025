@@ -3,17 +3,12 @@ import styles from "./ClimbCheckbox.module.css";
 import { useState } from "react";
 
 export default function ClimbCheckbox({ internalName, changeListener }) {
-    const [selectedCell, setSelectedCell] = useState(null);
-    const [selectedType, setSelectedType] = useState("0");
+    // Map: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+    const [selectedValue, setSelectedValue] = useState(null);
 
-    const handleCellClick = (id) => {
-        setSelectedCell(id);
-        if (changeListener) changeListener({ type: "position", value: id });
-    };
-
-    const handleTypeChange = (e) => {
-        setSelectedType(e.target.value);
-        if (changeListener) changeListener({ type: "climbType", value: e.target.value });
+    const handleChange = (value) => {
+        setSelectedValue(value);
+        if (changeListener) changeListener({ type: "position", value: value });
     };
 
     return (
@@ -45,27 +40,30 @@ export default function ClimbCheckbox({ internalName, changeListener }) {
                                 <input 
                                     type="radio" 
                                     id="L3-left" 
-                                    name="climbPosition"
-                                    checked={selectedCell === "L3-left"}
-                                    onChange={() => handleCellClick("L3-left")}
+                                    name="endClimbPosition"
+                                    value="0"
+                                    checked={selectedValue === "0"}
+                                    onChange={() => handleChange("0")}
                                 />
                             </div>
                             <div className={`${styles.checkbox} ${styles.l3Cell}`}>
                                 <input 
                                     type="radio" 
                                     id="L3-center" 
-                                    name="climbPosition"
-                                    checked={selectedCell === "L3-center"}
-                                    onChange={() => handleCellClick("L3-center")}
+                                    name="endClimbPosition"
+                                    value="3"
+                                    checked={selectedValue === "3"}
+                                    onChange={() => handleChange("3")}
                                 />
                             </div>
                             <div className={`${styles.checkbox} ${styles.l3Cell}`}>
                                 <input 
                                     type="radio" 
                                     id="L3-right" 
-                                    name="climbPosition"
-                                    checked={selectedCell === "L3-right"}
-                                    onChange={() => handleCellClick("L3-right")}
+                                    name="endClimbPosition"
+                                    value="6"
+                                    checked={selectedValue === "6"}
+                                    onChange={() => handleChange("6")}
                                 />
                             </div>
                         </div>
@@ -76,27 +74,30 @@ export default function ClimbCheckbox({ internalName, changeListener }) {
                                 <input 
                                     type="radio" 
                                     id="L2-left" 
-                                    name="climbPosition"
-                                    checked={selectedCell === "L2-left"}
-                                    onChange={() => handleCellClick("L2-left")}
+                                    name="endClimbPosition"
+                                    value="1"
+                                    checked={selectedValue === "1"}
+                                    onChange={() => handleChange("1")}
                                 />
                             </div>
                             <div className={`${styles.checkbox} ${styles.l2Cell}`}>
                                 <input 
                                     type="radio" 
                                     id="L2-center" 
-                                    name="climbPosition"
-                                    checked={selectedCell === "L2-center"}
-                                    onChange={() => handleCellClick("L2-center")}
+                                    name="endClimbPosition"
+                                    value="4"
+                                    checked={selectedValue === "4"}
+                                    onChange={() => handleChange("4")}
                                 />
                             </div>
                             <div className={`${styles.checkbox} ${styles.l2Cell}`}>
                                 <input 
                                     type="radio" 
                                     id="L2-right" 
-                                    name="climbPosition"
-                                    checked={selectedCell === "L2-right"}
-                                    onChange={() => handleCellClick("L2-right")}
+                                    name="endClimbPosition"
+                                    value="7"
+                                    checked={selectedValue === "7"}
+                                    onChange={() => handleChange("7")}
                                 />
                             </div>
                         </div>
@@ -107,27 +108,30 @@ export default function ClimbCheckbox({ internalName, changeListener }) {
                                 <input 
                                     type="radio" 
                                     id="L1-left" 
-                                    name="climbPosition"
-                                    checked={selectedCell === "L1-left"}
-                                    onChange={() => handleCellClick("L1-left")}
+                                    name="endClimbPosition"
+                                    value="2"
+                                    checked={selectedValue === "2"}
+                                    onChange={() => handleChange("2")}
                                 />
                             </div>
                             <div className={`${styles.checkbox} ${styles.l1Cell}`}>
                                 <input 
                                     type="radio" 
                                     id="L1-center" 
-                                    name="climbPosition"
-                                    checked={selectedCell === "L1-center"}
-                                    onChange={() => handleCellClick("L1-center")}
+                                    name="endClimbPosition"
+                                    value="5"
+                                    checked={selectedValue === "5"}
+                                    onChange={() => handleChange("5")}
                                 />
                             </div>
                             <div className={`${styles.checkbox} ${styles.l1Cell}`}>
                                 <input 
                                     type="radio" 
                                     id="L1-right" 
-                                    name="climbPosition"
-                                    checked={selectedCell === "L1-right"}
-                                    onChange={() => handleCellClick("L1-right")}
+                                    name="endClimbPosition"
+                                    value="8"
+                                    checked={selectedValue === "8"}
+                                    onChange={() => handleChange("8")}
                                 />
                             </div>
                         </div>

@@ -72,7 +72,7 @@ export async function POST(req) {
       _.isBoolean(body.passingbulldozer) &&
       _.isBoolean(body.passingshooter) &&
       _.isBoolean(body.passingdump) &&
-      _.isBoolean(body.shootwhilemove) &&
+      // _.isBoolean(body.shootwhilemove) &&
       _.isNumber(body.telefuel) &&
       _.isBoolean(body.defenselocationoutpost) &&
       _.isBoolean(body.defenselocationtower) &&
