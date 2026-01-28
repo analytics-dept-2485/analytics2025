@@ -34,7 +34,7 @@ function filterNegative(value) {
 function TeamView() {
 
     //for backend
-    const [data, setData] = useState(null);
+    //const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const searchParams = useSearchParams();
@@ -75,150 +75,163 @@ function TeamView() {
     }
 
 
-    // let data={
-    //   team: 2485,
-    //   name: "Overclocked",
-    //   avgEpa: 73,
-    //   avgAuto: 20,
-    //   avgTele: 56,
-    //   avgEnd: 12,
-    //   last3Epa: 70,
-    //   last3Auto: 30,
-    //   last3Tele: 53,
-    //   last3End: 2,
-    //   epaOverTime: [{match: 3, epa: 60},{match: 10, epa: 43},{match: 13, epa: 12}],
-    //   epaRegression: [{match: 3, epa: 60}, {match: 13, epa: 12}], //not sure how we should do this one
-    //   consistency: 98,
-    //   defense: 11,
-    //   lastBreakdown: 2,
-    //   noShow: 1,
-    //   breakdown: 9,
-    //   matchesScouted: 3,
-    //   scouts: ["Yael", "Ella", "Max",],
-    //   generalComments: ["pretty good", "fragile intake","hooray!"],
-    //   breakdownComments: ["stopped moving"],
-    //   defenseComments: ["defended coral human player station"],
-    //   autoOverTime: [{match: 8, epa: 60},{match: 10, epa: 10},{match: 13, epa: 2}],
-    //   leave: 93,
-    //   auto: {
-    //     coral: {
-    //       total: 7,
-    //       success: 88,
-    //       avgL1: 3,
-    //       avgL2: 4,
-    //       avgL3: 7,
-    //       avgL4: 1,
-    //       successL1: 90,
-    //       successL2: 87,
-    //       successL3: 23,
-    //       successL4: 100
-    //     },
-    //     algae: {
-    //       removed: 1,
-    //       avgProcessor: 0,
-    //       avgNet: 1,
-    //       successProcessor: 0,
-    //       successNet: 100,
-    //     },
-    //   },
-    //   teleOverTime: [{match: 8, epa: 30}, {match: 10, epa: 78}, {match: 13, epa: 42}],
-    //   tele: {
-    //     coral: {
-    //       total: 15,
-    //       success: 82,
-    //       avgL1: 9,
-    //       avgL2: 3,
-    //       avgL3: 6,
-    //       avgL4: 2,
-    //       successL1: 93,
-    //       successL2: 81,
-    //       successL3: 29,
-    //       successL4: 80
-    //     },
-    //     algae: {
-    //       removed: 3,
-    //       avgProcessor: 2,
-    //       avgNet: 4,
-    //       successProcessor: 76,
-    //       successNet: 11,
-    //     },
-    //     avgHp: 3,
-    //     successHp: 13,
-    //   },
-    //   endPlacement: {
-    //     none: 10,
-    //     park: 20,
-    //     deep: 12,
-    //     shallow: 38,
-    //     parkandFail: 10,
-    //   },
-    //   attemptCage: 94,
-    //   successCage: 68,
-    //   qualitative: [
-    //     {name: "Coral Speed", rating: 5},
-    //     {name: "Processor Speed", rating: 4},
-    //     {name: "Net Speed", rating: 3},
-    //     {name: "Algae Removal Speed", rating: 5},
-    //     {name: "Climb Speed", rating: 3},
-    //     {name: "Maneuverability", rating: 4},
-    //     {name: "Defense Played", rating: 5},
-    //     {name: "Defense Evasion", rating: 0},
-    //     {name: "Aggression*", rating: 1},
-    //     {name: "Cage Hazard*", rating: 2},
-    //   ],
-    //   coralGroundIntake: true,
-    //   coralStationIntake: true,
-    //   algaeGroundIntake: false,
-    //   algaeLowReefIntake: false,
-    //   algaeHighReefIntake: true,
-    //   lollipop: true,
-    // }
+    let data={
+      team: 2485,
+      name: "Overclocked",
+      avgEpa: 73,
+      avgAuto: 20,
+      avgTele: 56,
+      avgEnd: 12,
+      last3Epa: 70,
+      last3Auto: 30,
+      last3Tele: 53,
+      last3End: 2,
+      epaOverTime: [{match: 3, epa: 60},{match: 10, epa: 43},{match: 13, epa: 12}],
+      epaRegression: [{match: 3, epa: 60}, {match: 13, epa: 12}], //not sure how we should do this one
+      consistency: 98,
+      stuckOnFuel: 12,
+      defense: 11,
+      shootingMechanism: "turret",
+      lastBreakdown: 2,
+      noShow: 1,
+      breakdown: 9,
+      matchesScouted: 3,
+      scouts: ["Yael", "Ella", "Max",],
+      generalComments: ["pretty good", "fragile intake","hooray!"],
+      breakdownComments: ["stopped moving"],
+      defenseComments: ["defended coral human player station"],
+     
+      autoOverTime: [{match: 8, epa: 60},{match: 10, epa: 10},{match: 13, epa: 2}],
+      leave: 93,
+      autoclimb: {
+        success: 7,
+        fail: 88,
+        none: 3,
+      },
+      autoMedianFuel: 3,
+ 
+ 
+      teleOverTime: [{match: 8, epa: 30}, {match: 10, epa: 78}, {match: 13, epa: 42}],
+      teleMedianFuel: 2,
+      passing: {
+        shooter: 10,
+        bulldozer: 2,
+        dump: 30,
+      },
+      defenseQuality: {
+        weak: 10,
+        harassment: 2,
+        gameChanging: 30,
+      },
+      defenseLocation: {
+        allianceZone: 12,
+        neutralZone: 8,
+        trench: 10,
+        bump: 2,
+        tower: 5,
+        outpost: 3,
+        hub: 7,
+      },
+     
+      endPlacement: {
+        none: {
+          left: 2,
+          right: 3,
+          center: 2,
+        },
+        none: {
+          left: 2,
+          right: 3,
+          center: 2,
+        },
+        L1: {
+          left: 3,
+          right: 4,
+          center: 1,
+        },
+        L2: {
+          left: 5,
+          right: 2,
+          center: 3,
+        },
+        L3: {
+          left: 6,
+          right: 1,
+          center: 1,
+        },
+      },
+ 
+ 
+      qualitative: [
+        {name: "Hopper Capacity", rating: 5},
+        {name: "Maneuverability", rating: 4},
+        {name: "Durability", rating: 3},
+        {name: "Fuel Speed", rating: 5},
+        {name: "Passing Speed", rating: 3},
+        {name: "Climb Speed", rating: 4},
+        {name: "Auto De-Climb Speed", rating: 5},
+        {name: "Bump Speed", rating: 0},
+        {name: "Defense Evasion", rating: 1},
+        {name: "Climb Hazard*", rating: 2},
+        {name: "Aggression*"},
+      ],
+      groundIntake: true,
+      outpostIntake: true,
+      shootWhileMove: true,
+      bumpTrav: true,
+      trenchTrav: true,
+    } 
+
+
     // Fetch team data from backend
-    function fetchTeamData(team) {
-      setLoading(true);
-      setError(null);
+  //   function fetchTeamData(team) {
+  //     setLoading(true);
+  //     setError(null);
   
-      fetch(`/api/get-team-data?team=${team}`)
-          .then(response => {
-              if (!response.ok) {
-                  throw new Error("Failed to fetch data");
-              }
-              return response.json();
-          })
-          .then(data => {
-              console.log("Fetched Data:", data);  // <-- Log the data received
+  //     fetch(`/api/get-team-data?team=${team}`)
+  //         .then(response => {
+  //             if (!response.ok) {
+  //                 throw new Error("Failed to fetch data");
+  //             }
+  //             return response.json();
+  //         })
+  //         .then(data => {
+  //             console.log("Fetched Data:", data);  // <-- Log the data received
 
-              setData(data);
-              console.log("Coral Total (Frontend):", data.leave);
-              const last3Matches = data.matches.slice(-3); 
+  //             setData(data);
+  //             console.log("Coral Total (Frontend):", data.leave);
+  //             const last3Matches = data.matches.slice(-3); 
 
-              const last3Epa = last3Matches.reduce((sum, match) => sum + match.epa, 0) / last3Matches.length;
-              const last3Auto = last3Matches.reduce((sum, match) => sum + match.auto, 0) / last3Matches.length;
-              const last3Tele = last3Matches.reduce((sum, match) => sum + match.tele, 0) / last3Matches.length;
-              const last3End = last3Matches.reduce((sum, match) => sum + match.end, 0) / last3Matches.length;
+  //             const last3Epa = last3Matches.reduce((sum, match) => sum + match.epa, 0) / last3Matches.length;
+  //             const last3Auto = last3Matches.reduce((sum, match) => sum + match.auto, 0) / last3Matches.length;
+  //             const last3Tele = last3Matches.reduce((sum, match) => sum + match.tele, 0) / last3Matches.length;
+  //             const last3End = last3Matches.reduce((sum, match) => sum + match.end, 0) / last3Matches.length;
 
-              // Add the calculated metrics to the data object
-              data.last3Epa = last3Epa;
-              data.last3Auto = last3Auto;
-              data.last3Tele = last3Tele;
-              data.last3End = last3End;
-              setLoading(false);
-          })
-          .catch(error => {
-              console.error("Fetch error:", error);
+  //             // Add the calculated metrics to the data object
+  //             data.last3Epa = last3Epa;
+  //             data.last3Auto = last3Auto;
+  //             data.last3Tele = last3Tele;
+  //             data.last3End = last3End;
+  //             setLoading(false);
+  //         })
+  //         .catch(error => {
+  //             console.error("Fetch error:", error);
               
-              setError(error.message);
-              setLoading(false);
-          });
-  }
+  //             setError(error.message);
+  //             setLoading(false);
+  //         });
+  // }
 
-  
+
+    // useEffect(() => {
+    //     if (team) {
+    //         fetchTeamData(team);
+    //     }
+    // }, [team]);
 
     useEffect(() => {
-        if (team) {
-            fetchTeamData(team);
-        }
-    }, [team]);
+      setLoading(false);
+    }, []);
 
     if (!team) {
         return (
@@ -328,27 +341,19 @@ function TeamView() {
                 <div className={styles.graphContainer}>
                     <h4 className={styles.graphTitle}>EPA Over Time</h4>
                     <EPALineChart data={data.epaOverTime} color={Colors[0][3]} label={"epa"}/>
-                </div>
-                <div className={styles.barGraphContainer}>
-                    <h4 className={styles.graphTitle}>Piece Placement</h4>
-                    <PiecePlacement
-                        L1={Math.round(10*(data.auto.coral.avgL1 + data.tele.coral.avgL1))/10}
-                        L2={Math.round(10*(data.auto.coral.avgL2 + data.tele.coral.avgL2))/10}
-                        L3={Math.round(10*(data.auto.coral.avgL3 + data.tele.coral.avgL3))/10}
-                        L4={Math.round(10*(data.auto.coral.avgL4 + data.tele.coral.avgL4))/10}
-                        net={Math.round(10*(data.auto.algae.avgNet + data.tele.algae.avgNet))/10}
-                        processor={Math.round(10*(data.auto.algae.avgProcessor + data.tele.algae.avgProcessor))/10}
-                    />
-                </div>
                 <div className={styles.valueBoxes}>
                   <div className={styles.leftColumnBoxes}>
                     <VBox id="box" className={styles.boxes} style={{width: "200px"}} color1={Colors[0][1]} color2={Colors[0][0]} title={"Consistency"} value={`${Math.round(10*data.consistency)/10}%`}/>
-                    <VBox id="box" className={styles.boxes} style={{width: "200px"}} color1={Colors[0][1]} color2={Colors[0][0]} title={"Defense"} value={`${Math.round(10*data.defense)/10}%`}/>
+                    <VBox id="box" className={styles.boxes} style={{width: "200px"}} color1={Colors[0][1]} color2={Colors[0][0]} title={"Stuck on Fuel Easily"} value={`${Math.round(10*data.stuckOnFuel)/10}%`}/>
                     <VBox id="box" className={styles.boxes} style={{width: "200px"}} color1={Colors[0][1]} color2={Colors[0][0]} title={"Last Breakdown"} value={data.lastBreakdown}/>
 
                     <VBox id="box" className={styles.boxes} style={{width: "200px"}} color1={Colors[0][1]} color2={Colors[0][0]} title={"No Show"} value={`${Math.round(10*data.noShow)*10}%`}/>
                     <VBox id="box" className={styles.boxes} style={{width: "200px"}} color1={Colors[0][1]} color2={Colors[0][0]} title={"Breakdown"} value={`${Math.round(data.breakdown)}%`}/>
                     <VBox id="box" className={styles.boxes} style={{width: "200px"}} color1={Colors[0][1]} color2={Colors[0][0]} title={"Matches Scouted"} value={Math.round(10*data.matchesScouted)/10}/>
+
+                    <VBox id="box" className={styles.boxes} style={{width: "200px"}} color1={Colors[0][1]} color2={Colors[0][0]} title={"Shoot While Move?"} value={``}/>
+                    <VBox id="box" className={styles.boxes} style={{width: "200px"}} color1={Colors[0][1]} color2={Colors[0][0]} title={"Shooting Mechanism"} value={data.shootWhileMove}/>
+                    <VBox id="box" className={styles.boxes} style={{width: "200px"}} color1={Colors[0][1]} color2={Colors[0][0]} title={"Bump/Trench"} value={''}/>
                   </div>
                   <div className={styles.allComments}>
                     <Comments color1={Colors[0][1]} color2={Colors[0][0]} title={"General Comments"} value={data.generalComments} />
@@ -358,9 +363,11 @@ function TeamView() {
                   <HBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Scouts"} value={data.scouts} />
                 </div>
           </div>
-      <div className={styles.rightColumn}>
-        <div className={styles.topRow}>
-        <div className={styles.auto}>
+
+
+  <div className={styles.rightColumn}>
+    <div className={styles.topRow}>
+      <div className={styles.auto}>
         <h1 style={{ color: Colors[1][3] }}>Auto</h1>
           <div className={styles.graphContainer}>
               <h4 className={styles.graphTitle}>Auto Over Time</h4>
@@ -369,71 +376,14 @@ function TeamView() {
                 color={Colors[1][3]} 
                 label={"auto"}
               />
-            </div>
-        <div className={styles.autoRightAlignment}>
-          <div className={styles.alignElements}>
-              <div className={styles.valueBoxes}>
-                <div className={styles.rightColumnBoxes}>
-                  <VBox color1={Colors[1][2]} color2={Colors[1][0]} color3={Colors[1][2]} title={"Leave"} value={`${Math.round(data.leave*100)}%`}/>
-              </div>
-              <table className={styles.coralTable}> 
-                <tbody>
-                  <tr>
-                    <td style={{backgroundColor: Colors[1][2]}} rowSpan="2">Coral</td>
-                    <td style={{backgroundColor: Colors[1][1]}}>Success</td>
-                    <td style={{backgroundColor: Colors[1][1]}}>Total</td>
-                  </tr>
-                  <tr>
-                    <td style={{backgroundColor: Colors[1][0]}}>{`${Math.round(10*data.auto.coral.success)/10}%`}</td>
-                    <td style={{backgroundColor: Colors[1][0]}}>{Math.round(10*data.auto.coral.total)/10}</td>
-                  </tr>
-            </tbody>
-          </table>
-        </div>
-          <div className={styles.fourByTwoContainer}>
-            <FourByTwo
-              HC1="Success"
-              HC2="Avg Coral"
-              HR1="L4"
-              R1C1={`${Math.round(10*data.auto.coral.successL4)/10}%`}
-              R1C2={Math.round(10*data.auto.coral.avgL4)/10}
-              HR2="L3"
-              R2C1={`${Math.round(10*data.auto.coral.successL3)/10}%`}
-              R2C2={Math.round(10*data.auto.coral.avgL3)/10}
-              HR3="L2"
-              R3C1={`${Math.round(10*data.auto.coral.successL2)/10}%`}
-              R3C2={Math.round(10*data.auto.coral.avgL2)/10}
-              HR4="L1"
-              R4C1={`${Math.round(10*data.auto.coral.successL1)/10}%`}
-              R4C2={Math.round(10*data.auto.coral.avgL1)/10}
-              color1={Colors[1][2]} color2={Colors[1][1]} color3={Colors[1][0]}
-            />
           </div>
-        </div>
-          <div className={styles.alignElements}>
-            <div className={styles.rightColumnBoxesTwo}>
-              <VBox color1={Colors[1][2]} color2={Colors[1][0]} color3={Colors[1][2]} title={"Algae Removed"} value={Math.round(10*data.auto.algae.removed)/10} />  
-            </div>
-              <div className={styles.twoByTwoContainer}>
-                  <TwoByTwo
-                    HC1="Success"
-                    HC2="Avg Algae"
-                    HR1="Prcsr"
-                    R1C1={`${Math.round(10*data.auto.algae.successProcessor)/10}%`}
-                    R1C2={Math.round(10*data.auto.algae.avgProcessor)/10}
-                    HR2="Net"
-                    R2C1={`${Math.round(10*data.auto.algae.successNet)/10}%`}
-                    R2C2={Math.round(10*data.auto.algae.avgNet)/10}
-                    color1={Colors[1][2]} color2={Colors[1][1]} color3={Colors[1][0]}
-                  />
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className={styles.tele}>
+        <VBox color1={Colors[1][2]} color2={Colors[1][0]} color3={Colors[1][2]} title={"Median Fuel"} value={data.autoMedianFuel}/>
+      </div>
+
+      <div className={styles.tele}>
         <h1 style={{ color: Colors[2][3] }}>Tele</h1>
           <div className={styles.graphContainer}>
-              <h4 className={styles.graphTitle}>Tele Over Time</h4>
+            <h4 className={styles.graphTitle}>Tele Over Time</h4>
               <EPALineChart 
                 data={data.teleOverTime} 
                 color={Colors[2][3]} 
@@ -442,60 +392,11 @@ function TeamView() {
             </div>
       <div className={styles.teleRightAlignment}>
         <div className={styles.alignElements}>
-          <div className={styles.coralAndHP}>
-            <div className={styles.valueBoxes}>
-                </div>
-                  <table className={styles.coralTable}> 
-                    <tbody>
-                      <tr>
-                        <td style={{backgroundColor: Colors[2][2]}} rowSpan="2">Coral</td>
-                        <td style={{backgroundColor: Colors[2][1]}} >Success</td>
-                        <td style={{backgroundColor: Colors[2][1],  width:"44px"}} >Total</td>
-                      </tr>
-                        <tr>
-                          <td style={{backgroundColor: Colors[2][0]}}>{`${Math.round(10*data.tele.coral.success)/10}%`}</td>
-                          <td style={{backgroundColor: Colors[2][0]}}>{Math.round(10*data.tele.coral.total)/10}</td>
-                        </tr>
-                    </tbody>
-                  </table>
-              </div>
-          <div className={styles.fourByTwoContainer}>
-            <FourByTwo
-              HC1="Success"
-              HC2="Avg Coral"
-              HR1="L4"
-              R1C1={`${Math.round(10*data.tele.coral.successL4)/10}%`}
-              R1C2={Math.round(10*data.tele.coral.avgL4)/10}
-              HR2="L3"
-              R2C1={`${Math.round(10*data.tele.coral.successL3)/10}%`}
-              R2C2={Math.round(10*data.tele.coral.avgL3)/10}
-              HR3="L2"
-              R3C1={`${Math.round(10*data.tele.coral.successL2)/10}%`}
-              R3C2={Math.round(10*data.tele.coral.avgL2)/10}
-              HR4="L1"
-              R4C1={`${Math.round(10*data.tele.coral.successL1)/10}%`}
-              R4C2={Math.round(10*data.tele.coral.avgL1)/10}
-              color1={Colors[2][2]} color2={Colors[2][1]} color3={Colors[2][0]}
-            />
-          </div>
-            </div>
             <div className={styles.alignElements}>
               <div className={styles.rightColumnBoxesTwo}>
-            <VBox color1={Colors[2][2]} color2={Colors[2][0]} color3={Colors[2][2]} title={"Algae Removed"} value={Math.round(10*data.tele.algae.removed)/10} />
+            <VBox color1={Colors[2][2]} color2={Colors[2][0]} color3={Colors[2][2]} title={"Median Fuel"} value={Math.round(10*data.teleMedianFuel)/10} />
           </div>
-              <div className={styles.twoByTwoContainer}>
-                <TwoByTwo
-                  HC1="Success" 
-                  HC2="Avg Algae"
-                  HR1="Prcsr"
-                  R1C1={`${Math.round(10*data.tele.algae.successProcessor)/10}%`}
-                  R1C2={Math.round(10*data.tele.algae.avgProcessor)/10}
-                  HR2="Net"
-                  R2C1={`${Math.round(10*data.tele.algae.successNet)/10}%`}
-                  R2C2={Math.round(10*data.tele.algae.avgNet)/10}
-                  color1={Colors[2][2]} color2={Colors[2][1]} color3={Colors[2][0]}
-                />
-            </div>
+              
           </div>
         </div>
       </div>
@@ -538,39 +439,12 @@ function TeamView() {
               />
             <p>*Inverted so outside is good</p>
           </div>
-          <table className={styles.differentTable}> 
-            <tbody>
-              <tr>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][2], width: "40px"}} rowSpan="2">Coral Intake</td>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][1], width: "50px", height: "10px"}}>Ground</td>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][1], width: "50px"}}>Source</td>
-              </tr>
-              <tr>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][0], width: "50px", height: "30px"}}><input id="groundcheck" type="checkbox" readOnly checked={data.coralGroundIntake}></input></td>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][0], width: "50px", height: "30px"}}><input id="sourcecheck" type="checkbox" readOnly checked={data.coralStationIntake}></input></td>
-              </tr>
-              <tr>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][2], width: "40px"}} rowSpan="2">Algae Intake</td>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][1], width: "50px", height: "10px"}}>Ground</td>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: '#f7f7f7', width: "50px", height: "10px" }} rowSpan="2"><img src="/coral.png" alt="coral"/></td>
-              </tr>
-              <tr>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][0], width: "50px", height: "30px"}}><input id="groundcheck" type="checkbox" readOnly checked={data.algaeGroundIntake}></input></td>
-              </tr>
-              <tr>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][2], width: "40px"}} rowSpan="2">Reef Intake</td>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][1], width: "50px", height: "10px"}}>Low</td>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][1], width: "50px"}}>High</td>
-              </tr>
-              <tr>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][0], width: "50px", height: "30px"}}><input id="groundcheck" type="checkbox" readOnly checked={data.algaeLowReefIntake}></input></td>
-                  <td className={styles.coloredBoxes} style={{backgroundColor: Colors[4][0], width: "50px", height: "30px"}}><input id="sourcecheck" type="checkbox" readOnly checked={data.algaeHighReefIntake}></input></td>
-              </tr>
-            </tbody>
-          </table>
+          
         </div>
         </div>
       </div>
+    </div>
+    </div>
     </div>
     </div>
     )
