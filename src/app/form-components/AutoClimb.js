@@ -37,21 +37,21 @@ export default function AutoClimb({ onClimbChange, defaultValue }) {
                     <input
                         type="radio"
                         name="climbYesNo"
-                        value="1"
-                        checked={selectedType === "1"}
-                        onChange={handleChange}
-                    />
-                    Success
-                </label>
-                <label>
-                    <input
-                        type="radio"
-                        name="climbYesNo"
                         value="2"
                         checked={selectedType === "2"}
                         onChange={handleChange}
                     />
                     Fail
+                </label>
+                <label>
+                    <input
+                        type="radio"
+                        name="climbYesNo"
+                        value="1"
+                        checked={selectedType === "1"}
+                        onChange={handleChange}
+                    />
+                    Success
                 </label>
             </div>
         </div>

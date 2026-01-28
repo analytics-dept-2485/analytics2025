@@ -474,6 +474,8 @@ console.log("page",matchType)
 
             <Checkbox visibleName={"None"} internalName={"noClimb"} />
 
+            <Checkbox visibleName={"Wide Climb?"} internalName={"wideclimb"} />
+
            </div>
 
 
