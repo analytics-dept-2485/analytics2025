@@ -19,8 +19,8 @@
     background-color: #9de387;
 }
 
-.box label {
-    margin-left: 10px;
+.box label input{
+    margin-right: 10px;
 }
 
 .boxContainer {

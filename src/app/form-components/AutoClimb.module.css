@@ -16,6 +16,7 @@
     justify-self: center;
     width: 400px;
     gap: 5px;
+    margin-top: 10px;
   }
     .radioGroup input[type="radio"] {
       appearance: none;

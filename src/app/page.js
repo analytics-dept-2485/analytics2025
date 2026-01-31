@@ -507,7 +507,7 @@ console.log("page",matchType)
                     <label>
                         <input
                           type="radio"
-                          name="staticShooting"
+                          name="turretShooting"
                         />
                         Turret
                     </label>
@@ -521,8 +521,7 @@ console.log("page",matchType)
                   <Checkbox visibleName={"Bump"} internalName={"bump"}></Checkbox>
                   <Checkbox visibleName={"Trench"} internalName={"trench"}></Checkbox>
                 </div>
-
-                <br></br>
+                
                 <Checkbox visibleName={"Stuck on Fuel Easily?"} internalName={"stuckOnFuel"} />
               
                 <div className={styles.Qual}>
