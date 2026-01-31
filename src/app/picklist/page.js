@@ -74,7 +74,7 @@ export default function Picklist() {
       {
         team: 2485,
         score: 0.95,
-        firstRanking: 4,
+        tbaRank: 4,
         epa: 0.9,
         last3epa: 0.85,
         fuel: 0.95,
@@ -87,7 +87,7 @@ export default function Picklist() {
       {
         team: 1234,
         score: 0.25,
-        firstRanking: 3,
+        tbaRank: 3,
         epa: 0.3,
         last3epa: 0.7,
         fuel: 0.76,
@@ -100,7 +100,7 @@ export default function Picklist() {
       {
         team: 4321,
         score: 0.35,
-        firstRanking: 2,
+        tbaRank: 2,
         epa: 0.1,
         last3epa: 0.4,
         fuel: 0.32,
@@ -147,12 +147,14 @@ export default function Picklist() {
           <td><input id="epa" type="number" value={weights.epa || 0} name="epa" onChange={handleWeightChange}></input></td>
           <td><label htmlFor="last3epa">Last 3 EPA:</label></td>
           <td><input id="last3epa" type="number" value={weights.last3epa || 0} name="last3epa" onChange={handleWeightChange}></input></td>
-          <td><label htmlFor="fuel">Fuel:</label></td>
-          <td><input id="fuel" type="number" value={weights.fuel || 0} name="fuel" onChange={handleWeightChange}></input></td>
         </tr>
         <tr>
+          <td><label htmlFor="fuel">Fuel:</label></td>
+          <td><input id="fuel" type="number" value={weights.fuel || 0} name="fuel" onChange={handleWeightChange}></input></td>
           <td><label htmlFor="tower">Tower:</label></td>
           <td><input id="tower" type="number" value={weights.tower || 0} name="tower" onChange={handleWeightChange}></input></td>
+        </tr>
+        <tr>
           <td><label htmlFor="passing">Passing:</label></td>
           <td><input id="passing" type="number" value={weights.passing || 0} name="passing" onChange={handleWeightChange}></input></td>
           <td><label htmlFor="defense">Defense:</label></td>
@@ -392,11 +394,11 @@ const handleAllianceClear = () => {
           <table className={styles.picklistTable} id="teamTable">
           <thead>
           <tr>
-            <th>Picklist Rank</th>
-            <th>TBA Rank</th>
+            <th>Rank</th>
+            <th>TBA</th>
             <th>Team</th>
             <th>EPA</th>
-            <th>Last 3 EPA</th>
+            <th>Last 3</th>
             <th>Fuel</th>
             <th>Tower</th>
             <th>Passing</th>
