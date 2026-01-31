@@ -9,6 +9,8 @@
     margin: 10px auto;
     display: inline-block;
     text-align: center;
+    max-width: 190px;
+    width: 90%;
 }
 .box:hover,
 .box:focus {

@@ -29,18 +29,6 @@
 .Endgame {
   justify-items: center;
 }
-.Coral {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-.L1,.L2,.L3,.L4 {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    text-align: center;
-}
 
 .Table {
   flex-direction: column;
@@ -65,25 +53,6 @@
 .Table th {
   padding-right: 19px;
   margin-bottom: 20px;
-}
-
-.AlgaeRemoved {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-.Processor {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-.Net {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 
 .MainDiv h2 {
@@ -164,6 +133,24 @@ hr.subsubheading {
   gap: -5px;
 }
 
+.intakeBox {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 15px;
+  width: 400px;
+  align-self: center;
+}
+
+.terrainBox {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 15px;
+  width: 400px;
+  align-self: center;
+}
+
 .Auto {
   display: flex;
   flex-direction: column;
@@ -172,8 +159,11 @@ hr.subsubheading {
 }
 
 .AutoClimb {
-  width: 200px;
+  width: 400px;
   align-self: center;
+  text-align: center;
+  align-items: center;
+  align-content: center;
 }
 
 .MainDiv input:focus,
@@ -186,6 +176,38 @@ hr.subsubheading {
     border-color: rgb(184, 0, 0);
 }
 
+.defenseBox {
+  display: grid;
+  grid-template-columns: 200px 200px;
+  column-gap: 10px;
+  align-self: center;
+}
 
+.defenseBox > :last-child {
+  grid-column: 1 / -1;
+  justify-self: center; 
+}
 
+.Tele {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 
+.PostMatch {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.shootingBox {
+    background-color: #d9d26E;
+    color: black;
+    border-radius: 8px;
+    margin: 10px;
+    padding: 7px;
+    width: 225px;
+    align-self: center;
+    height: 40px;
+    align-items: center;
+}

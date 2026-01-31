@@ -417,7 +417,6 @@ console.log("page",matchType)
 
 
              <SubHeader subHeaderName={"Intake"}></SubHeader>
-             <br></br>
              <div className={styles.intakeBox}>
                <Checkbox visibleName={"Ground"} internalName={"intakeground"}></Checkbox>
                <Checkbox visibleName={"Outpost"} internalName={"intakeoutpost"}></Checkbox>
@@ -429,41 +428,27 @@ console.log("page",matchType)
 
 
              <FuelCounter internalName={"tele fuel"}/>
-
-
              <Checkbox visibleName={"Shoot while move?"} internalName={"shootwhilemove"}></Checkbox>
-
-
              <br></br>
              <br></br>
-
-
              <SubHeader subHeaderName={"Passing?"}></SubHeader>
              <div className={styles.passingBox}>
                <Checkbox visibleName={"Bulldozer"} internalName={"passingbulldozer"}></Checkbox>
                <Checkbox visibleName={"Dumper"} internalName={"passingdump"}></Checkbox>
                <Checkbox visibleName={"Shooter"} internalName={"passingshooter"}></Checkbox>
              </div>
-
-
              <br></br>
-
-
-
              <SubHeader subHeaderName={"Defense Location"}></SubHeader>
-             <br></br>
              <div className={styles.defenseBox}>
                <Checkbox visibleName={"Alliance Zone"} internalName={"defenselocationoutpost"}></Checkbox>
                <Checkbox visibleName={"Neutral Zone"} internalName={"defenselocationnz"}></Checkbox>
-               <Checkbox visibleName={"Trench"} internalName={"defenselocationtrench"}></Checkbox>
                <Checkbox visibleName={"Bump"} internalName={"defenselocationbump"}></Checkbox>
-               <Checkbox visibleName={"Outpost"} internalName={"defenselocationoutpost"}></Checkbox>
+               <Checkbox visibleName={"Trench"} internalName={"defenselocationtrench"}></Checkbox>
                <Checkbox visibleName={"Tower"} internalName={"defenselocationtower"}></Checkbox>
                <Checkbox visibleName={"Hub"} internalName={"defenselocationhub"}></Checkbox>
+               <Checkbox visibleName={"Outpost"} internalName={"defenselocationoutpost"}></Checkbox>
              </div>
-            
            </div>
-
            <div className={styles.PostMatch}>
             <Header headerName={"Endgame"}/>
             <br></br>
@@ -516,12 +501,11 @@ console.log("page",matchType)
                 <br></br>
 
                 <SubHeader subHeaderName={"Terrain Capability"}></SubHeader>
-                <br></br>
                 <div className={styles.terrainBox}>
                   <Checkbox visibleName={"Bump"} internalName={"bump"}></Checkbox>
                   <Checkbox visibleName={"Trench"} internalName={"trench"}></Checkbox>
                 </div>
-                
+
                 <Checkbox visibleName={"Stuck on Fuel Easily?"} internalName={"stuckOnFuel"} />
               
                 <div className={styles.Qual}>
