@@ -1,20 +1,18 @@
 'use client';
-import { Suspense, useState, useEffect } from "react";
-import { BarChart, Bar, Rectangle, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, ResponsiveContainer, Cell, LineChart, Line, RadarChart, PolarRadiusAxis, PolarAngleAxis, PolarGrid, Radar, Legend } from 'recharts';
-import { VictoryPie } from "victory";
-import Link from "next/link";
-import styles from "./page.module.css"
-import { useSearchParams } from "next/navigation";
-import PiecePlacement from "./components/PiecePlacement";
-import dynamic from 'next/dynamic';
-import Endgame from "./components/Endgame";
-import Qualitative from "./components/Qualitative";
-import EPALineChart from "./components/EPALineChart";
+import { Suspense, useState, useEffect, useRef } from 'react';
+import { useSearchParams } from 'next/navigation';
+import styles from './page.module.css';
+import EPALineChart from './components/EPALineChart';
+import Endgame from './components/Endgame';
+import Qualitative from './components/Qualitative';
+import PiecePlacement from './components/PiecePlacement';
+import { Chart, registerables } from 'chart.js';
 
+Chart.register(...registerables);
 
 export default function MatchViewPage() {
   return <Suspense>
-    <MatchView></MatchView>
+    <ScoutingApp />
   </Suspense>
 }
 
@@ -22,72 +20,77 @@ function filterNegative(value) {
   return typeof value === 'number' && value >= 0 ? value : 0;
 }
 
-function MatchView() {
+function ScoutingApp() {
   const [allData, setAllData] = useState(null);
   const [data, setData] = useState(false);
   const searchParams = useSearchParams();
-  //light to dark
-  const COLORS = [
-    ["#A6DDD9", "#79CDC6", "#51BEB5", "#3DA49B", "#32867F"], //green
-    ["#C8DCF9", "#91B8F3", "#6CA0EF", "#387ee8", "#1f67d2"], //blue
-    ["#D2B9DF", "#BF9DD2", "#AD81C5", "#9257B2", "#71408C"], //purple
-    ["#F1D0E0", "#E7B1CC", "#DD92B6", "#CE6497", "#C44582"], //pink
-    ["#FFD1D0", "#F7B7B7", "#DC8683", "#BE5151", "#A43D3D"], //red
-    ["#FFC999", "#FFB370", "#FF9D47", "#FF7C0A", "#ed5e07"], //orange
-    
-  ];
-  
+  const [isEditing, setIsEditing] = useState(false);
 
+  // Fetch all team data from database
   useEffect(() => {
     fetch("/api/get-alliance-data")
       .then(resp => resp.json())
       .then(data => {
-          console.log("Fetched Data from API:", data);  // <-- Check what the API returns
-          setAllData(data);
+        console.log("Fetched Data from API:", data);
+        setAllData(data);
       });
-}, []);
+  }, []);
 
-
-
+  // Load team data based on URL parameters
   useEffect(() => {
     if (searchParams && allData) {
       if (searchParams.get('match') == null || searchParams.get('match') == "") {
-        //search by teams
-        let [team1, team2, team3, team4, team5, team6] = [searchParams.get("team1"), searchParams.get("team2"), searchParams.get("team3"), searchParams.get("team4"), searchParams.get("team5"), searchParams.get("team6")];
-        setData({team1: allData[team1], team2: allData[team2], team3: allData[team3], team4: allData[team4], team5: allData[team5], team6: allData[team6]});
+        // Search by teams
+        let [team1, team2, team3, team4, team5, team6] = [
+          searchParams.get("team1"), 
+          searchParams.get("team2"), 
+          searchParams.get("team3"), 
+          searchParams.get("team4"), 
+          searchParams.get("team5"), 
+          searchParams.get("team6")
+        ];
+        setData({
+          team1: allData[team1], 
+          team2: allData[team2], 
+          team3: allData[team3], 
+          team4: allData[team4], 
+          team5: allData[team5], 
+          team6: allData[team6]
+        });
       } else {
-        //search by match
-        fetch('/api/get-teams-of-match?match=' + searchParams.get('match')).then(resp => resp.json()).then(data => {
-          if (data.message) {
-            console.log(data.message);
-          } else {
-            //update url with teams
-            const newParams = new URLSearchParams(searchParams);
-            newParams.set('team1', data.team1);
-            newParams.set('team2', data.team2);
-            newParams.set('team3', data.team3);
-            newParams.set('team4', data.team4);
-            newParams.set('team5', data.team5);
-            newParams.set('team6', data.team6);
-            newParams.delete('match');
+        // Search by match
+        fetch('/api/get-teams-of-match?match=' + searchParams.get('match'))
+          .then(resp => resp.json())
+          .then(matchData => {
+            if (matchData.message) {
+              console.log(matchData.message);
+            } else {
+              // Update URL with teams
+              const newParams = new URLSearchParams(searchParams);
+              newParams.set('team1', matchData.team1);
+              newParams.set('team2', matchData.team2);
+              newParams.set('team3', matchData.team3);
+              newParams.set('team4', matchData.team4);
+              newParams.set('team5', matchData.team5);
+              newParams.set('team6', matchData.team6);
+              newParams.delete('match');
 
-            const newUrl = `${window.location.pathname}?${newParams.toString()}`;
-            window.history.replaceState(null, 'Picklist', newUrl);
-            
-            setData({team1: allData[data.team1], team2: allData[data.team2], team3: allData[data.team3], team4: allData[data.team4], team5: allData[data.team5], team6: allData[data.team6]});
-          }
-        })
-
+              const newUrl = `${window.location.pathname}?${newParams.toString()}`;
+              window.history.replaceState(null, 'Match View', newUrl);
+              
+              setData({
+                team1: allData[matchData.team1], 
+                team2: allData[matchData.team2], 
+                team3: allData[matchData.team3], 
+                team4: allData[matchData.team4], 
+                team5: allData[matchData.team5], 
+                team6: allData[matchData.team6]
+              });
+            }
+          });
       }
     }
   }, [searchParams, allData]);
-
-  //until url loads show loading
-  if (!data || searchParams == null) {
-    return <div>
-      <h1>Loading...</h1>
-    </div>
-  }
 
   const defaultTeam = {
     team: 404,
@@ -103,46 +106,53 @@ function MatchView() {
     qualitative: { fuelspeed: 0, maneuverability: 0, durability: 0, collectioncapacity: 0, passingspeed: 0, climbingspeed: 0, autodeclimbspeed: 0, bumpspeed: 0, defenseevasion: 0, aggression: 0, climbhazard: 0 }
   };
 
-  //show form if systems are not a go
+  // Show loading until data is ready
+  if (!data || searchParams == null) {
+    return <div style={{ padding: '40px', textAlign: 'center' }}>
+      <h1>Loading...</h1>
+    </div>
+  }
+
+  // Show form if "go" parameter is not set
   if (searchParams.get("go") != "go") {
     return (
       <div>
         <form className={styles.teamForm}>
           <span>View by Teams...</span>
           <div className={styles.horizontalBox}>
-          <div className={styles.RedInputs}>
-            <div>
-              <label htmlFor="team1">Red 1:</label>
-              <br />
-              <input id="team1" name="team1" defaultValue={searchParams.get("team1")}></input>
+            <div className={styles.RedInputs}>
+              <div>
+                <label htmlFor="team1">Red 1:</label>
+                <br />
+                <input id="team1" name="team1" defaultValue={searchParams.get("team1")}></input>
+              </div>
+              <div>
+                <label htmlFor="team2">Red 2:</label>
+                <br />
+                <input id="team2" name="team2" defaultValue={searchParams.get("team2")}></input>
+              </div>
+              <div>
+                <label htmlFor="team3">Red 3:</label>
+                <br />
+                <input id="team3" name="team3" defaultValue={searchParams.get("team3")}></input>
+              </div>
             </div>
-            <div>
-              <label htmlFor="team2">Red 2:</label>
-              <br />
-              <input id="team2" name="team2" defaultValue={searchParams.get("team2")}></input>
-            </div>
-            <div>
-              <label htmlFor="team3">Red 3:</label>
-              <br />
-              <input id="team3" name="team3" defaultValue={searchParams.get("team3")}></input>
-            </div>
-          </div>
-          <div className={styles.BlueInputs}>
-            <div>
-              <label htmlFor="team4">Blue 1:</label>
-              <br />
-              <input id="team4" name="team4" defaultValue={searchParams.get("team4")}></input>
-            </div>
-            <div>
-              <label htmlFor="team5">Blue 2:</label>
-              <br />
-              <input id="team5" name="team5" defaultValue={searchParams.get("team5")}></input>
-            </div>
-            <div>
-              <label htmlFor="team6">Blue 3:</label>
-              <br />
-              <input id="team6" name="team6" defaultValue={searchParams.get("team6")}></input>
-            </div>
+            <div className={styles.BlueInputs}>
+              <div>
+                <label htmlFor="team4">Blue 1:</label>
+                <br />
+                <input id="team4" name="team4" defaultValue={searchParams.get("team4")}></input>
+              </div>
+              <div>
+                <label htmlFor="team5">Blue 2:</label>
+                <br />
+                <input id="team5" name="team5" defaultValue={searchParams.get("team5")}></input>
+              </div>
+              <div>
+                <label htmlFor="team6">Blue 3:</label>
+                <br />
+                <input id="team6" name="team6" defaultValue={searchParams.get("team6")}></input>
+              </div>
             </div>
             <input type="hidden" name="go" value="go"></input>
           </div>
@@ -155,122 +165,11 @@ function MatchView() {
     );
   }
 
+  // Get team data with fallback to default
+  const redAlliance = [data.team1 || defaultTeam, data.team2 || defaultTeam, data.team3 || defaultTeam];
+  const blueAlliance = [data.team4 || defaultTeam, data.team5 || defaultTeam, data.team6 || defaultTeam];
 
-  function AllianceButtons({t1, t2, t3, colors}) {
-    return <div className={styles.allianceBoard}>
-      <Link href={`/team-view?team=${t1.team}&team1=${data.team1?.team || ""}&team2=${data.team2?.team || ""}&team3=${data.team3?.team || ""}&team4=${data.team4?.team || ""}&team5=${data.team5?.team || ""}&team6=${data.team6?.team || ""}`}>
-        <button style={{background: colors[0][1]}}>{t1.team}</button>
-      </Link>
-      <Link href={`/team-view?team=${t2.team}&team1=${data.team1?.team || ""}&team2=${data.team2?.team || ""}&team3=${data.team3?.team || ""}&team4=${data.team4?.team || ""}&team5=${data.team5?.team || ""}&team6=${data.team6?.team || ""}`}>
-        <button style={{background: colors[1][1]}}>{t2.team}</button>
-      </Link>
-      <Link href={`/team-view?team=${t3.team}&team1=${data.team1?.team || ""}&team2=${data.team2?.team || ""}&team3=${data.team3?.team || ""}&team4=${data.team4?.team || ""}&team5=${data.team5?.team || ""}&team6=${data.team6?.team || ""}`}>
-        <button style={{background: colors[2][1]}}>{t3.team}</button>
-      </Link>
-    </div>
-  }
-
-  function AllianceDisplay({teams, opponents, colors}) {
-    //calc alliance espm breakdown
-    const auto = (teams[0]?.last3Auto || 0) + (teams[1]?.last3Auto || 0) + (teams[2]?.last3Auto || 0);
-    const tele = (teams[0]?.last3Tele || 0) + (teams[1]?.last3Tele || 0) + (teams[2]?.last3Tele || 0);
-    const end = (teams[0]?.last3End || 0) + (teams[1]?.last3End || 0) + (teams[2]?.last3End || 0);
-    const totalEPA = auto + tele + end;
-
-    // Calculate total fuel scored (auto + tele)
-    const totalFuel = auto + tele;
-    
-    // Calculate climb points
-    const climbPoints = end;
-
-    //calc ranking points
-    const RGBColors = {
-      red: "#FF9393",
-      green: "#BFFEC1",
-      yellow: "#FFDD9A"
-    }
-    
-    // RP 1: Win RP (higher EPA than opponents)
-    const teamEPA = (team) => team ? team.last3Auto + team.last3Tele + team.last3End : 0;
-    const opponentsEPA = teamEPA(opponents[0]) + teamEPA(opponents[1]) + teamEPA(opponents[2]);
-    let RP_WIN = RGBColors.red;
-    if (totalEPA > opponentsEPA) RP_WIN = RGBColors.green;
-    else if (totalEPA == opponentsEPA) RP_WIN = RGBColors.yellow;
-
-    // RP 2: Energized - 100+ fuel scored
-    let RP_ENERGIZED = RGBColors.red;
-    if (totalFuel >= 100) RP_ENERGIZED = RGBColors.green;
-
-    // RP 3: Supercharged - 360+ fuel scored
-    let RP_SUPERCHARGED = RGBColors.red;
-    if (totalFuel >= 360) RP_SUPERCHARGED = RGBColors.green;
-
-    // RP 4: Traversal - 50+ climb points
-    let RP_TRAVERSAL = RGBColors.red;
-    if (climbPoints >= 50) RP_TRAVERSAL = RGBColors.green;
-
-    return <div className={styles.lightBorderBox}>
-      <div className={styles.scoreBreakdownContainer}>
-        <div style={{background: colors[0]}} className={styles.EPABox}>{Math.round(totalEPA)}</div>
-        <div className={styles.EPABreakdown}>
-          <div style={{background: colors[1]}}>A: {Math.round(auto)}</div>
-          <div style={{background: colors[1]}}>T: {Math.round(tele)}</div>
-          <div style={{background: colors[1]}}>E: {Math.round(end)}</div>
-        </div>
-      </div>
-      <div className={styles.RPs}>
-        <div style={{background: colors[1]}}>RPs</div>
-        <div style={{background: RP_WIN}}>Victory</div>
-        <div style={{background: RP_ENERGIZED}}>Energized</div>
-        <div style={{background: RP_SUPERCHARGED}}>Supercharged</div>
-        <div style={{background: RP_TRAVERSAL}}>Traversal</div>
-      </div>
-    </div>
-  
-  }
-
-  function TeamDisplay({teamData, colors, matchMax}) {
-
-    const PiecePlacement = dynamic(() => import('./components/PiecePlacement'), { ssr: false });
-    const endgameData = [
-      { x: 'None', y: teamData.endgame.none },
-      { x: 'Fail', y: teamData.endgame.fail},
-      { x: 'L1', y: teamData.endgame.L1 },
-      { x: 'L2', y: teamData.endgame.L2 },
-      { x: 'L3', y: teamData.endgame.L3 },
-    ];
-
-    return <div className={styles.lightBorderBox}>
-      <h1 style={{color: colors[3]}}>{teamData.team}</h1>
-      <h2 style={{color: colors[3]}}>{teamData.teamName}</h2>
-      <div className={styles.scoreBreakdownContainer}>
-      <div style={{background: colors[0]}} className={styles.EPABox}>
-        {Math.round(teamData.last3EPA)}
-      </div>
-      <div className={styles.EPABreakdown}>
-        <div style={{background: colors[2]}}>A: {Math.round(teamData.last3Auto)}</div>
-        <div style={{background: colors[2]}}>T: {Math.round(teamData.last3Tele)}</div>
-        <div style={{background: colors[2]}}>E: {Math.round(teamData.last3End)}</div>
-      </div>
-      </div>
-      <div className={styles.barchartContainer}>
-        <h2>Average Fuel Scored</h2>
-        <PiecePlacement 
-          colors={colors}
-          matchMax={matchMax} 
-          fuel={teamData.avgFuel || 0}
-        />
-      </div>
-      <div className={styles.chartContainer}>
-        <h2 style={{marginBottom: "-40px"}}>Climb Distribution %</h2>
-        <Endgame 
-          colors={colors}
-          endgameData={endgameData}
-        />
-      </div>
-    </div>
-  }
-  
+  // Helper function to sum alliance stats
   let get = (alliance, thing) => {
     let sum = 0;
     if (alliance[0] && alliance[0][thing]) sum += alliance[0][thing];
@@ -278,108 +177,392 @@ function MatchView() {
     if (alliance[2] && alliance[2][thing]) sum += alliance[2][thing];
     return sum;
   }
+
+  // Color schemes
+  const COLORS = [
+    ["#A6DDD9", "#79CDC6", "#51BEB5", "#3DA49B", "#32867F"], //green
+    ["#C8DCF9", "#91B8F3", "#6CA0EF", "#387ee8", "#1f67d2"], //blue
+    ["#D2B9DF", "#BF9DD2", "#AD81C5", "#9257B2", "#71408C"], //purple
+    ["#F1D0E0", "#E7B1CC", "#DD92B6", "#CE6497", "#C44582"], //pink
+    ["#FFD1D0", "#F7B7B7", "#DC8683", "#BE5151", "#A43D3D"], //red
+    ["#FFC999", "#FFB370", "#FF9D47", "#FF7C0A", "#ed5e07"], //orange
+  ];
+
+  // Calculate EPA scores
+  let blueScores = [0, get(blueAlliance, "last3Auto")];
+  blueScores.push(blueScores[1] + get(blueAlliance, "last3Tele"));
+  blueScores.push(blueScores[2] + get(blueAlliance, "last3End"));
   
-  const redAlliance = [data.team1 || defaultTeam, data.team2 || defaultTeam, data.team3 || defaultTeam];
-  const blueAlliance = [data.team4 || defaultTeam, data.team5 || defaultTeam, data.team6 || defaultTeam];
-  let blueScores = [0, get(blueAlliance, "last3Auto")]
-  blueScores.push(blueScores[1] + get(blueAlliance, "last3Tele"))
-  blueScores.push(blueScores[2] + get(blueAlliance, "last3End"))
-  let redScores = [0, get(redAlliance, "last3Auto")]
-  redScores.push(redScores[1] + get(redAlliance, "last3Tele"))
+  let redScores = [0, get(redAlliance, "last3Auto")];
+  redScores.push(redScores[1] + get(redAlliance, "last3Tele"));
   redScores.push(redScores[2] + get(redAlliance, "last3End"));
-  let epaData = [
-    {name: "Start", blue: 0, red: 0},
-    {name: "Auto", blue: blueScores[1], red: redScores[1]},
-    {name: "Tele", blue: blueScores[2], red: redScores[2]},
-    {name: "End", blue: blueScores[3], red: redScores[3]},
+
+  // EPA Over Time data
+  const epaTimeData = [
+    { name: "0", blue: 0, red: 0 },
+    { name: "Auto", blue: Math.round(blueScores[1]), red: Math.round(redScores[1]) },
+    { name: "Tele", blue: Math.round(blueScores[2]), red: Math.round(redScores[2]) },
+    { name: "End", blue: Math.round(blueScores[3]), red: Math.round(redScores[3]) }
   ];
 
-  // Create two different radar datasets like in the screenshot
-  // First radar: Climbing/Defense focus
-  const climbingRadarData = [
-    { qual: 'climbhazard', team1: filterNegative(data?.team1?.qualitative?.climbhazard) || 0, team2: filterNegative(data?.team2?.qualitative?.climbhazard) || 0, team3: filterNegative(data?.team3?.qualitative?.climbhazard) || 0, team4: filterNegative(data?.team4?.qualitative?.climbhazard) || 0, team5: filterNegative(data?.team5?.qualitative?.climbhazard) || 0, team6: filterNegative(data?.team6?.qualitative?.climbhazard) || 0 },
-    { qual: 'maneuverability', team1: filterNegative(data?.team1?.qualitative?.maneuverability) || 0, team2: filterNegative(data?.team2?.qualitative?.maneuverability) || 0, team3: filterNegative(data?.team3?.qualitative?.maneuverability) || 0, team4: filterNegative(data?.team4?.qualitative?.maneuverability) || 0, team5: filterNegative(data?.team5?.qualitative?.maneuverability) || 0, team6: filterNegative(data?.team6?.qualitative?.maneuverability) || 0 },
-    { qual: 'autodeclimbspeed', team1: filterNegative(data?.team1?.qualitative?.autodeclimbspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.autodeclimbspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.autodeclimbspeed) || 0, team4: filterNegative(data?.team4?.qualitative?.autodeclimbspeed) || 0, team5: filterNegative(data?.team5?.qualitative?.autodeclimbspeed) || 0, team6: filterNegative(data?.team6?.qualitative?.autodeclimbspeed) || 0 },
-    { qual: 'passingspeed', team1: filterNegative(data?.team1?.qualitative?.passingspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.passingspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.passingspeed) || 0, team4: filterNegative(data?.team4?.qualitative?.passingspeed) || 0, team5: filterNegative(data?.team5?.qualitative?.passingspeed) || 0, team6: filterNegative(data?.team6?.qualitative?.passingspeed) || 0 },
-    { qual: 'defenseevasion', team1: filterNegative(data?.team1?.qualitative?.defenseevasion) || 0, team2: filterNegative(data?.team2?.qualitative?.defenseevasion) || 0, team3: filterNegative(data?.team3?.qualitative?.defenseevasion) || 0, team4: filterNegative(data?.team4?.qualitative?.defenseevasion) || 0, team5: filterNegative(data?.team5?.qualitative?.defenseevasion) || 0, team6: filterNegative(data?.team6?.qualitative?.defenseevasion) || 0 },
-    { qual: 'bumpspeed', team1: filterNegative(data?.team1?.qualitative?.bumpspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.bumpspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.bumpspeed) || 0, team4: filterNegative(data?.team4?.qualitative?.bumpspeed) || 0, team5: filterNegative(data?.team5?.qualitative?.bumpspeed) || 0, team6: filterNegative(data?.team6?.qualitative?.bumpspeed) || 0 },
+  // Calculate RPs
+  const RGBColors = { red: "#FF9393", green: "#BFFEC1", yellow: "#FFDD9A" };
+  
+  const blueTotal = blueScores[3];
+  const redTotal = redScores[3];
+  const blueFuel = blueScores[2]; // auto + tele
+  const redFuel = redScores[2];
+  const blueClimb = get(blueAlliance, "last3End");
+  const redClimb = get(redAlliance, "last3End");
+
+  const blueRPs = {
+    victory: blueTotal > redTotal,
+    energized: blueFuel >= 100,
+    supercharged: blueFuel >= 360,
+    traversal: blueClimb >= 50
+  };
+
+  const redRPs = {
+    victory: redTotal > blueTotal,
+    energized: redFuel >= 100,
+    supercharged: redFuel >= 360,
+    traversal: redClimb >= 50
+  };
+
+  // Fuel distribution for pie charts (percentage of each team's contribution)
+  const blueFuelData = [
+    { x: 'Team 1', y: blueAlliance[0]?.avgFuel},
+    { x: 'Team 2', y: blueAlliance[1]?.avgFuel},
+    { x: 'Team 3', y: blueAlliance[2]?.avgFuel}
   ];
 
-  // Second radar: Fuel/Collection focus  
-  const fuelRadarData = [
-    { qual: 'collectioncapacity', team1: filterNegative(data?.team1?.qualitative?.collectioncapacity) || 0, team2: filterNegative(data?.team2?.qualitative?.collectioncapacity) || 0, team3: filterNegative(data?.team3?.qualitative?.collectioncapacity) || 0, team4: filterNegative(data?.team4?.qualitative?.collectioncapacity) || 0, team5: filterNegative(data?.team5?.qualitative?.collectioncapacity) || 0, team6: filterNegative(data?.team6?.qualitative?.collectioncapacity) || 0 },
-    { qual: 'maneuverability', team1: filterNegative(data?.team1?.qualitative?.maneuverability) || 0, team2: filterNegative(data?.team2?.qualitative?.maneuverability) || 0, team3: filterNegative(data?.team3?.qualitative?.maneuverability) || 0, team4: filterNegative(data?.team4?.qualitative?.maneuverability) || 0, team5: filterNegative(data?.team5?.qualitative?.maneuverability) || 0, team6: filterNegative(data?.team6?.qualitative?.maneuverability) || 0 },
-    { qual: 'durability', team1: filterNegative(data?.team1?.qualitative?.durability) || 0, team2: filterNegative(data?.team2?.qualitative?.durability) || 0, team3: filterNegative(data?.team3?.qualitative?.durability) || 0, team4: filterNegative(data?.team4?.qualitative?.durability) || 0, team5: filterNegative(data?.team5?.qualitative?.durability) || 0, team6: filterNegative(data?.team6?.qualitative?.durability) || 0 },
-    { qual: 'fuelspeed', team1: filterNegative(data?.team1?.qualitative?.fuelspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.fuelspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.fuelspeed) || 0, team4: filterNegative(data?.team4?.qualitative?.fuelspeed) || 0, team5: filterNegative(data?.team5?.qualitative?.fuelspeed) || 0, team6: filterNegative(data?.team6?.qualitative?.fuelspeed) || 0 },
-    { qual: 'passingspeed', team1: filterNegative(data?.team1?.qualitative?.passingspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.passingspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.passingspeed) || 0, team4: filterNegative(data?.team4?.qualitative?.passingspeed) || 0, team5: filterNegative(data?.team5?.qualitative?.passingspeed) || 0, team6: filterNegative(data?.team6?.qualitative?.passingspeed) || 0 },
-    { qual: 'defenseevasion', team1: filterNegative(data?.team1?.qualitative?.defenseevasion) || 0, team2: filterNegative(data?.team2?.qualitative?.defenseevasion) || 0, team3: filterNegative(data?.team3?.qualitative?.defenseevasion) || 0, team4: filterNegative(data?.team4?.qualitative?.defenseevasion) || 0, team5: filterNegative(data?.team5?.qualitative?.defenseevasion) || 0, team6: filterNegative(data?.team6?.qualitative?.defenseevasion) || 0 },
-    { qual: 'bumpspeed', team1: filterNegative(data?.team1?.qualitative?.bumpspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.bumpspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.bumpspeed) || 0, team4: filterNegative(data?.team4?.qualitative?.bumpspeed) || 0, team5: filterNegative(data?.team5?.qualitative?.bumpspeed) || 0, team6: filterNegative(data?.team6?.qualitative?.bumpspeed) || 0 },
+  const redFuelData = [
+    { x: 'Team 1', y: redAlliance[0]?.avgFuel},
+    { x: 'Team 2', y: redAlliance[1]?.avgFuel},
+    { x: 'Team 3', y: redAlliance[2]?.avgFuel}
   ];
 
-  let matchMax = 0;
-  for (let teamData of [data.team1, data.team2, data.team3, data.team4, data.team5, data.team6]) {
-   if (teamData) {
-    matchMax = Math.max(teamData.avgFuel || 0, matchMax);
-  }
-   }
-  matchMax = Math.floor(matchMax) + 2; 
+  // Radar chart data for qualitative metrics
+  const radarData = [
+    { qual: 'fuelspeed', team1: filterNegative(data?.team1?.qualitative?.fuelspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.fuelspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.fuelspeed) || 0 },
+    { qual: 'maneuverability', team1: filterNegative(data?.team1?.qualitative?.maneuverability) || 0, team2: filterNegative(data?.team2?.qualitative?.maneuverability) || 0, team3: filterNegative(data?.team3?.qualitative?.maneuverability) || 0 },
+    { qual: 'durability', team1: filterNegative(data?.team1?.qualitative?.durability) || 0, team2: filterNegative(data?.team2?.qualitative?.durability) || 0, team3: filterNegative(data?.team3?.qualitative?.durability) || 0 },
+    { qual: 'collectioncapacity', team1: filterNegative(data?.team1?.qualitative?.collectioncapacity) || 0, team2: filterNegative(data?.team2?.qualitative?.collectioncapacity) || 0, team3: filterNegative(data?.team3?.qualitative?.collectioncapacity) || 0 },
+    { qual: 'passingspeed', team1: filterNegative(data?.team1?.qualitative?.passingspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.passingspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.passingspeed) || 0 },
+    { qual: 'climbingspeed', team1: filterNegative(data?.team1?.qualitative?.climbingspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.climbingspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.climbingspeed) || 0 },
+    { qual: 'autodeclimbspeed', team1: filterNegative(data?.team1?.qualitative?.autodeclimbspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.autodeclimbspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.autodeclimbspeed) || 0 },
+    { qual: 'bumpspeed', team1: filterNegative(data?.team1?.qualitative?.bumpspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.bumpspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.bumpspeed) || 0 },
+    { qual: 'defenseevasion', team1: filterNegative(data?.team1?.qualitative?.defenseevasion) || 0, team2: filterNegative(data?.team2?.qualitative?.defenseevasion) || 0, team3: filterNegative(data?.team3?.qualitative?.defenseevasion) || 0 },
+    { qual: 'aggression', team1: filterNegative(data?.team1?.qualitative?.aggression) || 0, team2: filterNegative(data?.team2?.qualitative?.aggression) || 0, team3: filterNegative(data?.team3?.qualitative?.aggression) || 0 },
+    { qual: 'climbhazard', team1: filterNegative(data?.team1?.qualitative?.climbhazard) || 0, team2: filterNegative(data?.team2?.qualitative?.climbhazard) || 0, team3: filterNegative(data?.team3?.qualitative?.climbhazard) || 0 }
+  ];
+
+  // Red radar data
+  const redRadarData = [
+    { qual: 'fuelspeed', team1: filterNegative(data?.team4?.qualitative?.fuelspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.fuelspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.fuelspeed) || 0 },
+    { qual: 'maneuverability', team1: filterNegative(data?.team4?.qualitative?.maneuverability) || 0, team2: filterNegative(data?.team5?.qualitative?.maneuverability) || 0, team3: filterNegative(data?.team6?.qualitative?.maneuverability) || 0 },
+    { qual: 'durability', team1: filterNegative(data?.team4?.qualitative?.durability) || 0, team2: filterNegative(data?.team5?.qualitative?.durability) || 0, team3: filterNegative(data?.team6?.qualitative?.durability) || 0 },
+    { qual: 'collectioncapacity', team1: filterNegative(data?.team4?.qualitative?.collectioncapacity) || 0, team2: filterNegative(data?.team5?.qualitative?.collectioncapacity) || 0, team3: filterNegative(data?.team6?.qualitative?.collectioncapacity) || 0 },
+    { qual: 'passingspeed', team1: filterNegative(data?.team4?.qualitative?.passingspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.passingspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.passingspeed) || 0 },
+    { qual: 'climbingspeed', team1: filterNegative(data?.team4?.qualitative?.climbingspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.climbingspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.climbingspeed) || 0 },
+    { qual: 'autodeclimbspeed', team1: filterNegative(data?.team4?.qualitative?.autodeclimbspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.autodeclimbspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.autodeclimbspeed) || 0 },
+    { qual: 'bumpspeed', team1: filterNegative(data?.team4?.qualitative?.bumpspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.bumpspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.bumpspeed) || 0 },
+    { qual: 'defenseevasion', team1: filterNegative(data?.team4?.qualitative?.defenseevasion) || 0, team2: filterNegative(data?.team5?.qualitative?.defenseevasion) || 0, team3: filterNegative(data?.team6?.qualitative?.defenseevasion) || 0 },
+    { qual: 'aggression', team1: filterNegative(data?.team4?.qualitative?.aggression) || 0, team2: filterNegative(data?.team5?.qualitative?.aggression) || 0, team3: filterNegative(data?.team6?.qualitative?.aggression) || 0 },
+    { qual: 'climbhazard', team1: filterNegative(data?.team4?.qualitative?.climbhazard) || 0, team2: filterNegative(data?.team5?.qualitative?.climbhazard) || 0, team3: filterNegative(data?.team6?.qualitative?.climbhazard) || 0 }
+  ];
+
+  // Team View Data - Using actual database data
+  const teamsData = [
+    // Red alliance teams
+    data.team1 || defaultTeam,
+    data.team2 || defaultTeam,
+    data.team3 || defaultTeam,
+    // Blue alliance teams
+    data.team4 || defaultTeam,
+    data.team5 || defaultTeam,
+    data.team6 || defaultTeam
+  ].map((teamData, idx) => ({
+    number: teamData.team,
+    name: teamData.teamName,
+    color: COLORS[idx][1],
+    darkColor: COLORS[idx][3],
+    lightColor: COLORS[idx][0],
+    epa: Math.round(teamData.last3EPA),
+    autoEPA: Math.round(teamData.last3Auto),
+    teleEPA: Math.round(teamData.last3Tele),
+    endgameEPA: Math.round(teamData.last3End),
+    passingFreq: {
+      dump: Math.round((teamData.avgFuel || 0) * 0.85),
+      bulldozer: Math.round((teamData.avgFuel || 0) * 0.50),
+      shooter: Math.round((teamData.avgFuel || 0) * 0.30)
+    },
+    defenseQuality: {
+      harassment: Math.round(teamData.qualitative?.aggression * 10) || 25,
+      weak: Math.round(teamData.qualitative?.durability * 10) || 40,
+      gameChanging: Math.round(teamData.qualitative?.defenseevasion * 10) || 35
+    },
+    endgamePlacement: {
+      none: teamData.endgame?.none,
+      l1: teamData.endgame?.L1,
+      l2: teamData.endgame?.L2,
+      l3: teamData.endgame?.L3,
+    }
+  }));
+
+  // Match View Data structure
+  const matchData = {
+    redAlliance: {
+      teams: [
+        { number: redAlliance[0].team, color: COLORS[0][1], darkColor: COLORS[0][3] },
+        { number: redAlliance[1].team, color: COLORS[1][1], darkColor: COLORS[1][3] },
+        { number: redAlliance[2].team, color: COLORS[2][1], darkColor: COLORS[2][3] }
+      ],
+      totalEPA: Math.round(redScores[3]),
+      autoEPA: Math.round(redScores[1]),
+      teleEPA: Math.round(redScores[2] - redScores[1]),
+      endgameEPA: Math.round(redScores[3] - redScores[2]),
+      rps: redRPs
+    },
+    blueAlliance: {
+      teams: [
+        { number: blueAlliance[0].team, color: COLORS[3][1], darkColor: COLORS[3][3] },
+        { number: blueAlliance[1].team, color: COLORS[4][1], darkColor: COLORS[4][3] },
+        { number: blueAlliance[2].team, color: COLORS[5][1], darkColor: COLORS[5][3] }
+      ],
+      totalEPA: Math.round(blueScores[3]),
+      autoEPA: Math.round(blueScores[1]),
+      teleEPA: Math.round(blueScores[2] - blueScores[1]),
+      endgameEPA: Math.round(blueScores[3] - blueScores[2]),
+      rps: blueRPs
+    }
+  };
 
   return (
-    <div>
-      <div className={styles.matchNav}>
-        <AllianceButtons t1={data.team1 || defaultTeam} t2={data.team2 || defaultTeam} t3={data.team3 || defaultTeam} colors={[COLORS[3], COLORS[4], COLORS[5]]}></AllianceButtons>
-        <Link href={`/match-view?team1=${data.team1?.team || ""}&team2=${data.team2?.team || ""}&team3=${data.team3?.team || ""}&team4=${data.team4?.team || ""}&team5=${data.team5?.team || ""}&team6=${data.team6?.team || ""}`}>
-          <button style={{background: "#ffff88", color: "black"}}>EDIT</button>
-        </Link>
-        <AllianceButtons t1={data.team4 || defaultTeam} t2={data.team5 || defaultTeam} t3={data.team6 || defaultTeam} colors={[COLORS[0], COLORS[1], COLORS[2]]}></AllianceButtons>
-      </div>
-      <div className={styles.allianceEPAs}>
-        <AllianceDisplay teams={redAlliance} opponents={blueAlliance} colors={["#FFD5E1", "#F29FA6"]}></AllianceDisplay>
-        <AllianceDisplay teams={blueAlliance} opponents={redAlliance} colors={["#D3DFFF", "#8FA5F5"]}></AllianceDisplay>
-      </div>
-      <div className={styles.allianceGraphs}>
-        <div className={styles.graphContainer}>
-          <h2>Fuel Distribution</h2>
-          <Qualitative 
-            radarData={fuelRadarData} 
-            teamIndices={[1, 2, 3]} 
-            colors={[COLORS[3][2], COLORS[4][1], COLORS[5][2]]}
-            teamNumbers={[
-              (data.team1 || defaultTeam).team,
-              (data.team2 || defaultTeam).team,
-              (data.team3 || defaultTeam).team
-            ]}
-          />
+    <div className={styles.MainDiv}>
+      {/* MATCH VIEW */}
+      <div className={styles.matchView}>
+          <div className={styles.teamButtonsRow}>
+            <button className={styles.editButton}>
+              &lt; EDIT
+            </button>
+            {matchData.redAlliance.teams.map((team, idx) => (
+              <button
+                key={`red-${idx}`}
+                className={styles.teamButton}
+                style={{ backgroundColor: team.color, borderColor: team.darkColor }}
+              >
+                {team.number}
+              </button>
+            ))}
+            {matchData.blueAlliance.teams.map((team, idx) => (
+              <button
+                key={`blue-${idx}`}
+                className={styles.teamButton}
+                style={{ backgroundColor: team.color, borderColor: team.darkColor }}
+              >
+                {team.number}
+              </button>
+            ))}
+          </div>
+
+          <div className={styles.allianceBoard}>
+            {/* Red Alliance - LEFT SIDE */}
+            <div className={styles.allianceColumn}>
+              <div className={styles.EPABox} style={{ backgroundColor: '#FFD4DC', borderColor: '#FFB3C1' }}>
+                <div className={styles.epaLabel}>EPA</div>
+                <div className={styles.epaValue}>{matchData.redAlliance.totalEPA}</div>
+              </div>
+              <div className={styles.EPABreakdown}>
+                <div style={{ backgroundColor: '#FFE0E6', borderColor: '#FFB3C1' }}>A: {matchData.redAlliance.autoEPA}</div>
+                <div style={{ backgroundColor: '#FFB3C1', borderColor: '#E87A8F' }}>T: {matchData.redAlliance.teleEPA}</div>
+                <div style={{ backgroundColor: '#FFB3C1', borderColor: '#E87A8F' }}>E: {matchData.redAlliance.endgameEPA}</div>
+              </div>
+              <div className={styles.RPs}>
+                <div className={styles.rpLabel}>RPs</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.victory ? '#C8F5D4' : '#fff' }}>Victory</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.energized ? '#C8F5D4' : '#fff' }}>Energized</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.supercharged ? '#C8F5D4' : '#fff' }}>Supercharged</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.traversal ? '#C8F5D4' : '#fff' }}>Traversal</div>
+              </div>
+              <div className={styles.chartSection}>
+                <h2>Fuel Distribution</h2>
+                <div className={styles.pieChartWrapper}>
+                  <Endgame colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} endgameData={redFuelData} />
+                </div>
+              </div>
+              <div className={styles.radarSection}>
+                <Qualitative radarData={radarData} teamIndices={[1, 2, 3]} colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} teamNumbers={[1, 2, 3]} />
+              </div>
+            </div>
+
+            {/* Center - EPA Over Time */}
+            <div className={styles.centerColumn}>
+              <h2 className={styles.centerTitle}>EPA Over Time</h2>
+              <EPALineChart data={epaTimeData} width={500} height={400} />
+            </div>
+
+            {/* Blue Alliance - RIGHT SIDE */}
+            <div className={styles.allianceColumn}>
+              <div className={styles.EPABox} style={{ backgroundColor: '#D4E8F5', borderColor: '#99ADEF' }}>
+                <div className={styles.epaLabel}>EPA</div>
+                <div className={styles.epaValue}>{matchData.blueAlliance.totalEPA}</div>
+              </div>
+              <div className={styles.EPABreakdown}>
+                <div style={{ backgroundColor: '#C8F5D4', borderColor: '#A8E6CF' }}>A: {matchData.blueAlliance.autoEPA}</div>
+                <div style={{ backgroundColor: '#C8D9F5', borderColor: '#99ADEF' }}>T: {matchData.blueAlliance.teleEPA}</div>
+                <div style={{ backgroundColor: '#C8D9F5', borderColor: '#99ADEF' }}>E: {matchData.blueAlliance.endgameEPA}</div>
+              </div>
+              <div className={styles.RPs}>
+                <div className={styles.rpLabel}>RPs</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.victory ? '#C8F5D4' : '#fff' }}>Victory</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.energized ? '#C8F5D4' : '#fff' }}>Energized</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.supercharged ? '#C8F5D4' : '#fff' }}>Supercharged</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.traversal ? '#C8F5D4' : '#fff' }}>Traversal</div>
+              </div>
+              <div className={styles.chartSection}>
+                <h2>Fuel Distribution</h2>
+                <div className={styles.pieChartWrapper}>
+                  <Endgame colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} endgameData={blueFuelData} />
+                </div>
+              </div>
+              <div className={styles.radarSection}>
+                <Qualitative radarData={redRadarData} teamIndices={[1, 2, 3]} colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} teamNumbers={[1, 2, 3]} />
+              </div>
+            </div>
+          </div>
         </div>
-        <div className={styles.lineGraphContainer}>
-          <h2>EPA Over Time</h2>
-          <br></br>
-          <EPALineChart data={epaData}/>
+
+      {/* INDIVIDUAL TEAM INFO */}
+      <div className={styles.teamView}>
+        <div className={styles.teamRow}>
+          {teamsData.slice(0, 3).map((team, idx) => (
+            <TeamCard key={`row1-${idx}`} team={team} />
+          ))}
         </div>
-        <div className={styles.graphContainer}>
-          <h2>Fuel Distribution</h2>
-          <Qualitative 
-            radarData={climbingRadarData} 
-            teamIndices={[4, 5, 6]} 
-            colors={[COLORS[0][2], COLORS[1][1], COLORS[2][2]]} 
-            teamNumbers={[
-              (data.team4 || defaultTeam).team,
-              (data.team5 || defaultTeam).team,
-              (data.team6 || defaultTeam).team
-            ]}
-          />
+        <div className={styles.teamRow}>
+          {teamsData.slice(3, 6).map((team, idx) => (
+            <TeamCard key={`row2-${idx}`} team={team} />
+          ))}
         </div>
-      </div>
-      <div className={styles.matches}>
-        <TeamDisplay teamData={data.team1 || defaultTeam} colors={COLORS[3]} matchMax={matchMax}></TeamDisplay>
-        <TeamDisplay teamData={data.team2 || defaultTeam} colors={COLORS[4]} matchMax={matchMax}></TeamDisplay>
-        <TeamDisplay teamData={data.team3 || defaultTeam} colors={COLORS[5]} matchMax={matchMax}></TeamDisplay>
-      </div>
-      <div className={styles.matches}>
-        <TeamDisplay teamData={data.team4 || defaultTeam} colors={COLORS[0]} matchMax={matchMax}></TeamDisplay>
-        <TeamDisplay teamData={data.team5 || defaultTeam} colors={COLORS[1]} matchMax={matchMax}></TeamDisplay>
-        <TeamDisplay teamData={data.team6 || defaultTeam} colors={COLORS[2]} matchMax={matchMax}></TeamDisplay>
       </div>
     </div>
-  )
+  );
+}
+
+// Team Card Component
+function TeamCard({ team }) {
+  const defenseChartRef = useRef(null);
+  const defenseChartInstance = useRef(null);
+  const endgameChartRef = useRef(null);
+  const endgameChartInstance = useRef(null);
+
+  useEffect(() => {
+    // Defense Quality - Pie Chart
+    if (defenseChartRef.current) {
+      if (defenseChartInstance.current) {
+        defenseChartInstance.current.destroy();
+      }
+
+      const ctx = defenseChartRef.current.getContext('2d');
+      const colors = [team.darkColor, team.color, team.lightColor || team.color];
+
+      defenseChartInstance.current = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: ['Harassment', 'Weak', 'Game Changing'],
+          datasets: [{
+            data: [team.defenseQuality.harassment, team.defenseQuality.weak, team.defenseQuality.gameChanging],
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { font: { size: 11 }, padding: 8, boxWidth: 12 } }
+          }
+        }
+      });
+    }
+
+    // Endgame Placement - Pie Chart
+    if (endgameChartRef.current) {
+      if (endgameChartInstance.current) {
+        endgameChartInstance.current.destroy();
+      }
+
+      const ctx = endgameChartRef.current.getContext('2d');
+      const colors = [team.lightColor || team.color, team.color, team.darkColor, '#555'];
+
+      endgameChartInstance.current = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: [`None: ${team.endgamePlacement.none}%`, `L1: ${team.endgamePlacement.l1}%`, `L2: ${team.endgamePlacement.l2}%`, `L3: ${team.endgamePlacement.l3}%`],
+          datasets: [{
+            data: [team.endgamePlacement.none, team.endgamePlacement.l1, team.endgamePlacement.l2, team.endgamePlacement.l3],
+            backgroundColor: colors,
+            borderWidth: 2,
+            borderColor: '#fff'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'left', labels: { font: { size: 11 }, padding: 8, boxWidth: 12 } }
+          }
+        }
+      });
+    }
+
+    return () => {
+      if (defenseChartInstance.current) defenseChartInstance.current.destroy();
+      if (endgameChartInstance.current) endgameChartInstance.current.destroy();
+    };
+  }, [team]);
+
+  return (
+    <div className={styles.teamCard}>
+      <div className={styles.teamHeader}>
+        <h1 style={{ color: team.darkColor }}>{team.number}</h1>
+        <h2 style={{ color: team.darkColor }}>{team.name}</h2>
+      </div>
+      <div className={styles.EPABox} style={{ backgroundColor: team.color, borderColor: team.darkColor }}>
+        <div className={styles.epaLabel}>EPA</div>
+        <div className={styles.epaValue}>{team.epa}</div>
+      </div>
+      <div className={styles.EPABreakdown}>
+        <div style={{ backgroundColor: team.lightColor, borderColor: team.darkColor }}>A:{team.autoEPA}</div>
+        <div style={{ backgroundColor: team.color, borderColor: team.darkColor }}>T:{team.teleEPA}</div>
+        <div style={{ backgroundColor: team.darkColor, borderColor: team.darkColor, color: '#fff' }}>E:{team.endgameEPA}</div>
+      </div>
+      <div className={styles.chartsRow}>
+        <div className={styles.chartColumn}>
+          <h3>Passing Rel. Frequency</h3>
+          <div className={styles.chartWrapper}>
+            <PiecePlacement 
+              colors={[team.color, team.color, team.darkColor]}
+              matchMax={100}
+              passingData={team.passingFreq}
+            />
+          </div>
+        </div>
+        <div className={styles.chartColumn}>
+          <h3>Defense Quality</h3>
+          <div className={styles.chartWrapper}>
+            <canvas ref={defenseChartRef}></canvas>
+          </div>
+        </div>
+      </div>
+      <div className={styles.endgameSection}>
+        <h3>Endgame Placement</h3>
+        <div className={styles.endgameWrapper}>
+          <canvas ref={endgameChartRef}></canvas>
+        </div>
+      </div>
+    </div>
+  );
 }
