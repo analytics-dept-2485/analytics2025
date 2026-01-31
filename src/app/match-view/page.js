@@ -102,7 +102,7 @@ function ScoutingApp() {
     avgFuel: 0,
     leave: false,
     autoClimb: 0,
-    endgame: { none: 100, L1: 0, L2: 0, L3: 0, fail: 0},
+    endgame: { none: 0, L1: 0, L2: 0, L3: 0, fail: 0},
     qualitative: { fuelspeed: 0, maneuverability: 0, durability: 0, collectioncapacity: 0, passingspeed: 0, climbingspeed: 0, autodeclimbspeed: 0, bumpspeed: 0, defenseevasion: 0, aggression: 0, climbhazard: 0 }
   };
 
@@ -230,16 +230,19 @@ function ScoutingApp() {
   };
 
   // Fuel distribution for pie charts (percentage of each team's contribution)
+  const totalBlueFuel = (blueAlliance[0]?.avgFuel || 0) + (blueAlliance[1]?.avgFuel || 0) + (blueAlliance[2]?.avgFuel || 0);
+  const totalRedFuel = (redAlliance[0]?.avgFuel || 0) + (redAlliance[1]?.avgFuel || 0) + (redAlliance[2]?.avgFuel || 0);
+
   const blueFuelData = [
-    { x: 'Team 1', y: blueAlliance[0]?.avgFuel},
-    { x: 'Team 2', y: blueAlliance[1]?.avgFuel},
-    { x: 'Team 3', y: blueAlliance[2]?.avgFuel}
+    { x: 'Team 1', y: totalBlueFuel > 0 ? Math.round((blueAlliance[0]?.avgFuel || 0) / totalBlueFuel * 100) : 0 },
+    { x: 'Team 2', y: totalBlueFuel > 0 ? Math.round((blueAlliance[1]?.avgFuel || 0) / totalBlueFuel * 100) : 0 },
+    { x: 'Team 3', y: totalBlueFuel > 0 ? Math.round((blueAlliance[2]?.avgFuel || 0) / totalBlueFuel * 100) : 0 }
   ];
 
   const redFuelData = [
-    { x: 'Team 1', y: redAlliance[0]?.avgFuel},
-    { x: 'Team 2', y: redAlliance[1]?.avgFuel},
-    { x: 'Team 3', y: redAlliance[2]?.avgFuel}
+    { x: 'Team 1', y: totalRedFuel > 0 ? Math.round((redAlliance[0]?.avgFuel || 0) / totalRedFuel * 100) : 0 },
+    { x: 'Team 2', y: totalRedFuel > 0 ? Math.round((redAlliance[1]?.avgFuel || 0) / totalRedFuel * 100) : 0 },
+    { x: 'Team 3', y: totalRedFuel > 0 ? Math.round((redAlliance[2]?.avgFuel || 0) / totalRedFuel * 100) : 0 }
   ];
 
   // Radar chart data for qualitative metrics
@@ -288,25 +291,26 @@ function ScoutingApp() {
     color: COLORS[idx][1],
     darkColor: COLORS[idx][3],
     lightColor: COLORS[idx][0],
-    epa: Math.round(teamData.last3EPA),
-    autoEPA: Math.round(teamData.last3Auto),
-    teleEPA: Math.round(teamData.last3Tele),
-    endgameEPA: Math.round(teamData.last3End),
+    epa: Math.round(teamData.last3EPA || 0),
+    autoEPA: Math.round(teamData.last3Auto || 0),
+    teleEPA: Math.round(teamData.last3Tele || 0),
+    endgameEPA: Math.round(teamData.last3End || 0),
     passingFreq: {
-      dump: Math.round((teamData.avgFuel || 0) * 0.85),
-      bulldozer: Math.round((teamData.avgFuel || 0) * 0.50),
-      shooter: Math.round((teamData.avgFuel || 0) * 0.30)
+      // These should come from your database - adjust field names as needed
+      dump: teamData.passingDump || teamData.dump || 0,
+      bulldozer: teamData.passingBulldozer || teamData.bulldozer || 0,
+      shooter: teamData.passingShooter || teamData.shooter || 0
     },
     defenseQuality: {
-      harassment: Math.round(teamData.qualitative?.aggression * 10) || 25,
-      weak: Math.round(teamData.qualitative?.durability * 10) || 40,
-      gameChanging: Math.round(teamData.qualitative?.defenseevasion * 10) || 35
+      harassment: teamData.qualitative?.aggression ? Math.round(teamData.qualitative.aggression * 10) : 0,
+      weak: teamData.qualitative?.durability ? Math.round(teamData.qualitative.durability * 10) : 0,
+      gameChanging: teamData.qualitative?.defenseevasion ? Math.round(teamData.qualitative.defenseevasion * 10) : 0
     },
     endgamePlacement: {
-      none: teamData.endgame?.none,
-      l1: teamData.endgame?.L1,
-      l2: teamData.endgame?.L2,
-      l3: teamData.endgame?.L3,
+      none: teamData.endgame?.none || 0,
+      l1: teamData.endgame?.L1 || 0,
+      l2: teamData.endgame?.L2 || 0,
+      l3: teamData.endgame?.L3 || 0
     }
   }));
 
@@ -369,14 +373,14 @@ function ScoutingApp() {
           <div className={styles.allianceBoard}>
             {/* Red Alliance - LEFT SIDE */}
             <div className={styles.allianceColumn}>
-              <div className={styles.EPABox} style={{ backgroundColor: '#FFD4DC', borderColor: '#FFB3C1' }}>
+              <div className={styles.EPABox} style={{ backgroundColor: '#FFD4DC', borderColor: '#8B0000' }}>
                 <div className={styles.epaLabel}>EPA</div>
                 <div className={styles.epaValue}>{matchData.redAlliance.totalEPA}</div>
               </div>
               <div className={styles.EPABreakdown}>
-                <div style={{ backgroundColor: '#FFE0E6', borderColor: '#FFB3C1' }}>A: {matchData.redAlliance.autoEPA}</div>
-                <div style={{ backgroundColor: '#FFB3C1', borderColor: '#E87A8F' }}>T: {matchData.redAlliance.teleEPA}</div>
-                <div style={{ backgroundColor: '#FFB3C1', borderColor: '#E87A8F' }}>E: {matchData.redAlliance.endgameEPA}</div>
+                <div style={{ backgroundColor: '#F29FA6', borderColor: '#8B0000' }}>A: {matchData.redAlliance.autoEPA}</div>
+                <div style={{ backgroundColor: '#F29FA6', borderColor: '#8B0000' }}>T: {matchData.redAlliance.teleEPA}</div>
+                <div style={{ backgroundColor: '#F29FA6', borderColor: '#8B0000' }}>E: {matchData.redAlliance.endgameEPA}</div>
               </div>
               <div className={styles.RPs}>
                 <div className={styles.rpLabel}>RPs</div>
@@ -392,7 +396,7 @@ function ScoutingApp() {
                 </div>
               </div>
               <div className={styles.radarSection}>
-                <Qualitative radarData={radarData} teamIndices={[1, 2, 3]} colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} teamNumbers={[1, 2, 3]} />
+                <Qualitative radarData={redRadarData} teamIndices={[1, 2, 3]} colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} teamNumbers={[1, 2, 3]} />
               </div>
             </div>
 
@@ -404,14 +408,14 @@ function ScoutingApp() {
 
             {/* Blue Alliance - RIGHT SIDE */}
             <div className={styles.allianceColumn}>
-              <div className={styles.EPABox} style={{ backgroundColor: '#D4E8F5', borderColor: '#99ADEF' }}>
+              <div className={styles.EPABox} style={{ backgroundColor: '#D4E8F5', borderColor: '#00008B' }}>
                 <div className={styles.epaLabel}>EPA</div>
                 <div className={styles.epaValue}>{matchData.blueAlliance.totalEPA}</div>
               </div>
               <div className={styles.EPABreakdown}>
-                <div style={{ backgroundColor: '#C8F5D4', borderColor: '#A8E6CF' }}>A: {matchData.blueAlliance.autoEPA}</div>
-                <div style={{ backgroundColor: '#C8D9F5', borderColor: '#99ADEF' }}>T: {matchData.blueAlliance.teleEPA}</div>
-                <div style={{ backgroundColor: '#C8D9F5', borderColor: '#99ADEF' }}>E: {matchData.blueAlliance.endgameEPA}</div>
+                <div style={{ backgroundColor: '#8FA5F5', borderColor: '#00008B' }}>A: {matchData.blueAlliance.autoEPA}</div>
+                <div style={{ backgroundColor: '#8FA5F5', borderColor: '#00008B' }}>T: {matchData.blueAlliance.teleEPA}</div>
+                <div style={{ backgroundColor: '#8FA5F5', borderColor: '#00008B' }}>E: {matchData.blueAlliance.endgameEPA}</div>
               </div>
               <div className={styles.RPs}>
                 <div className={styles.rpLabel}>RPs</div>
@@ -427,7 +431,7 @@ function ScoutingApp() {
                 </div>
               </div>
               <div className={styles.radarSection}>
-                <Qualitative radarData={redRadarData} teamIndices={[1, 2, 3]} colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} teamNumbers={[1, 2, 3]} />
+                <Qualitative radarData={radarData} teamIndices={[1, 2, 3]} colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} teamNumbers={[1, 2, 3]} />
               </div>
             </div>
           </div>
@@ -530,14 +534,14 @@ function TeamCard({ team }) {
         <h1 style={{ color: team.darkColor }}>{team.number}</h1>
         <h2 style={{ color: team.darkColor }}>{team.name}</h2>
       </div>
-      <div className={styles.EPABox} style={{ backgroundColor: team.color, borderColor: team.darkColor }}>
+      <div className={styles.EPABox} style={{ backgroundColor: team.lightColor, borderColor: team.darkColor }}>
         <div className={styles.epaLabel}>EPA</div>
         <div className={styles.epaValue}>{team.epa}</div>
       </div>
       <div className={styles.EPABreakdown}>
-        <div style={{ backgroundColor: team.lightColor, borderColor: team.darkColor }}>A:{team.autoEPA}</div>
+        <div style={{ backgroundColor: team.color, borderColor: team.darkColor }}>A:{team.autoEPA}</div>
         <div style={{ backgroundColor: team.color, borderColor: team.darkColor }}>T:{team.teleEPA}</div>
-        <div style={{ backgroundColor: team.darkColor, borderColor: team.darkColor, color: '#fff' }}>E:{team.endgameEPA}</div>
+        <div style={{ backgroundColor: team.color, borderColor: team.darkColor }}>E:{team.endgameEPA}</div>
       </div>
       <div className={styles.chartsRow}>
         <div className={styles.chartColumn}>

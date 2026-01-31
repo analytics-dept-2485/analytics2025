@@ -20,7 +20,7 @@
 .teamForm {
     margin: 20px auto;
     padding: 25px;
-    max-width: 800px;
+    max-width: 1300px;
     background: #eee;
     border-radius: 10px;
     display: flex;
@@ -33,7 +33,6 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    flex-wrap: wrap;
     justify-content: center;
     gap: 5px;
     margin: 10px;
@@ -42,7 +41,6 @@
 .BlueInputs, .RedInputs {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
     justify-content: center;
 }
 
@@ -99,34 +97,35 @@
 }
 
 .editButton {
-    padding: 12px 25px;
-    font-size: 28px;
+    padding: 10px 20px;
+    font-size: 26px;
     font-family: 'Teko', sans-serif;
     background: linear-gradient(135deg, #FFD700, #FFA500);
     border: 2px solid #000;
-    border-radius: 12px;
+    border-radius: 8px;
     cursor: pointer;
     font-weight: bold;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    order: -1;
 }
 
 .editButton:hover {
     background: linear-gradient(135deg, #FFA500, #FFD700);
     transform: translateY(-2px);
-    box-shadow: 0 5px 12px rgba(0,0,0,0.3);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
 .teamButton {
-    padding: 12px 30px;
+    padding: 10px 25px;
     font-size: 32px;
     font-family: 'Teko', sans-serif;
     font-weight: bold;
     border: 3px solid;
-    border-radius: 12px;
+    border-radius: 15px;
     cursor: pointer;
     transition: all 0.2s;
-    min-width: 120px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    min-width: 110px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 .teamButton:hover {
@@ -195,7 +194,7 @@
 /* EPA Box */
 .EPABox {
     position: relative;
-    padding: 30px 25px;
+    padding: 35px 25px 25px;
     margin-bottom: 0;
     border: 3px solid;
     border-radius: 15px 15px 0 0;
@@ -211,17 +210,21 @@
     background: #fff;
     border: 3px solid #000;
     border-radius: 10px;
-    padding: 8px 25px;
+    padding: 6px 25px;
     font-size: 24px;
     font-weight: bold;
     font-family: 'Teko', sans-serif;
 }
 
 .epaValue {
-    font-size: 72px;
+    font-size: 80px;
     font-weight: bold;
     font-family: 'Teko', sans-serif;
-    line-height: 1;
+    line-height: 0.9;
+    margin-top: 5px;
+    text-align: center;
+    padding-top: 20px;
+    padding-bottom: -30px;
 }
 
 /* EPA Breakdown */
@@ -237,7 +240,7 @@
     font-size: 28px;
     font-weight: bold;
     font-family: 'Teko', sans-serif;
-    border: 3px solid;
+    border: 2px solid;
     border-top: none;
 }
 
@@ -260,7 +263,7 @@
 
 .rpLabel {
     flex: 0 0 70px;
-    background: #f0f0f0;
+    background: lightslategrey;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -365,8 +368,7 @@
 
 /* Team Card EPA styles use same classes as match view */
 .teamCard .EPABox {
-    padding: 20px;
-    margin-bottom: 12px;
+    padding: 10px;
 }
 
 .teamCard .epaLabel {
