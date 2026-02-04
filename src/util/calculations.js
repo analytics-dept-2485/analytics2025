@@ -12,8 +12,8 @@ function calcAuto(record) {
   }
   
   // Auto Climb: L1 = 15 points (only if successfully climbed)
-  // Note: In auto, only L1 is possible and only max 2 robots can climb
-  if (record.autoclimb === 'Success') {
+  // autoclimb: 0=None, 1=Success, 2=Fail (or legacy 2=Success on some branches)
+  if (record.autoclimb === 1 || record.autoclimb === 2) {
     points += 15; // L1 climb in auto
   }
   
@@ -23,39 +23,31 @@ function calcAuto(record) {
 }
 
 function calcTele(record) {
+  // Teleop Fuel: 1 point per fuel scored in active HUB (endgame climb is in calcEnd)
   let points = 0;
-  
-  // Teleop Fuel: 1 point per fuel scored in active HUB
   if (record.telefuel && record.telefuel > 0) {
     points += record.telefuel * 1;
   }
-  
-  // Endgame Climb points (scored during teleop period):
-  // L1 = 10 points, L2 = 20 points, L3 = 30 points
-  if (record.endclimb) {
-    switch (record.endclimb.toUpperCase()) {
-      case 'L1':
-        points += 10;
-        break;
-      case 'L2':
-        points += 20;
-        break;
-      case 'L3':
-        points += 30;
-        break;
-      default:
-        // No points for invalid or None
-        break;
-    }
-  }
-  
   return points;
 }
 
 function calcEnd(record) {
-  // Endgame points are already calculated in calcTele
-  // This function is kept for compatibility but returns 0
-  // The climb points are part of teleop scoring
+  // Endgame Climb: L1 = 10 points, L2 = 20 points, L3 = 30 points
+  // endclimbposition: 0-8 (0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, ...); level = position % 3 → 0=L3, 1=L2, 2=L1
+  if (record.endclimbposition != null && record.endclimbposition !== undefined) {
+    const level = record.endclimbposition % 3;
+    if (level === 0) return 30; // L3
+    if (level === 1) return 20; // L2
+    if (level === 2) return 10; // L1
+  }
+  if (record.endclimb && (record.endclimbposition == null || record.endclimbposition === undefined)) {
+    switch (String(record.endclimb).toUpperCase()) {
+      case 'L1': return 10;
+      case 'L2': return 20;
+      case 'L3': return 30;
+      default: break;
+    }
+  }
   return 0;
 }
 

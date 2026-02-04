@@ -32,7 +32,7 @@ function ScoutingApp() {
     fetch("/api/get-alliance-data")
       .then(resp => resp.json())
       .then(data => {
-        console.log("Fetched Data from API:", data);
+        console.log("[Match View] get-alliance-data response (keys = team numbers):", data);
         setAllData(data);
       });
   }, []);
@@ -41,53 +41,69 @@ function ScoutingApp() {
   useEffect(() => {
     if (searchParams && allData) {
       if (searchParams.get('match') == null || searchParams.get('match') == "") {
-        // Search by teams
+        // Search by teams (trim so "2485" matches API keys)
         let [team1, team2, team3, team4, team5, team6] = [
-          searchParams.get("team1"), 
-          searchParams.get("team2"), 
-          searchParams.get("team3"), 
-          searchParams.get("team4"), 
-          searchParams.get("team5"), 
-          searchParams.get("team6")
+          searchParams.get("team1")?.trim?.() ?? searchParams.get("team1"),
+          searchParams.get("team2")?.trim?.() ?? searchParams.get("team2"),
+          searchParams.get("team3")?.trim?.() ?? searchParams.get("team3"),
+          searchParams.get("team4")?.trim?.() ?? searchParams.get("team4"),
+          searchParams.get("team5")?.trim?.() ?? searchParams.get("team5"),
+          searchParams.get("team6")?.trim?.() ?? searchParams.get("team6")
         ];
-        setData({
-          team1: allData[team1], 
-          team2: allData[team2], 
-          team3: allData[team3], 
-          team4: allData[team4], 
-          team5: allData[team5], 
-          team6: allData[team6]
-        });
+        const lookup = (t) => (t != null && t !== '') ? (allData[t] ?? allData[String(t)]) : undefined;
+        const next = {
+          team1: lookup(team1),
+          team2: lookup(team2),
+          team3: lookup(team3),
+          team4: lookup(team4),
+          team5: lookup(team5),
+          team6: lookup(team6)
+        };
+        console.log("[Match View] Team data for view (by teams):", next);
+        setData(next);
       } else {
         // Search by match
-        fetch('/api/get-teams-of-match?match=' + searchParams.get('match'))
+        fetch('/api/get-teams-of-match?match=' + encodeURIComponent(searchParams.get('match')))
           .then(resp => resp.json())
           .then(matchData => {
             if (matchData.message) {
-              console.log(matchData.message);
+              alert(matchData.message);
+              const matchParam = searchParams.get('match');
+              const backUrl = matchParam ? `${window.location.pathname}?match=${encodeURIComponent(matchParam)}` : window.location.pathname;
+              window.history.replaceState(null, 'Match View', backUrl);
+              setData({});
             } else {
-              // Update URL with teams
               const newParams = new URLSearchParams(searchParams);
-              newParams.set('team1', matchData.team1);
-              newParams.set('team2', matchData.team2);
-              newParams.set('team3', matchData.team3);
-              newParams.set('team4', matchData.team4);
-              newParams.set('team5', matchData.team5);
-              newParams.set('team6', matchData.team6);
+              newParams.set('team1', String(matchData.team1));
+              newParams.set('team2', String(matchData.team2));
+              newParams.set('team3', String(matchData.team3));
+              newParams.set('team4', String(matchData.team4));
+              newParams.set('team5', String(matchData.team5));
+              newParams.set('team6', String(matchData.team6));
               newParams.delete('match');
 
               const newUrl = `${window.location.pathname}?${newParams.toString()}`;
               window.history.replaceState(null, 'Match View', newUrl);
-              
-              setData({
-                team1: allData[matchData.team1], 
-                team2: allData[matchData.team2], 
-                team3: allData[matchData.team3], 
-                team4: allData[matchData.team4], 
-                team5: allData[matchData.team5], 
-                team6: allData[matchData.team6]
-              });
+
+              const lookup = (t) => (t != null && t !== '') ? (allData[String(t)] ?? allData[t]) : undefined;
+              const next = {
+                team1: lookup(matchData.team1),
+                team2: lookup(matchData.team2),
+                team3: lookup(matchData.team3),
+                team4: lookup(matchData.team4),
+                team5: lookup(matchData.team5),
+                team6: lookup(matchData.team6)
+              };
+              console.log("[Match View] Team data for view (by match):", next);
+              setData(next);
             }
+          })
+          .catch(err => {
+            alert('Could not load match: ' + (err.message || 'Network error'));
+            const matchParam = searchParams.get('match');
+            const backUrl = matchParam ? `${window.location.pathname}?match=${encodeURIComponent(matchParam)}` : window.location.pathname;
+            window.history.replaceState(null, 'Match View', backUrl);
+            setData({});
           });
       }
     }
@@ -118,7 +134,7 @@ function ScoutingApp() {
   if (searchParams.get("go") != "go") {
     return (
       <div>
-        <form className={styles.teamForm}>
+        <form className={styles.teamForm} action="/match-view" method="get">
           <span>View by Teams...</span>
           <div className={styles.horizontalBox}>
             <div className={styles.RedInputs}>
@@ -159,7 +175,7 @@ function ScoutingApp() {
           </div>
           <span>Or by Match...</span>
           <label htmlFor="match">Match #</label>
-          <input id="match" name="match" type="number"></input>
+          <input id="match" name="match" type="number" defaultValue={searchParams.get("match") ?? ""}></input>
           <button>Go!</button>
         </form>
       </div>
@@ -297,11 +313,11 @@ function ScoutingApp() {
     teleEPA: Math.round(teamData.last3Tele || 0),
     endgameEPA: Math.round(teamData.last3End || 0),
     passingFreq: {
-      // These should come from your database - adjust field names as needed
-      dump: teamData.passingDump || teamData.dump || 0,
-      bulldozer: teamData.passingBulldozer || teamData.bulldozer || 0,
-      shooter: teamData.passingShooter || teamData.shooter || 0
+      dump: teamData.passing?.dump ?? teamData.passingDump ?? teamData.dump ?? 0,
+      bulldozer: teamData.passing?.bulldozer ?? teamData.passingBulldozer ?? teamData.bulldozer ?? 0,
+      shooter: teamData.passing?.shooter ?? teamData.passingShooter ?? teamData.shooter ?? 0
     },
+    // Note: This chart uses qualitative ratings (aggression, durability, defenseevasion), NOT the DB "defense" column (0=weak, 1=harassment, 2=game changing).
     defenseQuality: {
       harassment: teamData.qualitative?.aggression ? Math.round(teamData.qualitative.aggression * 10) : 0,
       weak: teamData.qualitative?.durability ? Math.round(teamData.qualitative.durability * 10) : 0,
@@ -357,8 +373,33 @@ function ScoutingApp() {
   </div>
 }
 
+  const showDebug = searchParams?.get('debug') === '1';
+
   return (
     <div className={styles.MainDiv}>
+      {/* Debug panel: add ?debug=1 to URL to see raw API data (defense vs qualitative) */}
+      {showDebug && (
+        <div className={styles.debugPanel}>
+          <h3>Raw data (from get-alliance-data) — Defense pie uses qualitative, not DB &quot;defense&quot;</h3>
+          <pre style={{ fontSize: 11, overflow: 'auto', maxHeight: 320, background: '#f5f5f5', padding: 8 }}>
+            {JSON.stringify(
+              {
+                team1: data?.team1 ? { team: data.team1.team, defense: data.team1.defense, qualitative: data.team1.qualitative } : null,
+                team2: data?.team2 ? { team: data.team2.team, defense: data.team2.defense, qualitative: data.team2.qualitative } : null,
+                team3: data?.team3 ? { team: data.team3.team, defense: data.team3.defense, qualitative: data.team3.qualitative } : null,
+                team4: data?.team4 ? { team: data.team4.team, defense: data.team4.defense, qualitative: data.team4.qualitative } : null,
+                team5: data?.team5 ? { team: data.team5.team, defense: data.team5.defense, qualitative: data.team5.qualitative } : null,
+                team6: data?.team6 ? { team: data.team6.team, defense: data.team6.defense, qualitative: data.team6.qualitative } : null
+              },
+              null,
+              2
+            )}
+          </pre>
+          <p style={{ fontSize: 12, color: '#666' }}>
+            Defense pie = qualitative.aggression (harassment), qualitative.durability (weak), qualitative.defenseevasion (game changing). DB &quot;defense&quot; (0/1/2) is not used here.
+          </p>
+        </div>
+      )}
       {/* MATCH VIEW */}
       <div className={styles.matchView}>
           <div className={styles.matchNav}>

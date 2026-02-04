@@ -41,13 +41,14 @@ export async function GET() {
         let auto = calcAuto(row);
         let tele = calcTele(row);
         let end = calcEnd(row);
+        const teamKey = String(row.team);
 
         let frcAPITeamInfo = frcAPITeamData.filter(teamData => parseInt(teamData.team_number) === parseInt(row.team));
 
-        if (!responseObject[row.team]) {
-          responseObject[row.team] = initializeTeamData(row, auto, tele, end, frcAPITeamInfo);
+        if (!responseObject[teamKey]) {
+          responseObject[teamKey] = initializeTeamData(row, auto, tele, end, frcAPITeamInfo);
         } else {
-          accumulateTeamData(responseObject[row.team], row, auto, tele, end);
+          accumulateTeamData(responseObject[teamKey], row, auto, tele, end);
         }
       }
     });
@@ -190,6 +191,7 @@ function calculateAverages(responseObject, rows) {
     teamData.tele = average(teamData.tele, count);
     teamData.end = average(teamData.end, count);
     teamData.fuel = average(teamData.fuel, count);
+    teamData.avgFuel = teamData.fuel; // match-view expects avgFuel
     teamData.climb = average(teamData.climb, count);
 
     // Calculate passing percentages (percentage of matches using each passing type)

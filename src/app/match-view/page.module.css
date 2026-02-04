@@ -11,6 +11,20 @@
     padding: 20px;
 }
 
+.debugPanel {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-family: monospace;
+}
+
+.debugPanel h3 {
+    margin: 0 0 8px 0;
+    font-size: 14px;
+}
+
 /* ===== MATCH VIEW ===== */
 .matchView {
     width: 100%;
