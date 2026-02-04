@@ -1,0 +1,10 @@
+.ClimbTable{
+    border-radius: px;
+    table-layout: fixed;
+    align-self: center;
+    border-collapse: collapse;
+}
+.cell{
+    border: 1px solid black;
+    width: 55px;
+}

@@ -15,6 +15,8 @@ import PiecePlacement from "./components/PiecePlacement";
 import Endgame from "./components/Endgame";
 import Qualitative from "./components/Qualitative";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line, RadarChart, PolarRadiusAxis, PolarAngleAxis, PolarGrid, Radar, Legend } from 'recharts';
+import ClimbTable from "./components/ClimbTable";
+import VBoxCheck from "./components/VBoxCheck";
 
 
 
@@ -101,7 +103,7 @@ function TeamView() {
      consistency: 98,
      stuckOnFuel: 12,
      defense: 11,
-     shootingMechanism: "turret",
+     shootingMechanism: "Turret",
      lastBreakdown: 2,
      noShow: 1,
      breakdown: 9,
@@ -111,7 +113,7 @@ function TeamView() {
      breakdownComments: ["stopped moving"],
      defenseComments: ["defended coral human player station"],
    
-     autoOverTime: [{match: 8, epa: 60},{match: 10, epa: 10},{match: 13, epa: 2}],
+     autoOverTime: [{match: 8, auto: 30},{match: 10, auto: 10},{match: 13, auto: 2}],
      leave: 93,
      autoclimb: {
        success: 7,
@@ -119,7 +121,7 @@ function TeamView() {
        none: 3,
      },
      autoMedianFuel: 3,
-     teleOverTime: [{match: 8, epa: 30}, {match: 10, epa: 78}, {match: 13, epa: 42}],
+     teleOverTime: [{match: 8, tele: 30}, {match: 10, tele: 78}, {match: 13, tele: 42}],
      teleMedianFuel: 2,
      passing: {
        shooter: 10,
@@ -181,6 +183,7 @@ function TeamView() {
      shootWhileMove: true,
      bumpTrav: true,
      trenchTrav: true,
+     wideClimb: true,
    }
 
 
@@ -325,6 +328,11 @@ function TeamView() {
        { x: 'L2', y: (data.endPlacement.L2.left+data.endPlacement.L2.right+data.endPlacement.L2.center)},
        { x: 'L3', y: (data.endPlacement.L3.left+data.endPlacement.L3.right+data.endPlacement.L3.center)}
    ];
+   const autoPieData = [
+    { x: 'None', y: (data.autoclimb.none)},
+    { x: 'Success', y: (data.autoclimb.success)},
+    { x: 'Fail', y: (data.autoclimb.fail)},
+];
 
 
 
@@ -374,12 +382,35 @@ function TeamView() {
                      <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Matches Scouted"} value={data.matchesScouted}/>
                    </div>
                    <div className={styles.leftBoxR3}>
-                     <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Shoot While Move?"} value={"cb"}/>
+                     <VBoxCheck color1={Colors[0][1]} color2={Colors[0][0]} title={"Shoot While Move?"} value={data.shootWhileMove}/>
                      <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Shooting Mechanism"} value={data.shootingMechanism}/>
-                     <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Bump/Trench"} value={"cb"}/>
-                   </div>
+                     <table className={styles.horizontalTable2}> 
+                     <tbody>
+                      <tr>
+                        <td style={{backgroundColor: Colors[0][1]}}>Bump</td>
+                        <td style={{backgroundColor: Colors[0][1]}}>Trench</td>
+                      </tr>
+                      <tr>
+                        <td className={styles.coloredBoxes} style={{backgroundColor: Colors[0][0], width: "50px", height: "30px"}}><input id="groundcheck" type="checkbox" readOnly checked={data.groundIntake}></input></td>
+                        <td className={styles.coloredBoxes} style={{backgroundColor: Colors[0][0], width: "50px", height: "30px"}}><input id="groundcheck" type="checkbox" readOnly checked={data.outpostIntake}></input></td>
+                      </tr>
+                    </tbody>
+                    </table>
+                  </div>
       
-                   <p>intake</p>
+                   <table className={styles.horizontalTable}> 
+                  <tbody>
+                    <tr>
+                      <td style={{backgroundColor: Colors[0][2]}} rowSpan="2">Intake</td>
+                      <td style={{backgroundColor: Colors[0][1]}}>Ground</td>
+                      <td style={{backgroundColor: Colors[0][1]}}>Outpost</td>
+                    </tr>
+                    <tr>
+                    <td className={styles.coloredBoxes} style={{backgroundColor: Colors[0][0], width: "50px", height: "30px"}}><input id="groundcheck" type="checkbox" readOnly checked={data.groundIntake}></input></td>
+                    <td className={styles.coloredBoxes} style={{backgroundColor: Colors[0][0], width: "50px", height: "30px"}}><input id="groundcheck" type="checkbox" readOnly checked={data.outpostIntake}></input></td>
+                    </tr>
+                  </tbody>
+                  </table>
 
                  </div>
                  <div className={styles.allComments}>
@@ -406,7 +437,15 @@ function TeamView() {
                label={"auto"}
              />
          </div>
+      <div className={styles.autoBox}>
+        <div className={styles.autoPieBox}>
+          <Endgame
+            data={autoPieData}
+            color={Colors[1]}
+          />
+        </div>
        <VBox color1={Colors[1][2]} color2={Colors[1][0]} color3={Colors[1][2]} title={"Median Fuel"} value={data.autoMedianFuel}/>
+      </div>
      </div>
 
 
@@ -424,9 +463,68 @@ function TeamView() {
        <div className={styles.alignElements}>
            <div className={styles.alignElements}>
              <div className={styles.rightColumnBoxesTwo}>
+          <div className={styles.teleBox3}>
+          <div className={styles.teleBox1}>
            <VBox color1={Colors[2][2]} color2={Colors[2][0]} color3={Colors[2][2]} title={"Median Fuel"} value={Math.round(10*data.teleMedianFuel)/10} />
-         </div>
-            
+           <div className={styles.teleBox2}>
+            <table className={styles.horizontalTable}> 
+              <tbody>
+                <tr>
+                  <td style={{backgroundColor: Colors[2][2]}} rowSpan="2">Passing</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Shooter</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Bulldozer</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Dump</td>
+                </tr>
+                <tr>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.passing.shooter}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.passing.bulldozer}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.passing.dump}%</td>
+                </tr>
+              </tbody>
+            </table>
+            <table className={styles.horizontalTable1}> 
+              <tbody>
+                <tr>
+                  <td style={{backgroundColor: Colors[2][2]}} rowSpan="2">Defense Quality</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Weak</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Harassment</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Game Changing</td>
+                </tr>
+                <tr>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.weak}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.harassment}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.gameChanging}%</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+
+            <table className={styles.horizontalTable}> 
+              <tbody>
+                <tr>
+                  <td style={{backgroundColor: Colors[2][2]}} rowSpan="2">Defense</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>AZ</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>NZ</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Trench</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Bump</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Tower</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Outpost</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Hub</td>
+                </tr>
+                <tr>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.allianceZone}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.neutralZone}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.trench}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.bump}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.tower}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.outpost}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.hub}%</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+            </div>
          </div>
        </div>
      </div>
@@ -438,38 +536,58 @@ function TeamView() {
              <div className={styles.chartContainer}>
                <h4 className={styles.graphTitle}>Endgame Placement</h4>
                </div>
-             <Endgame
-               data={endgamePieData}
-               color={Colors[3]}
-             />
+            <div className={styles.endPieBox}>
+              <Endgame
+                data={endgamePieData}
+                color={Colors[3]}
+              />
+             </div>
              <div className={styles.endBoxes}>
-              <VBox color1={Colors[3][2]} color2={Colors[3][0]} title={"Wide Climb?"} value={"cb"}/>
-              <ThreeByThree 
-                  HC1 = "Left"
-                 HC2 = "Center"
-                 HC3 = "Right"
-                 HC4 = "title"
-                 HC5 = "title2"
-                 HC6 = "title3"
-                 HR1 = "L3"
-                 R1C1 = {data.breakdown}
-                 R1C2 = {data.breakdown}
-                 R2C3 = {data.breakdown}
-                 R2C4 = {data.breakdown}
-                 R3C5 = {data.breakdown}
-                 R3C6 = {data.breakdown}
-                 HR2 = "L2"
-                 R2C1 = {data.breakdown}
-                 R2C2 = {data.breakdown}
-                 HR3 = "L1"
-                 R3C1 = {data.breakdown}
-                 R3C2 = {data.breakdown}
-                 R1C3 = {data.breakdown}
-                 R3C3 = {data.breakdown}
-                 color1={Colors[3][2]}
-                 color2={Colors[3][1]}
-                 color3={Colors[3][0]}
-                 />
+             <VBoxCheck color1={Colors[3][1]} color2={Colors[3][0]} title={"Wide Climb?"} value={data.wideClimb}/>
+              {/* <table>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Left</th>
+                    <th>Center</th>
+                    <th>Right</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>L3</td>
+                    <td>#</td>
+                    <td>#</td>
+                    <td>#</td>
+                  </tr>
+                  <tr>
+                    <td>L2</td>
+                    <td>#</td>
+                    <td>#</td>
+                    <td>#</td>
+                  </tr>
+                  <tr>
+                    <td>L1</td>
+                    <td>#</td>
+                    <td>#</td>
+                    <td>#</td>
+                  </tr>
+                </tbody>
+              </table> */}
+              <ClimbTable
+                R1C1 = {data.endPlacement.L1.left}
+                R1C2 = {data.endPlacement.L1.center}
+                R1C3 = {data.endPlacement.L1.right}
+                R2C1 = {data.endPlacement.L2.left}
+                R2C2 = {data.endPlacement.L2.center}
+                R2C3 = {data.endPlacement.L2.right}
+                R3C1 = {data.endPlacement.L3.left}
+                R3C2 = {data.endPlacement.L3.center}
+                R3C3 = {data.endPlacement.L1.right}
+                color1={Colors[3][2]} 
+                color2={Colors[3][1]}
+                color3={Colors[3][0]}
+              ></ClimbTable>
              </div>
          </div>
 
