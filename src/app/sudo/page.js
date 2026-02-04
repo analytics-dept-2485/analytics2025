@@ -163,6 +163,7 @@ export default function Sudo() {
     "defenselocationbump",
     "endclimbposition",
     "climbtf",
+    "wideclimb",
     "shootingmechanism",
     "bump",
     "trench",
@@ -208,7 +209,7 @@ export default function Sudo() {
         // Format integer enum fields for readability
         const fieldName = element.toLowerCase();
         if (fieldName === "autoclimb") {
-          const map = {0: "None", 1: "Success", 2: "Fail"};
+          const map = {0: "None", 1: "Fail", 2: "Success"};
           visibleValue = map[text] ?? text;
         } else if (fieldName === "autoclimbposition") {
           const map = {0: "Left", 1: "Center", 2: "Right"};

@@ -83,7 +83,7 @@ export default function Home() {
     submitButton.disabled = true;
     //import values from form to data variable
 
-    let data = {noshow: false, leave: false, algaelowreefintake: false, algaehighreefintake: false, algaegrndintake: false, coralgrndintake: false, coralstationintake: false, srcintake: false, breakdown: false, defense: false, stageplacement: -1, breakdowncomments: null, defensecomments: null, generalcomments: null, defensetype: null };
+    let data = { noshow: false, breakdowncomments: null, defensecomments: null, generalcomments: null };
     [...new FormData(form.current).entries()].forEach(([name, value]) => {
       if (value == 'on') {
         data[name] = true;
@@ -98,13 +98,13 @@ export default function Home() {
      
     // Map form field names to API field names and convert data types
     
-    // Auto Climb: climbYesNo (string "0","1","2") -> autoclimb (integer 0,1,2)
+    // Auto Climb: climbYesNo (string "0","1","2") -> autoclimb (integer 0=None, 1=Fail, 2=Success)
     if (data.climbYesNo !== undefined) {
       data.autoclimb = parseInt(data.climbYesNo);
       delete data.climbYesNo;
     }
     
-    if (data.autoClimbPosition !== undefined && data.autoclimb === 1) {
+    if (data.autoClimbPosition !== undefined && data.autoclimb === 2) {
       data.autoclimbposition = parseInt(data.autoClimbPosition);
       delete data.autoClimbPosition;
     } else {
@@ -129,6 +129,9 @@ export default function Home() {
     } else {
       data.climbtf = false;
     }
+
+    // WideClimb: checkbox (true if checked)
+    data.wideclimb = data.wideclimb === true;
     
     // Shooting Mechanism: staticShooting radio -> shootingmechanism (0=Static, 1=Turret)
     const staticShootingRadio = document.querySelector('input[name="staticShooting"]:checked');
@@ -150,13 +153,10 @@ export default function Home() {
     delete data.staticShooting;
     
 
-    if (data.percentfuel !== undefined) {
-
-      let fuelPercent = data.percentfuel.toString().replace('%', '').trim();
-      data.fuelpercent = parseInt(fuelPercent) || 0;
-      delete data.percentfuel;
-    }
-    
+    data.fuelpercent = (data.percentfuel != null && data.percentfuel !== "")
+      ? (parseInt(String(data.percentfuel).replace('%', '').trim(), 10) || 0)
+      : 0;
+    delete data.percentfuel;
 
     const playedDefenseValue = data.defense === true;
     data.playeddefense = playedDefenseValue;
@@ -178,53 +178,52 @@ export default function Home() {
     
     if (Array.isArray(data.defenselocationoutpost)) {
       data.defenselocationoutpost = data.defenselocationoutpost.some(v => v === true);
-    } else if (data.defenselocationoutpost === undefined) {
-      data.defenselocationoutpost = false;
+    } else {
+      data.defenselocationoutpost = data.defenselocationoutpost === true;
     }
-    if (data.defenselocationtower === undefined) data.defenselocationtower = false;
-    if (data.defenselocationhub === undefined) data.defenselocationhub = false;
-    if (data.defenselocationnz === undefined) data.defenselocationnz = false;
-    if (data.defenselocationtrench === undefined) data.defenselocationtrench = false;
-    if (data.defenselocationbump === undefined) data.defenselocationbump = false;
+    data.defenselocationtower = data.defenselocationtower === true;
+    data.defenselocationhub = data.defenselocationhub === true;
+    data.defenselocationnz = data.defenselocationnz === true;
+    data.defenselocationtrench = data.defenselocationtrench === true;
+    data.defenselocationbump = data.defenselocationbump === true;
+
+    data.intakeground = data.intakeground === true;
+    data.intakeoutpost = data.intakeoutpost === true;
+    data.passingbulldozer = data.passingbulldozer === true;
+    data.passingshooter = data.passingshooter === true;
+    data.passingdump = data.passingdump === true;
     
     // Field name fixes: normalize to lowercase with no spaces
-    // "win auto" -> "winauto"
-    if (data["win auto"] !== undefined) {
-      data.winauto = data["win auto"];
-      delete data["win auto"];
-    }
+    // "win auto" -> "winauto" (unchecked = not in FormData, so default false)
+    data.winauto = data["win auto"] === true;
+    delete data["win auto"];
 
-    if (data["auto fuel"] !== undefined) {
-      data.autofuel = data["auto fuel"];
-      delete data["auto fuel"];
-    }
+    data.autofuel = data["auto fuel"] != null && data["auto fuel"] !== "" ? Number(data["auto fuel"]) : 0;
+    delete data["auto fuel"];
 
-    if (data["tele fuel"] !== undefined) {
-      data.telefuel = data["tele fuel"];
-      delete data["tele fuel"];
-    }
+    data.telefuel = data["tele fuel"] != null && data["tele fuel"] !== "" ? Number(data["tele fuel"]) : 0;
+    delete data["tele fuel"];
 
-    if (data["shoot while move"] !== undefined) {
-      data.shootwhilemove = data["shoot while move"];
-      delete data["shoot while move"];
-    }
+    data.shootwhilemove = (data["shoot while move"] === true || data.shootwhilemove === true);
+    delete data["shoot while move"];
 
-    if (data["stuckOnFuel"] !== undefined) {
-      data.stuckonfuel = data["stuckOnFuel"];
-      delete data["stuckOnFuel"];
-    }
-    
+    data.stuckonfuel = (data["stuckOnFuel"] === true || data.stuckonfuel === true);
+    delete data["stuckOnFuel"];
+
+    data.bump = data.bump === true;
+    data.trench = data.trench === true;
 
     data.breakdown = undefined;
 
-    //check pre-match data
+    //check pre-match data (skip percentfuel — 0% is valid)
     let preMatchInputs = document.querySelectorAll(".preMatchInput"); //todo: use the data object
     for (let preMatchInput of preMatchInputs) {
-      if(preMatchInput.value == "" || preMatchInput.value <= "0") {
+      if (preMatchInput.name === "percentfuel") continue; // allow 0 for percent fuel
+      if (preMatchInput.value == "" || preMatchInput.value <= "0") {
         alert("Invalid Pre-Match Data!");
         submitButton.disabled = false;
         return;
-      } 
+      }
     }
     // if (matchType == 2) {
     //   try {
@@ -367,7 +366,7 @@ console.log("page",matchType)
               />
             
               
-              {climbYesNo === "1" && (
+              {climbYesNo === "2" && (
                 <div className={autoClimbStyles.ClimbYesNo}>
                   <div className={autoClimbStyles.radioGroup}>
                     <label>

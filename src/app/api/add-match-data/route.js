@@ -8,27 +8,51 @@ export async function POST(req) {
   let body = await req.json();
   console.log(body);
 
+  // Coerce pre-match fields (form may send strings or empty values)
+  const scoutname = body.scoutname != null ? String(body.scoutname) : "";
+  const scoutteam = Number(body.scoutteam);
+  const team = Number(body.team);
+  const matchNum = Number(body.match);
+  const matchTypeNum = parseInt(body.matchType, 10);
+
   // Adjust match number based on match type
-  let adjustedMatch = body.match;
-  switch (parseInt(body.matchType)) {
+  let adjustedMatch;
+  switch (matchTypeNum) {
     case 0: // pre-comp
-      adjustedMatch = body.match - 100;
+      adjustedMatch = matchNum - 100;
       break;
     case 1: // practice
-      adjustedMatch = body.match - 50;
+      adjustedMatch = matchNum - 50;
       break;
     case 2: // qual (no change)
-      adjustedMatch = body.match;
+      adjustedMatch = matchNum;
       break;
     case 3: // elim
-      adjustedMatch = body.match + 150;
+      adjustedMatch = matchNum + 150;
+      break;
+    default:
+      adjustedMatch = NaN;
       break;
   }
 
-  // Validate Pre-Match Data
-  if (!(_.isString(body.scoutname) && _.isNumber(body.scoutteam) && _.isNumber(body.team) && _.isNumber(adjustedMatch) && _.isNumber(body.matchType))) {
+  // Validate Pre-Match Data (allow string numbers and empty scout name)
+  if (
+    typeof scoutname !== "string" ||
+    !Number.isFinite(scoutteam) ||
+    !Number.isFinite(team) ||
+    !Number.isFinite(matchNum) ||
+    !Number.isFinite(adjustedMatch) ||
+    !(matchTypeNum >= 0 && matchTypeNum <= 3)
+  ) {
     return NextResponse.json({ message: "Invalid Pre-Match Data!" }, { status: 400 });
   }
+
+  // Use coerced values for the rest of the request
+  body.scoutname = scoutname;
+  body.scoutteam = scoutteam;
+  body.team = team;
+  body.match = matchNum;
+  body.matchType = matchTypeNum;
   
   // If no-show, add a basic row
   if (body.noshow) {
@@ -43,28 +67,40 @@ export async function POST(req) {
   // Validate Auto Data
   if (
     !(
-      _.isNumber(body.autoclimb) && // 0=None, 1=Success, 2=Fail
+      _.isNumber(body.autoclimb) && // 0=None, 1=Fail, 2=Success
       (body.autoclimb === 0 || body.autoclimb === 1 || body.autoclimb === 2) &&
-      _.isNumber(body.autofuel) &&
       _.isBoolean(body.winauto)
     )
   ) {
     return NextResponse.json({ message: "Invalid Auto Data!" }, { status: 400 });
   }
 
-  // If AutoClimb is Success (1), validate position
-  if (body.autoclimb === 1) {
+  // If AutoClimb is Success (2), validate position
+  if (body.autoclimb === 2) {
     if (body.autoclimbposition !== null && body.autoclimbposition !== undefined) {
       if (!_.isNumber(body.autoclimbposition) || ![0, 1, 2].includes(body.autoclimbposition)) {
         return NextResponse.json({ message: "Invalid Auto Climb Position! Must be 0 (Left), 1 (Center), or 2 (Right)" }, { status: 400 });
       }
     }
   } else {
-    // If not Success, position should be null
+    // If not Success (None or Fail), position should be null
     body.autoclimbposition = null;
   }
   
-  // Validate Tele Data
+  // Tele Data: default unchecked/missing to false, telefuel to 0
+  const teleBooleans = [
+    'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump',
+    'shootwhilemove', 'defenselocationoutpost', 'defenselocationtower', 'defenselocationhub',
+    'defenselocationnz', 'defenselocationtrench', 'defenselocationbump'
+  ];
+  for (const key of teleBooleans) {
+    if (!_.isBoolean(body[key])) body[key] = false;
+  }
+  if (!_.isNumber(body.telefuel) || !Number.isFinite(body.telefuel)) {
+    body.telefuel = Number(body.telefuel);
+    if (!Number.isFinite(body.telefuel)) body.telefuel = 0;
+  }
+
   if (
     !(
       _.isBoolean(body.intakeground) &&
@@ -72,7 +108,7 @@ export async function POST(req) {
       _.isBoolean(body.passingbulldozer) &&
       _.isBoolean(body.passingshooter) &&
       _.isBoolean(body.passingdump) &&
-      // _.isBoolean(body.shootwhilemove) &&
+      _.isBoolean(body.shootwhilemove) &&
       _.isNumber(body.telefuel) &&
       _.isBoolean(body.defenselocationoutpost) &&
       _.isBoolean(body.defenselocationtower) &&
@@ -97,7 +133,24 @@ export async function POST(req) {
   if (!_.isBoolean(body.climbtf)) {
     return NextResponse.json({ message: "Invalid ClimbTF! Must be boolean" }, { status: 400 });
   }
-  
+
+  // WideClimb: True if robot used wide climb
+  if (body.wideclimb !== undefined && !_.isBoolean(body.wideclimb)) {
+    return NextResponse.json({ message: "Invalid WideClimb! Must be boolean" }, { status: 400 });
+  }
+  if (body.wideclimb === undefined) body.wideclimb = false;
+
+  // Postmatch Data: default missing/unchecked to false, numbers to 0 or -1
+  if (!_.isNumber(body.shootingmechanism) || (body.shootingmechanism !== 0 && body.shootingmechanism !== 1)) {
+    body.shootingmechanism = Number(body.shootingmechanism) === 1 ? 1 : 0;
+  }
+  const postmatchBooleans = ['bump', 'trench', 'stuckonfuel', 'playeddefense'];
+  for (const key of postmatchBooleans) {
+    if (!_.isBoolean(body[key])) body[key] = false;
+  }
+  const fuelPercentNum = Number(body.fuelpercent);
+  body.fuelpercent = (Number.isFinite(fuelPercentNum) && fuelPercentNum >= 0 && fuelPercentNum <= 100) ? fuelPercentNum : 0;
+
   // Validate Postmatch Data
   if (
     !(
@@ -113,40 +166,35 @@ export async function POST(req) {
   ) {
     return NextResponse.json({ message: "Invalid Postmatch Data!" }, { status: 400 });
   }
-  
+
   // Validate Defense (only required if playeddefense is true)
   if (body.playeddefense) {
     if (!_.isNumber(body.defense) || ![0, 1, 2].includes(body.defense)) {
       return NextResponse.json({ message: "Invalid Defense! Must be 0 (weak), 1 (harassment), or 2 (game changing)" }, { status: 400 });
     }
   } else {
-    // If not playing defense, defense should be null
     body.defense = null;
   }
 
-  // Validate Qualitative Ratings (0-5 scale, -1 for not rated)
+  // Qualitative Ratings (0-5 scale, -1 for not rated): default missing to -1
   const qualitativeFields = [
-    'aggression', 'climbhazard', 'hoppercapacity', 'maneuverability', 
-    'durability', 'defenseevasion', 'climbspeed', 'fuelspeed', 
+    'aggression', 'climbhazard', 'hoppercapacity', 'maneuverability',
+    'durability', 'defenseevasion', 'climbspeed', 'fuelspeed',
     'passingspeed', 'autodeclimbspeed', 'bumpspeed'
   ];
-
-  for (let field of qualitativeFields) {
-    if (!(_.isNumber(body[field]) && (body[field] >= -1 && body[field] <= 5))) {
-      return NextResponse.json({ message: `Invalid Qualitative Data! ${field} must be between -1 and 5` }, { status: 400 });
+  for (const field of qualitativeFields) {
+    const v = Number(body[field]);
+    if (!Number.isFinite(v) || v < -1 || v > 5) {
+      body[field] = -1;
+    } else {
+      body[field] = v;
     }
   }
 
-  // Validate Comments
-  if (
-    !(
-      _.isString(body.generalcomments) &&
-      (_.isString(body.breakdowncomments) || _.isNull(body.breakdowncomments) || body.breakdowncomments === undefined) &&
-      (_.isString(body.defensecomments) || _.isNull(body.defensecomments) || body.defensecomments === undefined)
-    )
-  ) {
-    return NextResponse.json({ message: "Invalid Comments!" }, { status: 400 });
-  }
+  // Comments: default missing to empty string (breakdown/defense can stay null)
+  if (!_.isString(body.generalcomments)) body.generalcomments = body.generalcomments != null ? String(body.generalcomments) : "";
+  if (body.breakdowncomments != null && !_.isString(body.breakdowncomments)) body.breakdowncomments = String(body.breakdowncomments);
+  if (body.defensecomments != null && !_.isString(body.defensecomments)) body.defensecomments = String(body.defensecomments);
   
   // Insert Data into Database
   let resp = await sql`
@@ -155,7 +203,7 @@ export async function POST(req) {
       autoclimb, autoclimbposition, autofuel, winauto,
       intakeground, intakeoutpost, passingbulldozer, passingshooter, passingdump, shootwhilemove, telefuel,
       defenselocationoutpost, defenselocationtower, defenselocationhub, defenselocationnz, defenselocationtrench, defenselocationbump,
-      endclimbposition, climbtf,
+      endclimbposition, climbtf, wideclimb,
       shootingmechanism, bump, trench, stuckonfuel, fuelpercent, playeddefense, defense,
       aggression, climbhazard, hoppercapacity, maneuverability, durability, defenseevasion,
       climbspeed, fuelspeed, passingspeed, autodeclimbspeed, bumpspeed,
@@ -163,10 +211,10 @@ export async function POST(req) {
     )
     VALUES (
       ${body.scoutname}, ${body.scoutteam}, ${body.team}, ${adjustedMatch}, ${body.matchType}, ${body.noshow},
-      ${body.autoclimb}, ${body.autoclimb === 1 ? body.autoclimbposition : null}, ${body.autofuel}, ${body.winauto},
+      ${body.autoclimb}, ${body.autoclimb === 2 ? body.autoclimbposition : null}, ${body.autofuel}, ${body.winauto},
       ${body.intakeground}, ${body.intakeoutpost}, ${body.passingbulldozer}, ${body.passingshooter}, ${body.passingdump}, ${body.shootwhilemove}, ${body.telefuel},
       ${body.defenselocationoutpost}, ${body.defenselocationtower}, ${body.defenselocationhub}, ${body.defenselocationnz}, ${body.defenselocationtrench}, ${body.defenselocationbump},
-      ${body.endclimbposition || null}, ${body.climbtf},
+      ${body.endclimbposition || null}, ${body.climbtf}, ${body.wideclimb},
       ${body.shootingmechanism}, ${body.bump}, ${body.trench}, ${body.stuckonfuel}, ${body.fuelpercent}, ${body.playeddefense}, ${body.defense},
       ${body.aggression}, ${body.climbhazard}, ${body.hoppercapacity}, ${body.maneuverability}, ${body.durability}, ${body.defenseevasion},
       ${body.climbspeed}, ${body.fuelspeed}, ${body.passingspeed}, ${body.autodeclimbspeed}, ${body.bumpspeed},

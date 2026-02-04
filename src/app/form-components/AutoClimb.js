@@ -37,8 +37,8 @@ export default function AutoClimb({ onClimbChange, defaultValue }) {
                     <input
                         type="radio"
                         name="climbYesNo"
-                        value="2"
-                        checked={selectedType === "2"}
+                        value="1"
+                        checked={selectedType === "1"}
                         onChange={handleChange}
                     />
                     Fail
@@ -47,8 +47,8 @@ export default function AutoClimb({ onClimbChange, defaultValue }) {
                     <input
                         type="radio"
                         name="climbYesNo"
-                        value="1"
-                        checked={selectedType === "1"}
+                        value="2"
+                        checked={selectedType === "2"}
                         onChange={handleChange}
                     />
                     Success

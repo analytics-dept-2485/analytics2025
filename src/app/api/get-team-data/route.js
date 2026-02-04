@@ -24,7 +24,7 @@ export async function GET(request) {
 
   function byAveragingNumbers(index) {
     // Boolean fields - return true if any row has it as true
-    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto', 'climbtf'].includes(index)) {
+    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto', 'climbtf', 'wideclimb'].includes(index)) {
       return arr => arr.some(row => row[index] === true);
     }
     // String/Text fields - join with " - "
@@ -38,7 +38,7 @@ export async function GET(request) {
         if (values.length === 0) return null;
         // Format integers appropriately
         if (index === 'autoclimb') {
-          const map = {0: 'None', 1: 'Success', 2: 'Fail'};
+          const map = {0: 'None', 1: 'Fail', 2: 'Success'};
           return values.map(v => map[v] || v).join(" - ");
         } else if (index === 'autoclimbposition') {
           const map = {0: 'Left', 1: 'Center', 2: 'Right'};
@@ -423,32 +423,32 @@ export async function GET(request) {
       climb: {
         successRate: (() => {
           const totalMatches = rows.length;
-          const successfulClimbs = rows.filter(row => row.autoclimb === 1).length; // 1 = Success
+          const successfulClimbs = rows.filter(row => row.autoclimb === 2).length; // 2 = Success
           return totalMatches > 0 ? (successfulClimbs / totalMatches) * 100 : 0;
         })(),
         failRate: (() => {
           const totalMatches = rows.length;
-          const failedClimbs = rows.filter(row => row.autoclimb === 2).length; // 2 = Fail
+          const failedClimbs = rows.filter(row => row.autoclimb === 1).length; // 1 = Fail
           return totalMatches > 0 ? (failedClimbs / totalMatches) * 100 : 0;
         })(),
         noneRate: (() => {
           const totalMatches = rows.length;
-          const noClimbs = rows.filter(row => row.autoclimb === 0 || !row.autoclimb).length; // 0 = None
+          const noClimbs = rows.filter(row => row.autoclimb === 0 || row.autoclimb == null).length; // 0 = None
           return totalMatches > 0 ? (noClimbs / totalMatches) * 100 : 0;
         })(),
         positionLeft: (() => {
-          const successfulClimbs = rows.filter(row => row.autoclimb === 1).length; // 1 = Success
-          const leftPosition = rows.filter(row => row.autoclimb === 1 && row.autoclimbposition === 0).length; // 0 = Left
+          const successfulClimbs = rows.filter(row => row.autoclimb === 2).length; // 2 = Success
+          const leftPosition = rows.filter(row => row.autoclimb === 2 && row.autoclimbposition === 0).length; // 0 = Left
           return successfulClimbs > 0 ? (leftPosition / successfulClimbs) * 100 : 0;
         })(),
         positionCenter: (() => {
-          const successfulClimbs = rows.filter(row => row.autoclimb === 1).length; // 1 = Success
-          const centerPosition = rows.filter(row => row.autoclimb === 1 && row.autoclimbposition === 1).length; // 1 = Center
+          const successfulClimbs = rows.filter(row => row.autoclimb === 2).length; // 2 = Success
+          const centerPosition = rows.filter(row => row.autoclimb === 2 && row.autoclimbposition === 1).length; // 1 = Center
           return successfulClimbs > 0 ? (centerPosition / successfulClimbs) * 100 : 0;
         })(),
         positionRight: (() => {
-          const successfulClimbs = rows.filter(row => row.autoclimb === 1).length; // 1 = Success
-          const rightPosition = rows.filter(row => row.autoclimb === 1 && row.autoclimbposition === 2).length; // 2 = Right
+          const successfulClimbs = rows.filter(row => row.autoclimb === 2).length; // 2 = Success
+          const rightPosition = rows.filter(row => row.autoclimb === 2 && row.autoclimbposition === 2).length; // 2 = Right
           return successfulClimbs > 0 ? (rightPosition / successfulClimbs) * 100 : 0;
         })(),
       },

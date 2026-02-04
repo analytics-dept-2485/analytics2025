@@ -15,7 +15,7 @@ export async function POST(request) {
 
   function averageField(index) {
     // Boolean fields - return true if any row has it as true
-    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto', 'climbtf'].includes(index)) {
+    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto', 'climbtf', 'wideclimb'].includes(index)) {
       return arr => arr.some(row => row[index] === true);
     }
     // String/Text fields - join with comma
@@ -101,8 +101,8 @@ export async function POST(request) {
     const fuelNormalized = Math.min((totalFuel / 80) * 100, 100);
     
     // Climb success consistency
-    // autoclimb: 0=None, 1=Success, 2=Fail
-    const autoClimbSuccess = dr.autoclimb === 1 ? 100 : (dr.autoclimb === 2 ? 50 : 0);
+    // autoclimb: 0=None, 1=Fail, 2=Success
+    const autoClimbSuccess = dr.autoclimb === 2 ? 100 : (dr.autoclimb === 1 ? 50 : 0);
     
     // End climb success (higher levels = better consistency)
     // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1

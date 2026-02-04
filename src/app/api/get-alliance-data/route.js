@@ -69,7 +69,7 @@ function initializeTeamData(row, auto, tele, end, frcAPITeamInfo) {
   
   // Calculate climb points (auto climb = 15 if Success (1), end climb = 10/20/30 for L1/L2/L3)
   let climbPoints = 0;
-  if (row.autoclimb === 1) climbPoints += 15; // 1 = Success
+  if (row.autoclimb === 2) climbPoints += 15; // 2 = Success
   if (row.endclimbposition != null && row.endclimbposition !== undefined) {
     // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
     // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
@@ -124,7 +124,7 @@ function accumulateTeamData(teamData, row, auto, tele, end) {
 
   // Accumulate climb points
   let climbPoints = 0;
-  if (row.autoclimb === 1) climbPoints += 15; // 1 = Success
+  if (row.autoclimb === 2) climbPoints += 15; // 2 = Success
   if (row.endclimbposition != null && row.endclimbposition !== undefined) {
     // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
     // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1

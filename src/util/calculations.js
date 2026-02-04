@@ -13,7 +13,8 @@ function calcAuto(record) {
   
   // Auto Climb: L1 = 15 points (only if successfully climbed)
   // Note: In auto, only L1 is possible and only max 2 robots can climb
-  if (record.autoclimb === 'Success') {
+  // autoclimb: 0=None, 1=Fail, 2=Success
+  if (record.autoclimb === 2) {
     points += 15; // L1 climb in auto
   }
   

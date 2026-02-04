@@ -20,7 +20,7 @@ CREATE TABLE scc2025 (
    NoShow BOOLEAN,
    
    -- Auto
-   AutoClimb INT, -- 0=None, 1=Success, 2=Fail
+   AutoClimb INT, -- 0=None, 1=Fail, 2=Success
    AutoClimbPosition INT, -- 0=Left, 1=Center, 2=Right (only set if AutoClimb is Success)
    AutoFuel INT,
    WinAuto BOOLEAN,
@@ -43,6 +43,7 @@ CREATE TABLE scc2025 (
    -- End
    EndClimbPosition INT, -- 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1 (NULL if None)
    ClimbTF BOOLEAN, -- True if climb attempt failed (None checkbox checked)
+   WideClimb BOOLEAN, -- True if robot used wide climb
    
    -- Postmatch
    ShootingMechanism INT, -- 0=Static, 1=Turret
@@ -78,7 +79,7 @@ INSERT INTO scc2025 (
    AutoClimb, AutoClimbPosition, AutoFuel, WinAuto,
    IntakeGround, IntakeOutpost, PassingBulldozer, PassingShooter, PassingDump, ShootWhileMove, TeleFuel,
    DefenseLocationOutpost, DefenseLocationTower, DefenseLocationHub, DefenseLocationNZ, DefenseLocationTrench, DefenseLocationBump,
-   EndClimbPosition, ClimbTF,
+   EndClimbPosition, ClimbTF, WideClimb,
    ShootingMechanism, Bump, Trench, StuckOnFuel, FuelPercent, PlayedDefense, Defense,
    Aggression, ClimbHazard, HopperCapacity, Maneuverability, Durability, DefenseEvasion,
    ClimbSpeed, FuelSpeed, PassingSpeed, AutoDeclimbSpeed, BumpSpeed,
@@ -89,10 +90,13 @@ VALUES (
    1, 0, 15, TRUE,
    TRUE, FALSE, TRUE, TRUE, FALSE, TRUE, 42,
    TRUE, TRUE, TRUE, FALSE, TRUE, FALSE,
-   2, FALSE,
+   2, FALSE, FALSE,
    1, FALSE, TRUE, FALSE, 75, TRUE, 1,
    4, 2, 5, 4, 5, 3,
    4, 5, 3, 2, 3,
    'Performed well overall with strong fuel scoring.', 'did not break down', 'Played effective defense at outpost'
 );
+
+-- If table already exists, add WideClimb column:
+-- ALTER TABLE scc2025 ADD COLUMN IF NOT EXISTS WideClimb BOOLEAN DEFAULT FALSE;
 
