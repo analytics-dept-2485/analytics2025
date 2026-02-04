@@ -7,6 +7,7 @@ import Endgame from './components/Endgame';
 import Qualitative from './components/Qualitative';
 import PiecePlacement from './components/PiecePlacement';
 import { Chart, registerables } from 'chart.js';
+import Link from "next/link";
 
 Chart.register(...registerables);
 
@@ -342,33 +343,29 @@ function ScoutingApp() {
     }
   };
 
+  function AllianceButtons({t1, t2, t3, colors}) {
+  return <div className={styles.allianceBoard}>
+    <Link href={`/team-view?team=${t1.team}&team1=${data.team1?.team || ""}&team2=${data.team2?.team || ""}&team3=${data.team3?.team || ""}&team4=${data.team4?.team || ""}&team5=${data.team5?.team || ""}&team6=${data.team6?.team || ""}`}>
+      <button style={{background: colors[0][1]}}>{t1.team}</button>
+    </Link>
+    <Link href={`/team-view?team=${t2.team}&team1=${data.team1?.team || ""}&team2=${data.team2?.team || ""}&team3=${data.team3?.team || ""}&team4=${data.team4?.team || ""}&team5=${data.team5?.team || ""}&team6=${data.team6?.team || ""}`}>
+      <button style={{background: colors[1][1]}}>{t2.team}</button>
+    </Link>
+    <Link href={`/team-view?team=${t3.team}&team1=${data.team1?.team || ""}&team2=${data.team2?.team || ""}&team3=${data.team3?.team || ""}&team4=${data.team4?.team || ""}&team5=${data.team5?.team || ""}&team6=${data.team6?.team || ""}`}>
+      <button style={{background: colors[2][1]}}>{t3.team}</button>
+    </Link>
+  </div>
+}
+
   return (
     <div className={styles.MainDiv}>
       {/* MATCH VIEW */}
       <div className={styles.matchView}>
-          <div className={styles.teamButtonsRow}>
-            <button className={styles.editButton}>
-              &lt; EDIT
-            </button>
-            {matchData.redAlliance.teams.map((team, idx) => (
-              <button
-                key={`red-${idx}`}
-                className={styles.teamButton}
-                style={{ backgroundColor: team.color, borderColor: team.darkColor }}
-              >
-                {team.number}
-              </button>
-            ))}
-            {matchData.blueAlliance.teams.map((team, idx) => (
-              <button
-                key={`blue-${idx}`}
-                className={styles.teamButton}
-                style={{ backgroundColor: team.color, borderColor: team.darkColor }}
-              >
-                {team.number}
-              </button>
-            ))}
-          </div>
+          <div className={styles.matchNav}>
+        <AllianceButtons t1={data.team1 || defaultTeam} t2={data.team2 || defaultTeam} t3={data.team3 || defaultTeam} colors={[COLORS[3], COLORS[4], COLORS[5]]}></AllianceButtons>
+        <Link href={`/match-view?team1=${data.team1?.team || ""}&team2=${data.team2?.team || ""}&team3=${data.team3?.team || ""}&team4=${data.team4?.team || ""}&team5=${data.team5?.team || ""}&team6=${data.team6?.team || ""}`}><button style={{background: "#ffff88", color: "black"}}>Edit</button></Link>
+        <AllianceButtons t1={data.team4 || defaultTeam} t2={data.team5 || defaultTeam} t3={data.team6 || defaultTeam} colors={[COLORS[0], COLORS[1], COLORS[2]]}></AllianceButtons>
+      </div>
 
           <div className={styles.allianceBoard}>
             {/* Red Alliance - LEFT SIDE */}
