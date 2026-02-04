@@ -205,7 +205,7 @@ export async function POST(request) {
 
   const getTBARankings = async () => {
     try {
-      const response = await fetch(`https://www.thebluealliance.com/api/v3/event/2025casnd/rankings`, {
+      const response = await fetch(`https://www.thebluealliance.com/api/v3/event/2026capoh/rankings`, {
         headers: {
           'X-TBA-Auth-Key': process.env.TBA_AUTH_KEY,
           'Accept': 'application/json'
