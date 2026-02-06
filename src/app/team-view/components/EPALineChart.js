@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from 'recharts';
+import styles from "./EPALineChart.module.css"
 
 export default function EPALineChart({ 
   label,
@@ -18,6 +19,7 @@ export default function EPALineChart({
   if (!isClient) return null;
 
   return (
+  <div className={styles.EPALineChart}>
     <LineChart width={width} height={height} data={data}>
       <XAxis type="number" dataKey="match"/>
       <YAxis dataKey={label}/>
@@ -25,5 +27,6 @@ export default function EPALineChart({
       <Tooltip />
       <Line type="monotone" dataKey={label} stroke={color} strokeWidth="3"/>
     </LineChart>
+  </div>
   );
 }
