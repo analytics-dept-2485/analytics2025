@@ -4,6 +4,7 @@ import _ from 'lodash';
 import { tidy, mutate, mean, select, summarizeAll, groupBy, summarize, first, n, median, total, arrange, asc, slice } from '@tidyjs/tidy';
 import { calcEPA, calcAuto, calcTele, calcEnd } from "../../../util/calculations.js";
 
+export const dynamic = 'force-dynamic'; // Prevent static generation during build
 export const revalidate = 300; // Cache for 5 minutes
 
 export async function GET(request) {
