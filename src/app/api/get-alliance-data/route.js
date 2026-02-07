@@ -18,17 +18,23 @@ export async function GET() {
     const { rows } = await sql`SELECT * FROM scc2025;`;
     let responseObject = {};
 
-    const frcAPITeamData = await fetch(`https://www.thebluealliance.com/api/v3/event/2025casnd/teams`, {
-      headers: {
-        "X-TBA-Auth-Key": process.env.TBA_AUTH_KEY,
-        "Accept": "application/json"
-      },
-    }).then(resp => {
-      if (resp.status !== 200) {
-        throw new Error(`Failed to fetch team data: ${resp.status}`);
+    // Try to fetch TBA team data, but don't fail if it doesn't work
+    let frcAPITeamData = [];
+    try {
+      const tbaResponse = await fetch(`https://www.thebluealliance.com/api/v3/event/2026capoh/teams`, {
+        headers: {
+          "X-TBA-Auth-Key": process.env.TBA_AUTH_KEY || "",
+          "Accept": "application/json"
+        },
+      });
+      if (tbaResponse.status === 200) {
+        frcAPITeamData = await tbaResponse.json();
+      } else {
+        console.warn(`TBA API returned status ${tbaResponse.status}, continuing without team names`);
       }
-      return resp.json();
-    });
+    } catch (tbaError) {
+      console.warn("TBA API error, continuing without team names:", tbaError.message);
+    }
 
     rows.forEach((row) => {
       if (!row.noshow) {
@@ -58,36 +64,51 @@ export async function GET() {
 }
 
 function initializeTeamData(row, auto, tele, end, frcAPITeamInfo) {
+  // Calculate fuel and climb points
+  const fuel = (row.autofuel || 0) + (row.telefuel || 0);
+  
+  // Calculate climb points (auto climb = 15 if Success (1), end climb = 10/20/30 for L1/L2/L3)
+  let climbPoints = 0;
+  if (row.autoclimb === 2) climbPoints += 15; // 2 = Success
+  if (row.endclimbposition != null && row.endclimbposition !== undefined) {
+    // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+    // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+    const level = row.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+    if (level === 0) climbPoints += 30; // L3
+    else if (level === 1) climbPoints += 20; // L2
+    else if (level === 2) climbPoints += 10; // L1
+  }
+  
   return {
     team: row.team,
     teamName: frcAPITeamInfo.length === 0 ? "🤖" : frcAPITeamInfo[0].nickname,
     auto,
     tele,
     end,
-    avgPieces: {
-      L1: row.autol1success + row.telel1success,
-      L2: row.autol2success + row.telel2success,
-      L3: row.autol3success + row.telel3success,
-      L4: row.autol4success + row.telel4success,
-      net: row.autoprocessorsuccess + row.teleprocessorsuccess,
-      processor: row.autonetsuccess + row.telenetsuccess,
-      HP: row.hpsuccess,
+    fuel,
+    climb: climbPoints,
+    intake: {
+      ground: row.intakeground ? 1 : 0,
+      outpost: row.intakeoutpost ? 1 : 0,
     },
-    leave: row.leave,
-    autoCoral: row.autocoralsuccess,
-    removedAlgae: row.autoalgaeremoved + row.telealgaeremoved,
-    endgame: createEndgameData(row.endlocation),
+    passing: {
+      bulldozer: row.passingbulldozer ? 1 : 0,
+      shooter: row.passingshooter ? 1 : 0,
+      dump: row.passingdump ? 1 : 0,
+    },
+    endgame: createEndgameData(row.endclimbposition),
     qualitative: {
-      coralspeed: row.coralspeed,
-      processorspeed: row.processorspeed,
-      netspeed: row.netspeed,
-      algaeremovalspeed: row.algaeremovalspeed,
-      climbspeed: row.climbspeed,
-      maneuverability: row.maneuverability,
-      defenseplayed: row.defenseplayed,
-      defenseevasion: row.defenseevasion,
       aggression: row.aggression,
-      cagehazard: row.cagehazard,
+      climbhazard: row.climbhazard,
+      hoppercapacity: row.hoppercapacity,
+      maneuverability: row.maneuverability,
+      durability: row.durability,
+      defenseevasion: row.defenseevasion,
+      climbspeed: row.climbspeed,
+      fuelspeed: row.fuelspeed,
+      passingspeed: row.passingspeed,
+      autodeclimbspeed: row.autodeclimbspeed,
+      bumpspeed: row.bumpspeed,
     },
   };
 }
@@ -97,39 +118,64 @@ function accumulateTeamData(teamData, row, auto, tele, end) {
   teamData.tele += tele;
   teamData.end += end;
 
-  teamData.avgPieces.L1 += row.autol1success + row.telel1success;
-  teamData.avgPieces.L2 += row.autol2success + row.telel2success;
-  teamData.avgPieces.L3 += row.autol3success + row.telel3success;
-  teamData.avgPieces.L4 += row.autol4success + row.telel4success;
-  teamData.avgPieces.net += row.autoprocessorsuccess + row.teleprocessorsuccess;
-  teamData.avgPieces.processor += row.autonetsuccess + row.telenetsuccess;
-  teamData.avgPieces.HP += row.hpsuccess;
-  teamData.removedAlgae += row.autoalgaeremoved + row.telealgaeremoved;
+  // Accumulate fuel
+  const fuel = (row.autofuel || 0) + (row.telefuel || 0);
+  teamData.fuel += fuel;
 
-  const endgameData = createEndgameData(row.endlocation);
+  // Accumulate climb points
+  let climbPoints = 0;
+  if (row.autoclimb === 2) climbPoints += 15; // 2 = Success
+  if (row.endclimbposition != null && row.endclimbposition !== undefined) {
+    // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+    // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+    const level = row.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+    if (level === 0) climbPoints += 30; // L3
+    else if (level === 1) climbPoints += 20; // L2
+    else if (level === 2) climbPoints += 10; // L1
+  }
+  teamData.climb += climbPoints;
+
+  // Accumulate intake types
+  if (row.intakeground) teamData.intake.ground += 1;
+  if (row.intakeoutpost) teamData.intake.outpost += 1;
+
+  // Accumulate passing types
+  if (row.passingbulldozer) teamData.passing.bulldozer += 1;
+  if (row.passingshooter) teamData.passing.shooter += 1;
+  if (row.passingdump) teamData.passing.dump += 1;
+
+  // Accumulate endgame data
+  const endgameData = createEndgameData(row.endclimbposition);
   for (let key in endgameData) {
     teamData.endgame[key] += endgameData[key];
   }
 
-  teamData.qualitative.coralspeed += row.coralspeed;
-  teamData.qualitative.processorspeed += row.processorspeed;
-  teamData.qualitative.netspeed += row.netspeed;
-  teamData.qualitative.algaeremovalspeed += row.algaeremovalspeed;
-  teamData.qualitative.climbspeed += row.climbspeed;
-  teamData.qualitative.maneuverability += row.maneuverability;
-  teamData.qualitative.defenseplayed += row.defenseplayed;
-  teamData.qualitative.defenseevasion += row.defenseevasion;
-  teamData.qualitative.aggression += row.aggression;
-  teamData.qualitative.cagehazard += row.cagehazard;
+  // Accumulate qualitative ratings (sum them for averaging later)
+  teamData.qualitative.aggression += row.aggression || 0;
+  teamData.qualitative.climbhazard += row.climbhazard || 0;
+  teamData.qualitative.hoppercapacity += row.hoppercapacity || 0;
+  teamData.qualitative.maneuverability += row.maneuverability || 0;
+  teamData.qualitative.durability += row.durability || 0;
+  teamData.qualitative.defenseevasion += row.defenseevasion || 0;
+  teamData.qualitative.climbspeed += row.climbspeed || 0;
+  teamData.qualitative.fuelspeed += row.fuelspeed || 0;
+  teamData.qualitative.passingspeed += row.passingspeed || 0;
+  teamData.qualitative.autodeclimbspeed += row.autodeclimbspeed || 0;
+  teamData.qualitative.bumpspeed += row.bumpspeed || 0;
 }
 
-function createEndgameData(endlocation) {
+function createEndgameData(endclimbposition) {
+  // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+  if (!endclimbposition || endclimbposition === null || endclimbposition === undefined) {
+    return { L1: 0, L2: 0, L3: 0, None: 1 };
+  }
+  // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+  const level = endclimbposition % 3; // 0=L3, 1=L2, 2=L1
   return {
-    none: endlocation === 0 ? 1 : 0,
-    park: endlocation === 1 ? 1 : 0,
-    shallow: endlocation === 3 ? 1 : 0,
-    deep: endlocation === 4 ? 1 : 0,
-    fail: endlocation === 2 ? 1 : 0,
+    L1: level === 2 ? 1 : 0,
+    L2: level === 1 ? 1 : 0,
+    L3: level === 0 ? 1 : 0,
+    None: 0,
   };
 }
 
@@ -138,54 +184,50 @@ function calculateAverages(responseObject, rows) {
 
   for (let team in responseObject) {
     let teamData = responseObject[team];
-    let count = rows.filter((row) => row.team === parseInt(team)).length;
+    let count = rows.filter((row) => row.team === parseInt(team) && !row.noshow).length;
 
     teamData.auto = average(teamData.auto, count);
     teamData.tele = average(teamData.tele, count);
     teamData.end = average(teamData.end, count);
-    teamData.avgPieces.L1 = average(teamData.avgPieces.L1, count);
-    teamData.avgPieces.L2 = average(teamData.avgPieces.L2, count);
-    teamData.avgPieces.L3 = average(teamData.avgPieces.L3, count);
-    teamData.avgPieces.L4 = average(teamData.avgPieces.L4, count);
-    teamData.avgPieces.net = average(teamData.avgPieces.net, count);
-    teamData.avgPieces.processor = average(teamData.avgPieces.processor, count);
-    teamData.avgPieces.HP = average(teamData.avgPieces.HP, count);
-    teamData.removedAlgae = average(teamData.removedAlgae, count);
+    teamData.fuel = average(teamData.fuel, count);
+    teamData.climb = average(teamData.climb, count);
 
+    // Calculate passing percentages (percentage of matches using each passing type)
+    teamData.passing = {
+      bulldozer: count > 0 ? Math.round((100 * teamData.passing.bulldozer) / count) : 0,
+      shooter: count > 0 ? Math.round((100 * teamData.passing.shooter) / count) : 0,
+      dump: count > 0 ? Math.round((100 * teamData.passing.dump) / count) : 0,
+    };
+
+    // Calculate endgame percentages
     let locationSum =
-      teamData.endgame.none + teamData.endgame.park + teamData.endgame.shallow + teamData.endgame.deep + teamData.endgame.fail;
+      teamData.endgame.L1 + teamData.endgame.L2 + teamData.endgame.L3 + teamData.endgame.None;
 
     teamData.endgame = locationSum > 0
       ? {
-          none: Math.round((100 * teamData.endgame.none) / locationSum),
-          park: Math.round((100 * teamData.endgame.park) / locationSum),
-          shallow: Math.round((100 * teamData.endgame.shallow) / locationSum),
-          deep: Math.round((100 * teamData.endgame.deep) / locationSum),
-          fail: Math.round((100 * teamData.endgame.fail) / locationSum),
+          L1: Math.round((100 * teamData.endgame.L1) / locationSum),
+          L2: Math.round((100 * teamData.endgame.L2) / locationSum),
+          L3: Math.round((100 * teamData.endgame.L3) / locationSum),
+          None: Math.round((100 * teamData.endgame.None) / locationSum),
         }
-      : { none: 100, park: 0, shallow: 0, deep: 0, fail: 0 };
+      : { L1: 0, L2: 0, L3: 0, None: 100 };
 
-      const teamRows = rows.filter(row => row.team === parseInt(team));
+    // Calculate qualitative ratings (average of non-negative values, -1 for not rated)
+    const teamRows = rows.filter(row => row.team === parseInt(team) && !row.noshow);
 
-      teamData.qualitative = {
-        coralspeed: avgNonNegative(teamRows.map(r => r.coralspeed)),
-        processorspeed: avgNonNegative(teamRows.map(r => r.processorspeed)),
-        netspeed: avgNonNegative(teamRows.map(r => r.netspeed)),
-        algaeremovalspeed: avgNonNegative(teamRows.map(r => r.algaeremovalspeed)),
-        climbspeed: avgNonNegative(teamRows.map(r => r.climbspeed)),
-        maneuverability: avgNonNegative(teamRows.map(r => r.maneuverability)),
-        defenseplayed: avgNonNegative(teamRows.map(r => r.defenseplayed)),
-        defenseevasion: avgNonNegative(teamRows.map(r => r.defenseevasion)),
-        aggression: (() => {
-          const raw = avgNonNegative(teamRows.map(r => r.aggression));
-          return raw === -1 ? -1 : 5 - raw;
-        })(),
-        cagehazard: (() => {
-          const raw = avgNonNegative(teamRows.map(r => r.cagehazard));
-          return raw === -1 ? -1 : 5 - raw;
-        })()
-      };
-      
+    teamData.qualitative = {
+      aggression: avgNonNegative(teamRows.map(r => r.aggression)),
+      climbhazard: avgNonNegative(teamRows.map(r => r.climbhazard)),
+      hoppercapacity: avgNonNegative(teamRows.map(r => r.hoppercapacity)),
+      maneuverability: avgNonNegative(teamRows.map(r => r.maneuverability)),
+      durability: avgNonNegative(teamRows.map(r => r.durability)),
+      defenseevasion: avgNonNegative(teamRows.map(r => r.defenseevasion)),
+      climbspeed: avgNonNegative(teamRows.map(r => r.climbspeed)),
+      fuelspeed: avgNonNegative(teamRows.map(r => r.fuelspeed)),
+      passingspeed: avgNonNegative(teamRows.map(r => r.passingspeed)),
+      autodeclimbspeed: avgNonNegative(teamRows.map(r => r.autodeclimbspeed)),
+      bumpspeed: avgNonNegative(teamRows.map(r => r.bumpspeed)),
+    };
   }
 }
 
