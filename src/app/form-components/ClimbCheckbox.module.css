@@ -165,15 +165,35 @@
     background-color: #8cd075;
 }
 
-.clear {
-    background-color: red;
-    color: white;
-    width: 80px;
-    height: 50px;
-    font-size: 25px;
+.box {
+    background-color:#cdf3ff;
+    color: black;
+    padding: 1rem;
+    border: 2px solid #888484;
     border-radius: 5px;
+    cursor: pointer;
+    padding: 5px 15px;
+    margin: 10px auto;
+    display: inline-block;
+    text-align: center;
+    max-width: 190px;
+    width: 90%;
+}
+.box:hover,
+.box:focus {
+    background-color: #8de3fc;
+}
+.box:has(input:checked) {
+    border: 2px solid #116215;
+    background-color: #9de387;
 }
 
-.clear:hover {
-    background-color: rgb(255, 66, 66);
+.box label input{
+    margin-right: 10px;
+}
+
+.boxContainer {
+    display: flex;
+    align-content: center;
+    flex-grow: 1;
 }

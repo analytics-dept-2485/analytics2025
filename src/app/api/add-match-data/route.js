@@ -79,7 +79,7 @@ export async function POST(req) {
   if (body.autoclimb === 2) {
     if (body.autoclimbposition !== null && body.autoclimbposition !== undefined) {
       if (!_.isNumber(body.autoclimbposition) || ![0, 1, 2].includes(body.autoclimbposition)) {
-        return NextResponse.json({ message: "Invalid Auto Climb Position! Must be 0 (Left), 1 (Center), or 2 (Right)" }, { status: 400 });
+        return NextResponse.json({ message: "Invalid Auto Climb Position!" }, { status: 400 });
       }
     }
   } else {
@@ -122,21 +122,15 @@ export async function POST(req) {
   }
   
   // Validate Endgame Data
-  // EndClimbPosition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1 (NULL if None)
-  if (body.endclimbposition !== null && body.endclimbposition !== undefined) {
-    if (!_.isNumber(body.endclimbposition) || !(body.endclimbposition >= 0 && body.endclimbposition <= 8)) {
-      return NextResponse.json({ message: "Invalid End Climb Position! Must be 0-8 (0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1)" }, { status: 400 });
+  // EndClimbPosition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1 9=None
+    if (!_.isNumber(body.endclimbposition) || !(body.endclimbposition >= 0 && body.endclimbposition <= 9)) {
+      return NextResponse.json({ message: "Invalid End Climb Position!" }, { status: 400 });
     }
-  }
   
-  // ClimbTF: True if climb attempt failed (None checkbox checked)
-  if (!_.isBoolean(body.climbtf)) {
-    return NextResponse.json({ message: "Invalid ClimbTF! Must be boolean" }, { status: 400 });
-  }
 
   // WideClimb: True if robot used wide climb
   if (body.wideclimb !== undefined && !_.isBoolean(body.wideclimb)) {
-    return NextResponse.json({ message: "Invalid WideClimb! Must be boolean" }, { status: 400 });
+    return NextResponse.json({ message: "Invalid WideClimb!" }, { status: 400 });
   }
   if (body.wideclimb === undefined) body.wideclimb = false;
 
@@ -170,7 +164,7 @@ export async function POST(req) {
   // Validate Defense (only required if playeddefense is true)
   if (body.playeddefense) {
     if (!_.isNumber(body.defense) || ![0, 1, 2].includes(body.defense)) {
-      return NextResponse.json({ message: "Invalid Defense! Must be 0 (weak), 1 (harassment), or 2 (game changing)" }, { status: 400 });
+      return NextResponse.json({ message: "Invalid Defense!"}, { status: 400 });
     }
   } else {
     body.defense = null;
@@ -203,7 +197,7 @@ export async function POST(req) {
       autoclimb, autoclimbposition, autofuel, winauto,
       intakeground, intakeoutpost, passingbulldozer, passingshooter, passingdump, shootwhilemove, telefuel,
       defenselocationoutpost, defenselocationtower, defenselocationhub, defenselocationnz, defenselocationtrench, defenselocationbump,
-      endclimbposition, climbtf, wideclimb,
+      endclimbposition, wideclimb,
       shootingmechanism, bump, trench, stuckonfuel, fuelpercent, playeddefense, defense,
       aggression, climbhazard, hoppercapacity, maneuverability, durability, defenseevasion,
       climbspeed, fuelspeed, passingspeed, autodeclimbspeed, bumpspeed,
@@ -214,7 +208,7 @@ export async function POST(req) {
       ${body.autoclimb}, ${body.autoclimb === 2 ? body.autoclimbposition : null}, ${body.autofuel}, ${body.winauto},
       ${body.intakeground}, ${body.intakeoutpost}, ${body.passingbulldozer}, ${body.passingshooter}, ${body.passingdump}, ${body.shootwhilemove}, ${body.telefuel},
       ${body.defenselocationoutpost}, ${body.defenselocationtower}, ${body.defenselocationhub}, ${body.defenselocationnz}, ${body.defenselocationtrench}, ${body.defenselocationbump},
-      ${body.endclimbposition || null}, ${body.climbtf}, ${body.wideclimb},
+      ${body.endclimbposition}, ${body.wideclimb},
       ${body.shootingmechanism}, ${body.bump}, ${body.trench}, ${body.stuckonfuel}, ${body.fuelpercent}, ${body.playeddefense}, ${body.defense},
       ${body.aggression}, ${body.climbhazard}, ${body.hoppercapacity}, ${body.maneuverability}, ${body.durability}, ${body.defenseevasion},
       ${body.climbspeed}, ${body.fuelspeed}, ${body.passingspeed}, ${body.autodeclimbspeed}, ${body.bumpspeed},

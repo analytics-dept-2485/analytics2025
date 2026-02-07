@@ -48,6 +48,7 @@ export default function Home() {
     let checked = e.target.checked;
     setBreakdown(checked);
   }
+
   function onDefenseChange(e) {
     let checked = e.target.checked;
     setDefense(checked);
@@ -113,21 +114,13 @@ export default function Home() {
     }
     
   
-    // 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+    // 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1, 9=None
     if (data.endClimbPosition !== undefined && data.endClimbPosition !== null && data.endClimbPosition !== "") {
       data.endclimbposition = parseInt(data.endClimbPosition);
       delete data.endClimbPosition;
     } else {
       data.endclimbposition = null;
       delete data.endClimbPosition;
-    }
-    
-    // ClimbTF: Map from "noClimb" checkbox (true if checked = climb failed/none)
-    if (data.noClimb !== undefined) {
-      data.climbtf = data.noClimb === true;
-      delete data.noClimb;
-    } else {
-      data.climbtf = false;
     }
 
     // WideClimb: checkbox (true if checked)
@@ -259,6 +252,9 @@ export default function Home() {
         return;
       } 
     }
+
+    console.log("RAW FormData end climb:", data.endClimbPosition);
+
     //confirm and submit
     if (confirm("Are you sure you want to submit?") == true) {
       fetch('/api/add-match-data', {
@@ -456,8 +452,6 @@ console.log("page",matchType)
             <div>
               <ClimbCheckbox></ClimbCheckbox>
             </div>
-
-            <Checkbox visibleName={"None"} internalName={"noClimb"} />
 
             <Checkbox visibleName={"Wide Climb?"} internalName={"wideclimb"} />
 
