@@ -87,104 +87,121 @@ function TeamView() {
 
 
 
-   let data={
-     team: 2485,
-     name: "Overclocked",
-     avgEpa: 73,
-     avgAuto: 20,
-     avgTele: 56,
-     avgEnd: 12,
-     last3Epa: 70,
-     last3Auto: 30,
-     last3Tele: 53,
-     last3End: 2,
-     epaOverTime: [{match: 3, epa: 60},{match: 10, epa: 43},{match: 13, epa: 12}],
-     epaRegression: [{match: 3, epa: 60}, {match: 13, epa: 12}], //not sure how we should do this one
-     consistency: 98,
-     stuckOnFuel: 12,
-     defense: 11,
-     shootingMechanism: "Turret",
-     lastBreakdown: 2,
-     noShow: 1,
-     breakdown: 9,
-     matchesScouted: 3,
-     scouts: ["Yael", "Ella", "Max",],
-     generalComments: ["pretty good", "fragile intake","hooray!"],
-     breakdownComments: ["stopped moving"],
-     defenseComments: ["defended coral human player station"],
-   
-     autoOverTime: [{match: 8, auto: 30},{match: 10, auto: 10},{match: 13, auto: 2}],
-     leave: 93,
-     autoclimb: {
-       success: 7,
-       fail: 88,
-       none: 3,
-     },
-     autoMedianFuel: 3,
-     teleOverTime: [{match: 8, tele: 30}, {match: 10, tele: 78}, {match: 13, tele: 42}],
-     teleMedianFuel: 2,
-     passing: {
-       shooter: 10,
-       bulldozer: 2,
-       dump: 30,
-     },
-     defenseQuality: {
-       weak: 10,
-       harassment: 2,
-       gameChanging: 30,
-     },
-     defenseLocation: {
-       allianceZone: 12,
-       neutralZone: 8,
-       trench: 10,
-       bump: 2,
-       tower: 5,
-       outpost: 3,
-       hub: 7,
-     },
-   
-     endPlacement: {
-       none: {
-         left: 2,
-         right: 3,
-         center: 2,
-       },
-       L1: {
-         left: 3,
-         right: 4,
-         center: 1,
-       },
-       L2: {
-         left: 5,
-         right: 2,
-         center: 3,
-       },
-       L3: {
-         left: 6,
-         right: 1,
-         center: 1,
-       },
-     },
-     qualitative: [
-       {name: "Hopper Capacity", rating: 5},
-       {name: "Maneuverability", rating: 4},
-       {name: "Durability", rating: 3},
-       {name: "Fuel Speed", rating: 5},
-       {name: "Passing Speed", rating: 3},
-       {name: "Climb Speed", rating: 4},
-       {name: "Auto De-Climb Speed", rating: 5},
-       {name: "Bump Speed", rating: 0},
-       {name: "Defense Evasion", rating: 1},
-       {name: "Climb Hazard*", rating: 2},
-       {name: "Aggression*"},
-     ],
-     groundIntake: true,
-     outpostIntake: true,
-     shootWhileMove: true,
-     bumpTrav: true,
-     trenchTrav: true,
-     wideClimb: true,
-   }
+   let data = {
+    team: 2485,
+    name: "Overclocked",
+    avgEpa: 73,
+    avgAuto: 20,
+    avgTele: 56,
+    avgEnd: 12,
+    last3Epa: 70,
+    last3Auto: 30,
+    last3Tele: 53,
+    last3End: 2,
+    
+    // EPA data with win information
+    epaOverTime: [
+      {match: 3, epa: 60, won: true},
+      {match: 10, epa: 43, won: false}, 
+      {match: 13, epa: 12, won: true}
+    ],
+    epaRegression: [{match: 3, epa: 60}, {match: 13, epa: 12}],
+    
+    consistency: 98,
+    stuckOnFuel: 12,
+    defense: 11,
+    shootingMechanism: "Turret",
+    lastBreakdown: 2,
+    noShow: 1,
+    breakdown: 9,
+    matchesScouted: 3,
+    scouts: ["Yael", "Ella", "Max"],
+    generalComments: ["pretty good", "fragile intake", "hooray!"],
+    breakdownComments: ["stopped moving"],
+    defenseComments: ["defended coral human player station"],
+  
+    // Auto data with win information
+    autoOverTime: [
+      {match: 3, auto: 30, won: true},
+      {match: 10, auto: 10, won: true},
+      {match: 13, auto: 2, won: false}
+    ],
+    autoclimb: {
+      success: 7,
+      fail: 88,
+      none: 3,
+    },
+    autoMedianFuel: 3,
+    
+    // Tele data with win information
+    teleOverTime: [
+      {match: 3, tele: 30, won: false},
+      {match: 10, tele: 78, won: true},
+      {match: 13, tele: 42, won: false}
+    ],
+    teleMedianFuel: 2,
+    passing: {
+      shooter: 10,
+      bulldozer: 2,
+      dump: 30,
+    },
+    defenseQuality: {
+      weak: 10,
+      harassment: 2,
+      gameChanging: 30,
+    },
+    defenseLocation: {
+      allianceZone: 12,
+      neutralZone: 8,
+      trench: 10,
+      bump: 2,
+      tower: 5,
+      outpost: 3,
+      hub: 7,
+    },
+  
+    endPlacement: {
+      none: {
+        left: 2,
+        right: 3,
+        center: 2,
+      },
+      L1: {
+        left: 3,
+        right: 4,
+        center: 1,
+      },
+      L2: {
+        left: 5,
+        right: 2,
+        center: 3,
+      },
+      L3: {
+        left: 6,
+        right: 1,
+        center: 1,
+      },
+    },
+    qualitative: [
+      {name: "Hopper Capacity", rating: 5},
+      {name: "Maneuverability", rating: 4},
+      {name: "Durability", rating: 3},
+      {name: "Fuel Speed", rating: 5},
+      {name: "Passing Speed", rating: 3},
+      {name: "Climb Speed", rating: 4},
+      {name: "Auto De-Climb Speed", rating: 5},
+      {name: "Bump Speed", rating: 0},
+      {name: "Defense Evasion", rating: 1},
+      {name: "Climb Hazard*", rating: 2},
+      {name: "Aggression*"},
+    ],
+    groundIntake: true,
+    outpostIntake: true,
+    shootWhileMove: true,
+    bumpTrav: true,
+    trenchTrav: true,
+    wideClimb: true,
+  }
 
 
 
@@ -367,7 +384,13 @@ function TeamView() {
                    </div>
                <div className={styles.graphContainer}>
                    <h4 className={styles.graphTitle}>EPA Over Time</h4>
-                   <EPALineChart data={data.epaOverTime} color={Colors[0][3]} label={"epa"}/>
+                   <EPALineChart 
+                   data={data.epaOverTime} 
+                   color={Colors[0][3]} 
+                   label={"epa"} 
+                   teamNumber={data.team}
+                   wonEPA={data.wonEPA}
+                   />
                  </div>
                <div className={styles.valueBoxes}>
                  <div className={styles.leftColumnBoxes}>
@@ -435,6 +458,8 @@ function TeamView() {
                data={data.autoOverTime}
                color={Colors[1][3]}
                label={"auto"}
+               teamNumber={data.team}
+               wonAuto={data.wonAuto}
              />
          </div>
       <div className={styles.autoBox}>
@@ -457,6 +482,8 @@ function TeamView() {
                data={data.teleOverTime}
                color={Colors[2][3]}
                label={"tele"}
+               teamNumber={data.team}
+               wonTele={data.wonTele}
              />
            </div>
      <div className={styles.teleRightAlignment}>
