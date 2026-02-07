@@ -26,7 +26,7 @@ export default function Qualitative ({ visibleName, internalName, description, s
                 })}
             </div>
             
-            {rating === -1 && (description == "Coral Speed" || description == "Processor Speed" || description == "Net Speed") && (
+            {rating === -1 && (description == "Fuel Speed" || description == "Passing Speed" || description == "Net Speed") && (
                 <div>
                     Not Applicable
                 </div>

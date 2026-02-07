@@ -138,6 +138,7 @@ export default function ClimbCheckbox({ internalName, changeListener }) {
                     </div>
                 </div>
             </div>
+            <button type="button" className={styles.clear} onClick={() => handleChange(-1)}>Clear</button>
         </div>
     );
 }

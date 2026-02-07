@@ -164,3 +164,16 @@
 .checkbox:has(input:checked):hover {
     background-color: #8cd075;
 }
+
+.clear {
+    background-color: red;
+    color: white;
+    width: 80px;
+    height: 50px;
+    font-size: 25px;
+    border-radius: 5px;
+}
+
+.clear:hover {
+    background-color: rgb(255, 66, 66);
+}
