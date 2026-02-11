@@ -15,12 +15,14 @@ import AutoClimb from "./form-components/AutoClimb";
 import autoClimbStyles from "./form-components/AutoClimb.module.css";
 import ClimbCheckbox from "./form-components/ClimbCheckbox";
 import DefenseBreakdown from "./form-components/DefenseBreakdown";
+import ThreeOptionRadio from "./form-components/ThreeOptionRadio";
 
 export default function Home() {
   const [noShow, setNoShow] = useState(false);
   const [breakdown, setBreakdown] = useState(false);
   const [defense, setDefense] = useState(false);
   const [matchType, setMatchType] = useState("2");
+  const [threeOptionRadio, setThreeOptionRadio] = useState("0");
   const [scoutProfile, setScoutProfile] = useState(null);
   const [climbYesNo, setClimbYesNo] = useState("0");
   const [climbPosition, setClimbPosition] = useState(null); // Will be "0", "1", or "2" for auto climb position
@@ -64,6 +66,10 @@ export default function Home() {
   function handleMatchTypeChange(value){
     setMatchType(value);
     console.log("Selected match type:", value);
+};
+
+  function handleThreeOptionRadio(value){
+    setThreeOptionRadio(value);
 };
 
   function handleClimbYesNo (value) {
@@ -253,8 +259,6 @@ export default function Home() {
       } 
     }
 
-    console.log("RAW FormData end climb:", data.endClimbPosition);
-
     //confirm and submit
     if (confirm("Are you sure you want to submit?") == true) {
       fetch('/api/add-match-data', {
@@ -356,8 +360,15 @@ console.log("page",matchType)
               <FuelCounter internalName={"auto fuel"}/>
             <div className={styles.AutoClimb}>
               <SubHeader subHeaderName={"Climb"}></SubHeader>
-
-              <AutoClimb 
+              <ThreeOptionRadio
+                onThreeOptionRadioChange={handleThreeOptionRadio}
+                internalName="climbYesNo"
+                defaultValue={threeOptionRadio}
+                value1="None"
+                value2="Fail"
+                value3="Success"
+              />
+              {/* <AutoClimb 
                 onClimbChange={handleClimbYesNo} 
                 defaultValue={climbYesNo}
               />
@@ -398,7 +409,7 @@ console.log("page",matchType)
                     </label>
                   </div>
                 </div>
-              )}
+              )} */}
           </div>
               <Checkbox visibleName={"Win Auto?"} internalName={"win auto"}/>
             </div>

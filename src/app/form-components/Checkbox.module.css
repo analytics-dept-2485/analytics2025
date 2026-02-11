@@ -9,8 +9,8 @@
     margin: 10px auto;
     display: inline-block;
     text-align: center;
-    max-width: 190px;
-    width: 90%;
+    max-width: 140px;
+    width: 95%;
 }
 .box:hover,
 .box:focus {
@@ -30,3 +30,6 @@
     align-content: center;
     flex-grow: 1;
 }
+/* .box label {
+    font-size: 21;
+} */
