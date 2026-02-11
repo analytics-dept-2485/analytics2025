@@ -26,11 +26,9 @@
   justify-content: center;
   align-items: center;
   align-content: center;
-  width: 375px;
 }
 .Endgame {
   justify-items: center;
-  width: 375px;
 }
 
 .Table {
@@ -142,7 +140,6 @@ hr.subsubheading {
   flex-direction: column;
   align-content: center;
   align-self: center;
-  width: 375px;
 }
 
 .AutoClimb {
@@ -178,15 +175,12 @@ hr.subsubheading {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 375px;
 }
 
 .PostMatch {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  width: 375px;
-  align-content: center;
 }
 
 .shootingBox {
