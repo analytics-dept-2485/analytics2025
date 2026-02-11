@@ -8,6 +8,7 @@
     min-height: calc(100vh - 45px);
     font-family: "Belleza", sans-serif;
     justify-items: center;
+    align-items: center;
 }
 
 .MatchInfo {
