@@ -25,9 +25,11 @@
   justify-content: center;
   align-items: center;
   align-content: center;
+  width: 375px;
 }
 .Endgame {
   justify-items: center;
+  width: 375px;
 }
 
 .Table {
@@ -117,28 +119,12 @@ hr.subsubheading {
   background-color: white;
 }
 
-.Intake {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  background-color:#3d3d3d;
-  color: black;
-  border-radius: 8px;
-  align-items: center;
-  padding: 3px;
-  width: 250px;
-  height: 375px;
-  justify-self: center;
-  margin: 15px;
-  gap: -5px;
-}
-
 .intakeBox {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  gap: 15px;
-  width: 400px;
+  gap: 5px;
+  width: 350px;
   align-self: center;
 }
 
@@ -146,8 +132,7 @@ hr.subsubheading {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
-  gap: 15px;
-  width: 400px;
+  width: 350px;
   align-self: center;
 }
 
@@ -156,10 +141,11 @@ hr.subsubheading {
   flex-direction: column;
   align-content: center;
   align-self: center;
+  width: 375px;
 }
 
 .AutoClimb {
-  width: 400px;
+  width: 300px;
   align-self: center;
   text-align: center;
   align-items: center;
@@ -178,8 +164,7 @@ hr.subsubheading {
 
 .defenseBox {
   display: grid;
-  grid-template-columns: 200px 200px;
-  column-gap: 10px;
+  grid-template-columns: 180px 180px;
   align-self: center;
 }
 
@@ -192,12 +177,15 @@ hr.subsubheading {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  width: 375px;
 }
 
 .PostMatch {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  width: 375px;
+  align-content: center;
 }
 
 .shootingBox {

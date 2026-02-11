@@ -15,12 +15,14 @@ import AutoClimb from "./form-components/AutoClimb";
 import autoClimbStyles from "./form-components/AutoClimb.module.css";
 import ClimbCheckbox from "./form-components/ClimbCheckbox";
 import DefenseBreakdown from "./form-components/DefenseBreakdown";
+import ThreeOptionRadio from "./form-components/ThreeOptionRadio";
 
 export default function Home() {
   const [noShow, setNoShow] = useState(false);
   const [breakdown, setBreakdown] = useState(false);
   const [defense, setDefense] = useState(false);
   const [matchType, setMatchType] = useState("2");
+  const [threeOptionRadio, setThreeOptionRadio] = useState("0");
   const [scoutProfile, setScoutProfile] = useState(null);
   const [climbYesNo, setClimbYesNo] = useState("0");
   const [climbPosition, setClimbPosition] = useState(null); // Will be "0", "1", or "2" for auto climb position
@@ -48,6 +50,7 @@ export default function Home() {
     let checked = e.target.checked;
     setBreakdown(checked);
   }
+
   function onDefenseChange(e) {
     let checked = e.target.checked;
     setDefense(checked);
@@ -63,6 +66,10 @@ export default function Home() {
   function handleMatchTypeChange(value){
     setMatchType(value);
     console.log("Selected match type:", value);
+};
+
+  function handleThreeOptionRadio(value){
+    setThreeOptionRadio(value);
 };
 
   function handleClimbYesNo (value) {
@@ -113,21 +120,13 @@ export default function Home() {
     }
     
   
-    // 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+    // 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1, 9=None
     if (data.endClimbPosition !== undefined && data.endClimbPosition !== null && data.endClimbPosition !== "") {
       data.endclimbposition = parseInt(data.endClimbPosition);
       delete data.endClimbPosition;
     } else {
       data.endclimbposition = null;
       delete data.endClimbPosition;
-    }
-    
-    // ClimbTF: Map from "noClimb" checkbox (true if checked = climb failed/none)
-    if (data.noClimb !== undefined) {
-      data.climbtf = data.noClimb === true;
-      delete data.noClimb;
-    } else {
-      data.climbtf = false;
     }
 
     // WideClimb: checkbox (true if checked)
@@ -259,6 +258,7 @@ export default function Home() {
         return;
       } 
     }
+
     //confirm and submit
     if (confirm("Are you sure you want to submit?") == true) {
       fetch('/api/add-match-data', {
@@ -360,8 +360,15 @@ console.log("page",matchType)
               <FuelCounter internalName={"auto fuel"}/>
             <div className={styles.AutoClimb}>
               <SubHeader subHeaderName={"Climb"}></SubHeader>
-
-              <AutoClimb 
+              <ThreeOptionRadio
+                onThreeOptionRadioChange={handleThreeOptionRadio}
+                internalName="climbYesNo"
+                defaultValue={threeOptionRadio}
+                value1="None"
+                value2="Fail"
+                value3="Success"
+              />
+              {/* <AutoClimb 
                 onClimbChange={handleClimbYesNo} 
                 defaultValue={climbYesNo}
               />
@@ -402,7 +409,7 @@ console.log("page",matchType)
                     </label>
                   </div>
                 </div>
-              )}
+              )} */}
           </div>
               <Checkbox visibleName={"Win Auto?"} internalName={"win auto"}/>
             </div>
@@ -456,8 +463,6 @@ console.log("page",matchType)
             <div>
               <ClimbCheckbox></ClimbCheckbox>
             </div>
-
-            <Checkbox visibleName={"None"} internalName={"noClimb"} />
 
             <Checkbox visibleName={"Wide Climb?"} internalName={"wideclimb"} />
 

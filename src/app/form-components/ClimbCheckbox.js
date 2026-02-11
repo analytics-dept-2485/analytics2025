@@ -138,6 +138,20 @@ export default function ClimbCheckbox({ internalName, changeListener }) {
                     </div>
                 </div>
             </div>
+            <div className={styles.boxContainer}>
+                <div className={styles.box}>
+                    <label>
+                        <input 
+                            type="radio" 
+                            name="endClimbPosition"
+                            value="9"
+                            checked={selectedValue === "9"}
+                            onChange={() => handleChange("9")}
+                        />
+                        None
+                    </label>
+                </div>
+            </div>
         </div>
     );
 }
