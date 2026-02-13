@@ -10,8 +10,8 @@ export default function ClimbTable({R1C1, R1C2, R1C3, R2C1, R2C2, R2C3, R3C1, R3
           <col span="3" style={{backgroundColor: color3}}></col>
         </colgroup>
         <thead style={{backgroundColor: color2}}>
-            <tr className={styles.cell}>
-              <th style={{backgroundColor: "white"}}></th>
+            <tr className={styles.yes}>
+              <th className={styles.white}></th>
               <th className={styles.cell}>Left</th>
               <th className={styles.cell}>Center</th>
               <th className={styles.cell}>Right</th>

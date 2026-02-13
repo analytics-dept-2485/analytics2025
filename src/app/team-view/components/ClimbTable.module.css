@@ -8,7 +8,11 @@
     width: 55px;
 }
 
-.cell, .ClimbTable:first-child {
-    border-left: white;
-    border-top: white;
+.white {
+    background-color: white;
+}
+
+.ClimbTable th:first-child {
+  border-top: none;
+  border-left: none;
 }

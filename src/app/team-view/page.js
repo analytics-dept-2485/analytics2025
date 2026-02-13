@@ -406,7 +406,7 @@ function TeamView() {
                    </div>
                    <div className={styles.leftBoxR3}>
                      <VBoxCheck color1={Colors[0][1]} color2={Colors[0][0]} title={"Shoot While Move?"} value={data.shootWhileMove}/>
-                     <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Shooting Mechanism"} value={data.shootingMechanism}/>
+                     <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Shooting Mech."} value={data.shootingMechanism}/>
                      <table className={styles.horizontalTable2}> 
                      <tbody>
                       <tr>
