@@ -2,46 +2,45 @@
   background-color: #D9D26E;
   color: black;
   border-radius: 8px;
-  margin: 10px;
   padding: 7px;
-  justify-self: center;
-  align-self: center;
-  width: 225px;
+
+  width: 100%;
+  max-width: 210px;
+
+  margin: 10px auto;   /* THIS centers it */
 }
+
 
 .radioGroup {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
   justify-content: center;
-  justify-self: center;
   gap: 5px;
+  width: 100%;
 }
-  .radioGroup input[type="radio"] {
-    appearance: none;
-    -webkit-appearance: none; 
-  
-    /* Create a custom circle */
-    width: 1.2rem;
-    height: 1.2rem;
-    border: 2px solid Black;     
-    border-radius: 50%;        
-    background-color: #fff;
-    cursor: pointer;
-    outline: none;             
-    margin-right: 0.5rem;      
-  }
-  
-  .radioGroup input[type="radio"]:checked::before {
-    content: "";
-    display: block;
-    width: 0.8rem;
-    height: 0.8rem;
-    background-color: black;  
-    border-radius: 50%;
-    margin: 0.08rem auto;    
-    margin-bottom: 20rem;   
-  }
+.radioGroup input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 2px solid black;
+  border-radius: 50%;
+  background-color: #fff;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radioGroup input[type="radio"]:checked::before {
+  content: "";
+  width: 0.6rem;
+  height: 0.6rem;
+  background-color: black;
+  border-radius: 50%;
+}
+
   
   .radioGroup label {
     display: inline-flex;
