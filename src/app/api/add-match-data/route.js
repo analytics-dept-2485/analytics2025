@@ -161,14 +161,19 @@ export async function POST(req) {
     return NextResponse.json({ message: "Invalid Postmatch Data!" }, { status: 400 });
   }
 
-  // Validate Defense (only required if playeddefense is true)
-  if (body.playeddefense) {
-    if (!_.isNumber(body.defense) || ![0, 1, 2].includes(body.defense)) {
-      return NextResponse.json({ message: "Invalid Defense!"}, { status: 400 });
-    }
-  } else {
-    body.defense = null;
+// Validate Defense (only required if playeddefense is true)
+body.defense = Number(body.defense);
+
+if (body.playeddefense) {
+  body.defense = Number(body.defense);
+
+  if (!Number.isFinite(body.defense) || ![0, 1, 2].includes(body.defense)) {
+    return NextResponse.json({ message: "Invalid Defense!"}, { status: 400 });
   }
+} else {
+  body.defense = null;
+}
+
 
   // Qualitative Ratings (0-5 scale, -1 for not rated): default missing to -1
   const qualitativeFields = [
