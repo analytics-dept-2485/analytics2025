@@ -35,8 +35,8 @@
 
 .radioGroup input[type="radio"]:checked::before {
   content: "";
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 0.8rem;
+  height: 0.8rem;
   background-color: black;
   border-radius: 50%;
 }

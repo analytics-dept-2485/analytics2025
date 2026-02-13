@@ -5,7 +5,8 @@
   margin: 10px auto;  /* center horizontally */
   padding: 7px;
   width: 100%;
-  max-width: 375px;
+  max-width: 310px;
+  /* margin-left: -7px; */
 }
 
 
