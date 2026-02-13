@@ -430,7 +430,7 @@ function ScoutingApp() {
               <div className={styles.chartSection}>
                 <h2>Fuel Distribution</h2>
                 <div className={styles.pieChartWrapper}>
-                  <Endgame colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} endgameData={redFuelData} />
+                  <Endgame colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} endgameData={redFuelData} />
                 </div>
               </div>
               <div className={styles.radarSection}>
@@ -465,7 +465,7 @@ function ScoutingApp() {
               <div className={styles.chartSection}>
                 <h2>Fuel Distribution</h2>
                 <div className={styles.pieChartWrapper}>
-                  <Endgame colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} endgameData={blueFuelData} />
+                  <Endgame colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} endgameData={blueFuelData} />
                 </div>
               </div>
               <div className={styles.radarSection}>
