@@ -2,23 +2,21 @@
   background-color: #D9D26E;
   color: black;
   border-radius: 8px;
-  margin: 10px;
+  margin: 10px auto;  /* center horizontally */
   padding: 7px;
+  width: 100%;
   max-width: 375px;
-  justify-self: center;
-  min-width: 330px;
-  align-self: center;
 }
+
 
 .radioGroup {
   display: flex;
-  flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
-  justify-self: center;
-  max-width: 330px;
   gap: 5px;
+  width: 100%;
 }
+
 .radioGroup input[type="radio"] {
   appearance: none;
   -webkit-appearance: none;
