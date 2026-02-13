@@ -182,15 +182,3 @@ hr.subsubheading {
   flex-direction: column;
   justify-content: center;
 }
-
-.shootingBox {
-    background-color: #d9d26E;
-    color: black;
-    border-radius: 8px;
-    margin: 10px;
-    padding: 7px;
-    width: 225px;
-    align-self: center;
-    height: 40px;
-    align-items: center;
-}

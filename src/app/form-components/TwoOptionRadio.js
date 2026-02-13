@@ -1,21 +1,21 @@
 "use client";
 import { useState, useEffect } from 'react';
-import styles from './ThreeOptionRadio.module.css';
+import styles from './TwoOptionRadio.module.css';
 
-export default function ThreeOptionRadio({ onThreeOptionRadioChange, defaultValue, internalName, value1, value2, value3 }) {
+export default function TwoOptionRadio({ onTwoOptionRadioChange, defaultValue, internalName, value1, value2}) {
     const [selectedOption, setSelectedOption] = useState();
 
     useEffect(() => {
         if (defaultValue) {
             setSelectedOption(defaultValue);
-            onThreeOptionRadioChange(defaultValue)
+            onTwoOptionRadioChange(defaultValue)
         }
-    }, [setSelectedOption, onThreeOptionRadioChange]);
+    }, [setSelectedOption, onTwoOptionRadioChange]);
 
     const handleChange = (e) => {
         const newValue = e.target.value;
         setSelectedOption(newValue);
-        onThreeOptionRadioChange(newValue);
+        onTwoOptionRadioChange(newValue);
     };
 
     return (
@@ -40,16 +40,6 @@ export default function ThreeOptionRadio({ onThreeOptionRadioChange, defaultValu
                         onChange={handleChange}
                     />
                     {value2}
-                </label>
-                <label>
-                    <input
-                        type="radio"
-                        name={internalName}
-                        value="2"
-                        checked={selectedOption === "2"}
-                        onChange={handleChange}
-                    />
-                    {value3}
                 </label>
             </div>
         </div>

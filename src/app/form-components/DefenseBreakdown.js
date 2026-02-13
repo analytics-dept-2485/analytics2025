@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import CommentBox from './CommentBox';
 import Checkbox from './Checkbox';
 import SubHeader from './SubHeader';
+import ThreeOptionRadio from './ThreeOptionRadio';
 import styles from './DefenseBreakdown.module.css';
 
 export default function DefenseBreakdown({ 
@@ -45,11 +46,11 @@ export default function DefenseBreakdown({
         if (onDefenseChange) onDefenseChange(e);
     };
 
-    const handleDefenseTypeChange = (e) => {
-        const value = e.target.value;
+    const handleDefenseTypeChange = (value) => {
         setDefenseType(value);
         if (onDefenseTypeChange) onDefenseTypeChange(value);
     };
+
 
     return (
         <div className={styles.container}>
@@ -84,41 +85,14 @@ export default function DefenseBreakdown({
                         <div className={styles.defenseTypeContainer}>
                             <SubHeader subHeaderName={"Defense Type"} />
                             <div className={styles.defenseTypeBox}>
-                                <div className={styles.radioGroup}>
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            id="weak"
-                                            name="defenseType"
-                                            value="weak"
-                                            checked={defenseType === "weak"}
-                                            onChange={handleDefenseTypeChange}
-                                        />
-                                        Weak
-                                    </label>
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            id="harassment"
-                                            name="defenseType"
-                                            value="harassment"
-                                            checked={defenseType === "harassment"}
-                                            onChange={handleDefenseTypeChange}
-                                        />
-                                        Harassment
-                                    </label>
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            id="gameChanging"
-                                            name="defenseType"
-                                            value="game-changing"
-                                            checked={defenseType === "game-changing"}
-                                            onChange={handleDefenseTypeChange}
-                                        />
-                                        Game Changing
-                                    </label>
-                                </div>
+                                <ThreeOptionRadio
+                                    onThreeOptionRadioChange={handleDefenseTypeChange}
+                                    internalName="defenseType"
+                                    defaultValue={defenseType}
+                                    value1="Weak"
+                                    value2="Harassment"
+                                    value3="Game Changing"
+                                  />
                             </div>
                         </div>
                         

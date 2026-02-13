@@ -16,17 +16,18 @@ import autoClimbStyles from "./form-components/AutoClimb.module.css";
 import ClimbCheckbox from "./form-components/ClimbCheckbox";
 import DefenseBreakdown from "./form-components/DefenseBreakdown";
 import ThreeOptionRadio from "./form-components/ThreeOptionRadio";
+import TwoOptionRadio from "./form-components/TwoOptionRadio";
 
 export default function Home() {
   const [noShow, setNoShow] = useState(false);
   const [breakdown, setBreakdown] = useState(false);
   const [defense, setDefense] = useState(false);
   const [matchType, setMatchType] = useState("2");
-  const [threeOptionRadio, setThreeOptionRadio] = useState("0");
   const [scoutProfile, setScoutProfile] = useState(null);
   const [climbYesNo, setClimbYesNo] = useState("0");
   const [climbPosition, setClimbPosition] = useState(null); // Will be "0", "1", or "2" for auto climb position
   const [defenseType, setDefenseType] = useState("");
+  const [shootingMechanism, setShootingMechanism] = useState("");
 
   const form = useRef();
 
@@ -68,10 +69,6 @@ export default function Home() {
     console.log("Selected match type:", value);
 };
 
-  function handleThreeOptionRadio(value){
-    setThreeOptionRadio(value);
-};
-
   function handleClimbYesNo (value) {
     setClimbYesNo(value);
     console.log("Selected climb type:", value);
@@ -80,6 +77,10 @@ export default function Home() {
   function handleClimbPosition (value) {
     setClimbPosition(value);
     console.log("Selected climb position:", value);
+};
+
+  function handleShootingMechanism (value) {
+    setShootingMechanism(value);
 };
 
   // added from last years code (still review)
@@ -133,23 +134,23 @@ export default function Home() {
     data.wideclimb = data.wideclimb === true;
     
     // Shooting Mechanism: staticShooting radio -> shootingmechanism (0=Static, 1=Turret)
-    const staticShootingRadio = document.querySelector('input[name="staticShooting"]:checked');
-    if (staticShootingRadio) {
-      const label = staticShootingRadio.closest('label');
-      const labelText = label ? label.textContent.trim() : "";
-      if (labelText === "Static") {
-        data.shootingmechanism = 0;
-      } else if (labelText === "Turret") {
-        data.shootingmechanism = 1;
-      } else {
+    // const staticShootingRadio = document.querySelector('input[name="staticShooting"]:checked');
+    // if (staticShootingRadio) {
+    //   const label = staticShootingRadio.closest('label');
+    //   const labelText = label ? label.textContent.trim() : "";
+    //   if (labelText === "Static") {
+    //     data.shootingmechanism = 0;
+    //   } else if (labelText === "Turret") {
+    //     data.shootingmechanism = 1;
+    //   } else {
 
-        data.shootingmechanism = 0;
-      }
-    } else {
+    //     data.shootingmechanism = 0;
+    //   }
+    // } else {
 
-      data.shootingmechanism = 0;
-    }
-    delete data.staticShooting;
+    //   data.shootingmechanism = 0;
+    // }
+    // delete data.staticShooting;
     
 
     data.fuelpercent = (data.percentfuel != null && data.percentfuel !== "")
@@ -361,55 +362,24 @@ console.log("page",matchType)
             <div className={styles.AutoClimb}>
               <SubHeader subHeaderName={"Climb"}></SubHeader>
               <ThreeOptionRadio
-                onThreeOptionRadioChange={handleThreeOptionRadio}
+                onThreeOptionRadioChange={handleClimbYesNo}
                 internalName="climbYesNo"
-                defaultValue={threeOptionRadio}
+                defaultValue={climbYesNo}
                 value1="None"
                 value2="Fail"
                 value3="Success"
               />
-              {/* <AutoClimb 
-                onClimbChange={handleClimbYesNo} 
-                defaultValue={climbYesNo}
-              />
-            
-              
               {climbYesNo === "2" && (
-                <div className={autoClimbStyles.ClimbYesNo}>
-                  <div className={autoClimbStyles.radioGroup}>
-                    <label>
-                      <input
-                        type="radio"
-                        name="autoClimbPosition"
-                        value="0"
-                        checked={climbPosition === "0"}
-                        onChange={(e) => handleClimbPosition(e.target.value)}
-                      />
-                      Left
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="autoClimbPosition"
-                        value="1"
-                        checked={climbPosition === "1"}
-                        onChange={(e) => handleClimbPosition(e.target.value)}
-                      />
-                      Center
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="autoClimbPosition"
-                        value="2"
-                        checked={climbPosition === "2"}
-                        onChange={(e) => handleClimbPosition(e.target.value)}
-                      />
-                      Right
-                    </label>
-                  </div>
-                </div>
-              )} */}
+                <ThreeOptionRadio
+                  onThreeOptionRadioChange={handleClimbPosition}
+                  internalName="autoClimbPosition"
+                  defaultValue={climbPosition}
+                  value1="Left"
+                  value2="Center"
+                  value3="Right"
+                />
+                )}
+              
           </div>
               <Checkbox visibleName={"Win Auto?"} internalName={"win auto"}/>
             </div>
@@ -485,7 +455,14 @@ console.log("page",matchType)
 
                 <SubHeader subHeaderName={"Shooting Mechanism"}></SubHeader>
                 <div className= {styles.shootingBox}>
-                  <div className={autoClimbStyles.radioGroup}>
+                  <TwoOptionRadio
+                    onTwoOptionRadioChange={handleShootingMechanism}
+                    internalName="shootingmechanism"
+                    defaultValue={shootingMechanism}
+                    value1="Static"
+                    value2="Turret"
+                  />
+                  {/* <div className={autoClimbStyles.radioGroup}>
                     <label>
                         <input
                           type="radio"
@@ -501,7 +478,7 @@ console.log("page",matchType)
                         />
                         Turret
                     </label>
-                  </div>
+                  </div> */}
                 </div>
                 <br></br>
 
