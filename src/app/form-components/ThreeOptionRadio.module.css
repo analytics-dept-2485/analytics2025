@@ -7,6 +7,7 @@
   max-width: 375px;
   justify-self: center;
   min-width: 330px;
+  align-self: center;
 }
 
 .radioGroup {
