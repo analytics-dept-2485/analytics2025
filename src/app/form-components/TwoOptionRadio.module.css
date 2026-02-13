@@ -4,8 +4,8 @@
   border-radius: 8px;
   margin: 10px;
   padding: 7px;
-  max-width: 375px;
   justify-self: center;
+  align-self: center;
 }
 
 .radioGroup {
@@ -14,7 +14,6 @@
   flex-wrap: wrap;
   justify-content: center;
   justify-self: center;
-  max-width: 330px;
   gap: 5px;
 }
   .radioGroup input[type="radio"] {
