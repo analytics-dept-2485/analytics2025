@@ -38,7 +38,7 @@ export async function POST(request) {
             ? (uniqueBreakdownCount / uniqueMatches.size) * 100 
             : 0;
 
-          const epaValues = arr.map(row => row.epa).filter(v => typeof v === 'number' && !isNaN(v));
+          const epaValues = arr.map(row => calcEPA(row)).filter(v => typeof v === 'number' && !isNaN(v));
           const meanVal = epaValues.reduce((a, b) => a + b, 0) / epaValues.length || 0;
           const variance = epaValues.reduce((sum, v) => sum + Math.pow(v - meanVal, 2), 0) / epaValues.length || 0;
           const epaStdDev = Math.sqrt(variance);
@@ -84,34 +84,12 @@ export async function POST(request) {
     last3EPAMap[team] = (typeof avgOfLast3 === 'number' && !isNaN(avgOfLast3)) ? avgOfLast3 : 0;
   }
 
-  const calcConsistency = (dr) => {
-    const autoSuccess = (dr.autol1success || 0) + (dr.autol2success || 0) + (dr.autol3success || 0) + (dr.autol4success || 0);
-    const autoAttempts = autoSuccess + (dr.autol1fail || 0) + (dr.autol2fail || 0) + (dr.autol3fail || 0) + (dr.autol4fail || 0);
-    const teleSuccess = (dr.telel1success || 0) + (dr.telel2success || 0) + (dr.telel3success || 0) + (dr.telel4success || 0);
-    const teleAttempts = teleSuccess + (dr.telel1fail || 0) + (dr.telel2fail || 0) + (dr.telel3fail || 0) + (dr.telel4fail || 0);
-    const successRate = (autoAttempts + teleAttempts) > 0 
-        ? ((autoSuccess + teleSuccess) / (autoAttempts + teleAttempts)) * 100 
-        : 0;
-    const endgameSuccess = (dr.endlocation === 2 || dr.endlocation === 3) ? 1 : 0;
-    const noShowPenalty = dr.noshow ? 0 : 1;
-    const breakdownPenalty = dr.breakdowncomments && dr.breakdowncomments.trim() !== "" ? 0.8 : 1;
-    const metrics = [successRate, endgameSuccess * 100, noShowPenalty * 100];
-    const validMetrics = metrics.filter(val => val >= 0);
-    const baseConsistency = validMetrics.length > 0
-        ? validMetrics.reduce((sum, value) => sum + value, 0) / validMetrics.length
-        : 0;
-    return baseConsistency * breakdownPenalty;
-  };
-
-  // Fuel: support both SCC (autofuel, telefuel) and 2026 (coral-style); frontend expects "fuel"
+  // Fuel: autofuel + telefuel per match (SCC / 2026 style; no git –L4 piece counts)
   const teamFuelMap = {};
   rows.forEach((row) => {
     const team = row.team;
     if (!teamFuelMap[team]) teamFuelMap[team] = { sum: 0, count: 0 };
-    const f = (row.autofuel != null && !isNaN(row.autofuel)) || (row.telefuel != null && !isNaN(row.telefuel))
-      ? (Number(row.autofuel) || 0) + (Number(row.telefuel) || 0)
-      : ((row.autol1success || 0) + (row.autol2success || 0) + (row.autol3success || 0) + (row.autol4success || 0) +
-         (row.telel1success || 0) + (row.telel2success || 0) + (row.telel3success || 0) + (row.telel4success || 0));
+    const f = (Number(row.autofuel) || 0) + (Number(row.telefuel) || 0);
     teamFuelMap[team].sum += f;
     teamFuelMap[team].count += 1;
   });
@@ -148,7 +126,7 @@ export async function POST(request) {
     teamTowerAvg[team] = t.count > 0 ? t.sum / t.count : 0;
   });
 
-  // Passing: % of matches where team used any passing type
+
   const teamPassingMap = {};
   rows.forEach((row) => {
     const team = row.team;
@@ -179,7 +157,7 @@ export async function POST(request) {
       else if (type === 2 || (typeof type === 'string' && String(type).toLowerCase() === 'game changing')) score += 10;
       return score;
     },
-    consistency: d => calcConsistency(d),
+    consistency: d => teamConsistencyMap[d.team] ?? 0,
   }), select(['team', 'epa', 'last3epa', 'fuel', 'tower', 'passing', 'defense', 'auto', 'consistency']));
 
   const getTBARankings = async () => {
