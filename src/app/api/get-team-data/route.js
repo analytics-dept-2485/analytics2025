@@ -394,34 +394,35 @@ export async function GET(request) {
         totalFuel: (() => rows.reduce((sum, row) => sum + (row.autofuel || 0), 0))(),
       },
       climb: {
+        // autoclimb: 0=None, 1=Success, 2=Fail (numeric in DB)
         successRate: (() => {
           const totalMatches = rows.length;
-          const successfulClimbs = rows.filter(row => row.autoclimb === 'Success').length;
+          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
           return totalMatches > 0 ? (successfulClimbs / totalMatches) * 100 : 0;
         })(),
         failRate: (() => {
           const totalMatches = rows.length;
-          const failedClimbs = rows.filter(row => row.autoclimb === 'Fail').length;
+          const failedClimbs = rows.filter(row => row.autoclimb === 2 || row.autoclimb === '2' || row.autoclimb === 'Fail').length;
           return totalMatches > 0 ? (failedClimbs / totalMatches) * 100 : 0;
         })(),
         noneRate: (() => {
           const totalMatches = rows.length;
-          const noClimbs = rows.filter(row => row.autoclimb === 'None' || !row.autoclimb).length;
+          const noClimbs = rows.filter(row => row.autoclimb == null || row.autoclimb === 0 || row.autoclimb === '0' || row.autoclimb === 'None').length;
           return totalMatches > 0 ? (noClimbs / totalMatches) * 100 : 0;
         })(),
         positionLeft: (() => {
-          const successfulClimbs = rows.filter(row => row.autoclimb === 'Success').length;
-          const leftPosition = rows.filter(row => row.autoclimb === 'Success' && row.autoclimbposition === 'Left').length;
+          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
+          const leftPosition = rows.filter(row => (row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success') && (row.autoclimbposition === 0 || row.autoclimbposition === 'Left' || row.autoclimbposition === '0')).length;
           return successfulClimbs > 0 ? (leftPosition / successfulClimbs) * 100 : 0;
         })(),
         positionCenter: (() => {
-          const successfulClimbs = rows.filter(row => row.autoclimb === 'Success').length;
-          const centerPosition = rows.filter(row => row.autoclimb === 'Success' && row.autoclimbposition === 'Center').length;
+          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
+          const centerPosition = rows.filter(row => (row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success') && (row.autoclimbposition === 1 || row.autoclimbposition === 'Center' || row.autoclimbposition === '1')).length;
           return successfulClimbs > 0 ? (centerPosition / successfulClimbs) * 100 : 0;
         })(),
         positionRight: (() => {
-          const successfulClimbs = rows.filter(row => row.autoclimb === 'Success').length;
-          const rightPosition = rows.filter(row => row.autoclimb === 'Success' && row.autoclimbposition === 'Right').length;
+          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
+          const rightPosition = rows.filter(row => (row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success') && (row.autoclimbposition === 2 || row.autoclimbposition === 'Right' || row.autoclimbposition === '2')).length;
           return successfulClimbs > 0 ? (rightPosition / successfulClimbs) * 100 : 0;
         })(),
       },
@@ -467,12 +468,17 @@ export async function GET(request) {
       defenseLocations: {
         azOutpost: (() => {
           const totalMatches = rows.length;
-          const defended = rows.filter(row => row.defenselocationazoutpost === true).length;
+          const defended = rows.filter(row => row.defenselocationoutpost === true).length;
           return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
         })(),
         azTower: (() => {
           const totalMatches = rows.length;
-          const defended = rows.filter(row => row.defenselocationaztower === true).length;
+          const defended = rows.filter(row => row.defenselocationtower === true).length;
+          return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
+        })(),
+        hub: (() => {
+          const totalMatches = rows.length;
+          const defended = rows.filter(row => row.defenselocationhub === true).length;
           return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
         })(),
         nz: (() => {
@@ -538,14 +544,20 @@ export async function GET(request) {
       const climbFrequency = {};
       
       matchRows.forEach(row => {
-        if (!row.endclimb || row.endclimb === null) {
-          climbFrequency['none'] = (climbFrequency['none'] || 0) + 1;
-          return;
+        let level = null;
+        if (row.endclimb != null && row.endclimb !== '') {
+          const endClimb = String(row.endclimb).toUpperCase();
+          if (['L1', 'L2', 'L3'].includes(endClimb)) level = endClimb;
         }
-        
-        const endClimb = String(row.endclimb).toUpperCase();
-        if (['L1', 'L2', 'L3'].includes(endClimb)) {
-          climbFrequency[endClimb] = (climbFrequency[endClimb] || 0) + 1;
+        if (level == null && row.endclimbposition != null && row.endclimbposition !== '') {
+          const pos = Number(row.endclimbposition);
+          if (!Number.isNaN(pos) && pos >= 0 && pos <= 8) {
+            const mod = pos % 3; // 0=L3, 1=L2, 2=L1
+            level = mod === 0 ? 'L3' : mod === 1 ? 'L2' : 'L1';
+          }
+        }
+        if (level) {
+          climbFrequency[level] = (climbFrequency[level] || 0) + 1;
         } else {
           climbFrequency['none'] = (climbFrequency['none'] || 0) + 1;
         }
@@ -708,6 +720,22 @@ export async function GET(request) {
 }));  // This appears to close the object and function call that contains these properties
 
 // The rest of your code seems fine and doesn't need modification for your current issue
+// Defense quality from "defense" column: 0=weak, 1=harassment, 2=game changing (percent of rows; coerce string from CSV)
+const defenseCounts = { 0: 0, 1: 0, 2: 0 };
+rows.forEach(row => {
+  const d = Number(row.defense);
+  if (d === 0 || d === 1 || d === 2) defenseCounts[d]++;
+});
+const totalRows = rows.length;
+const defenseQuality = totalRows > 0
+  ? {
+      weak: (defenseCounts[0] / totalRows) * 100,
+      harassment: (defenseCounts[1] / totalRows) * 100,
+      gameChanging: (defenseCounts[2] / totalRows) * 100,
+    }
+  : { weak: 0, harassment: 0, gameChanging: 0 };
+
+const loc = returnObject[0].tele?.defenseLocations || {};
 returnObject[0] = {
   ...returnObject[0],
   intakeGround: rows.some(row => row.intakeground === true),
@@ -716,6 +744,16 @@ returnObject[0] = {
   passingShooter: rows.some(row => row.passingshooter === true),
   passingDump: rows.some(row => row.passingdump === true),
   shootWhileMove: rows.some(row => row.shootwhilemove === true),
+  defenseQuality,
+  defenseLocation: {
+    allianceZone: ((Number(loc.azOutpost) || 0) + (Number(loc.azTower) || 0)) / 2,
+    neutralZone: Number(loc.nz) || 0,
+    trench: Number(loc.trench) || 0,
+    bump: Number(loc.bump) || 0,
+    tower: Number(loc.azTower) || 0,
+    outpost: Number(loc.azOutpost) || 0,
+    hub: Number(loc.hub) || 0,
+  },
 };
 
 
