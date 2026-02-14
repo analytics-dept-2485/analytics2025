@@ -22,8 +22,8 @@ export async function POST(request) {
       : 0;    
   }
 
-  // Pre-process: remove no-shows
-  rows = rows.filter(row => !row.noshow);
+  // Pre-process: remove no-shows and invalid teams
+  rows = rows.filter(row => !row.noshow && row.team != null && row.team !== '' && Number(row.team) > 0);
 
   // Calculate consistency per team before summarizing
   const teamConsistencyMap = Object.fromEntries(
@@ -78,10 +78,10 @@ export async function POST(request) {
       .slice(0, 3);
 
     const avgOfLast3 = matches.length > 0
-      ? matches.reduce((sum, m) => sum + m.avgEpa, 0) / matches.length
+      ? matches.reduce((sum, m) => sum + (Number(m.avgEpa) || 0), 0) / matches.length
       : 0;
 
-    last3EPAMap[team] = avgOfLast3;
+    last3EPAMap[team] = (typeof avgOfLast3 === 'number' && !isNaN(avgOfLast3)) ? avgOfLast3 : 0;
   }
 
   const calcConsistency = (dr) => {
@@ -103,42 +103,84 @@ export async function POST(request) {
     return baseConsistency * breakdownPenalty;
   };
 
-  teamTable = tidy(teamTable, mutate({
+  // Fuel: support both SCC (autofuel, telefuel) and 2026 (coral-style); frontend expects "fuel"
+  const teamFuelMap = {};
+  rows.forEach((row) => {
+    const team = row.team;
+    if (!teamFuelMap[team]) teamFuelMap[team] = { sum: 0, count: 0 };
+    const f = (row.autofuel != null && !isNaN(row.autofuel)) || (row.telefuel != null && !isNaN(row.telefuel))
+      ? (Number(row.autofuel) || 0) + (Number(row.telefuel) || 0)
+      : ((row.autol1success || 0) + (row.autol2success || 0) + (row.autol3success || 0) + (row.autol4success || 0) +
+         (row.telel1success || 0) + (row.telel2success || 0) + (row.telel3success || 0) + (row.telel4success || 0));
+    teamFuelMap[team].sum += f;
+    teamFuelMap[team].count += 1;
+  });
+  const teamFuelAvg = {};
+  Object.keys(teamFuelMap).forEach((team) => {
+    const t = teamFuelMap[team];
+    teamFuelAvg[team] = t.count > 0 ? t.sum / t.count : 0;
+  });
 
+  // Tower: end climb points per match then average (endclimbposition L3=30,L2=20,L1=10 or endlocation cage)
+  const towerPointsFromRow = (row) => {
+    if (row.endclimbposition != null && row.endclimbposition !== undefined) {
+      const level = Number(row.endclimbposition) % 3;
+      if (level === 0) return 30;
+      if (level === 1) return 20;
+      if (level === 2) return 10;
+      return 0;
+    }
+    const loc = Math.round(Number(row.endlocation) || 0);
+    if (loc === 2) return 6;
+    if (loc === 3) return 12;
+    return 0;
+  };
+  const teamTowerMap = {};
+  rows.forEach((row) => {
+    const team = row.team;
+    if (!teamTowerMap[team]) teamTowerMap[team] = { sum: 0, count: 0 };
+    teamTowerMap[team].sum += towerPointsFromRow(row);
+    teamTowerMap[team].count += 1;
+  });
+  const teamTowerAvg = {};
+  Object.keys(teamTowerMap).forEach((team) => {
+    const t = teamTowerMap[team];
+    teamTowerAvg[team] = t.count > 0 ? t.sum / t.count : 0;
+  });
+
+  // Passing: % of matches where team used any passing type
+  const teamPassingMap = {};
+  rows.forEach((row) => {
+    const team = row.team;
+    if (!teamPassingMap[team]) teamPassingMap[team] = { withPassing: 0, total: 0 };
+    teamPassingMap[team].total += 1;
+    if (row.passingbulldozer || row.passingshooter || row.passingdump) teamPassingMap[team].withPassing += 1;
+  });
+  const teamPassingPct = {};
+  Object.keys(teamPassingMap).forEach((team) => {
+    const t = teamPassingMap[team];
+    teamPassingPct[team] = t.total > 0 ? (t.withPassing / t.total) * 100 : 0;
+  });
+
+  teamTable = tidy(teamTable, mutate({
     auto: d => calcAuto(d),
-    tele: d => calcTele(d),
-    end: d => calcEnd(d),
     epa: d => calcEPA(d),
     last3epa: d => last3EPAMap[d.team] || 0,
-
-    cage: d => {
-      const roundedEndLocation = Math.round(d.endlocation ?? 0);
-      if (roundedEndLocation === 2) return 6;
-      if (roundedEndLocation === 3) return 12;
-      return 0;
+    fuel: d => teamFuelAvg[d.team] ?? 0,
+    tower: d => teamTowerAvg[d.team] ?? 0,
+    passing: d => teamPassingPct[d.team] ?? 0,
+    defense: d => {
+      const played = d.defenseplayed ?? d.playeddefense;
+      if (played === false || played === null || played === undefined) return 0;
+      if (typeof played === 'number' && played > 0) return played * 10;
+      let score = 10;
+      const type = d.defense;
+      if (type === 1 || (typeof type === 'string' && String(type).toLowerCase() === 'harassment')) score += 5;
+      else if (type === 2 || (typeof type === 'string' && String(type).toLowerCase() === 'game changing')) score += 10;
+      return score;
     },
     consistency: d => calcConsistency(d),
-    coral: d => {
-      const success = (d.autol1success || 0) + (d.autol2success || 0) + (d.autol3success || 0) + (d.autol4success || 0) +
-                     (d.telel1success || 0) + (d.telel2success || 0) + (d.telel3success || 0) + (d.telel4success || 0);
-      const fail = (d.autol1fail || 0) + (d.autol2fail || 0) + (d.autol3fail || 0) + (d.autol4fail || 0) +
-                   (d.telel1fail || 0) + (d.telel2fail || 0) + (d.telel3fail || 0) + (d.telel4fail || 0);
-      const totalAttempts = success + fail;
-      return totalAttempts > 0 ? (success / totalAttempts) * 100 : 0;
-    },
-    algae: d => {
-      const success = (d.autoprocessorsuccess || 0) + (d.teleprocessorsuccess || 0) +
-                      (d.autonetsuccess || 0) + (d.telenetsuccess || 0);
-      const fail = (d.autoprocessorfail || 0) + (d.teleprocessorfail || 0) +
-                   (d.autonetfail || 0) + (d.telenetfail || 0);
-      const totalAttempts = success + fail;
-      return totalAttempts > 0 ? (success / totalAttempts) * 100 : 0;
-    },
-    defense: d => {
-      const defensePlayed = d.defenseplayed || 0;
-      return defensePlayed > 0 ? defensePlayed * 10 : 0;
-    },
-  }), select(['team', 'auto', 'tele', 'end', 'epa', 'last3epa', 'cage', 'consistency', 'coral', 'algae', 'defense']));
+  }), select(['team', 'epa', 'last3epa', 'fuel', 'tower', 'passing', 'defense', 'auto', 'consistency']));
 
   const getTBARankings = async () => {
     try {
@@ -169,19 +211,18 @@ export async function POST(request) {
 
   const maxes = tidy(teamTable, summarizeAll(max))[0];
   teamTable = tidy(teamTable, mutate({
-    auto: d => maxes.auto ? d.auto / maxes.auto : 0,
-    tele: d => maxes.tele ? d.tele / maxes.tele : 0,
-    end: d => maxes.end ? d.end / maxes.end : 0,
-    epa: d => maxes.epa ? d.epa / maxes.epa : 0,
-    last3epa: d => maxes.last3epa ? d.last3epa / maxes.last3epa : 0,
-    cage: d => maxes.cage ? d.cage / maxes.cage : 0,
-    consistency: d => maxes.consistency ? d.consistency / maxes.consistency : 0,
-    coral: d => maxes.coral ? d.coral / maxes.coral : 0,
-    algae: d => maxes.algae ? d.algae / maxes.algae : 0,
-    defense: d => maxes.defense ? d.defense / maxes.defense : 0,
+    epa: d => (maxes.epa && Number(maxes.epa)) ? d.epa / maxes.epa : 0,
+    last3epa: d => (maxes.last3epa && Number(maxes.last3epa)) ? d.last3epa / maxes.last3epa : 0,
+    fuel: d => (maxes.fuel && Number(maxes.fuel)) ? d.fuel / maxes.fuel : 0,
+    tower: d => (maxes.tower && Number(maxes.tower)) ? d.tower / maxes.tower : 0,
+    passing: d => (maxes.passing && Number(maxes.passing)) ? d.passing / maxes.passing : 0,
+    defense: d => (maxes.defense && Number(maxes.defense)) ? d.defense / maxes.defense : 0,
+    auto: d => (maxes.auto && Number(maxes.auto)) ? d.auto / maxes.auto : 0,
+    consistency: d => (maxes.consistency && Number(maxes.consistency)) ? d.consistency / maxes.consistency : 0,
     score: d => requestBody.reduce((sum, [key, weight]) => {
       const value = d[key] ?? 0;
-      return sum + (value * parseFloat(weight));
+      const num = Number(value);
+      return sum + ((!isNaN(num) ? num : 0) * parseFloat(weight));
     }, 0),
   }), arrange(desc('score')));
 

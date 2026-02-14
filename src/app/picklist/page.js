@@ -63,58 +63,14 @@ export default function Picklist() {
     const urlParams = new URLSearchParams([...weightEntries, ...Object.entries(allianceData).flatMap(([allianceNumber, teams]) => teams.map((team, index) => [`T${allianceNumber}A${index + 1}`, team]))]);
     window.history.replaceState(null, '', `?${urlParams.toString()}`);
     
-    //const picklist = await fetch('/api/compute-picklist', {
-      //method: 'POST',
-      //body: JSON.stringify(weightEntries)
-    //}).then(resp => resp.json());
-    
+    const picklist = await fetch('/api/compute-picklist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(weightEntries),
+    }).then(resp => resp.json());
 
-    // Static data
-    const picklist = [
-      {
-        team: 2485,
-        score: 0.95,
-        tbaRank: 4,
-        epa: 0.9,
-        last3epa: 0.85,
-        fuel: 0.95,
-        tower: 0.8,
-        passing: 0.75,
-        defense: 0.95,
-        auto: 0.9,
-        consistency: 0.85,
-      },
-      {
-        team: 1234,
-        score: 0.25,
-        tbaRank: 3,
-        epa: 0.3,
-        last3epa: 0.7,
-        fuel: 0.76,
-        tower: 0.2,
-        passing: 0.47,
-        defense: 0.76,
-        auto: 0.8,
-        consistency: 0.85,
-      },
-      {
-        team: 4321,
-        score: 0.35,
-        tbaRank: 2,
-        epa: 0.1,
-        last3epa: 0.4,
-        fuel: 0.32,
-        tower: 0.92,
-        passing: 0.56,
-        defense: 0.48,
-        auto: 0.3,
-        consistency: 0.5,
-      },
-      ];
-    
-
-    setPicklist(picklist);
-    setMaxScore(picklist[0].score);
+    setPicklist(Array.isArray(picklist) ? picklist : []);
+    setMaxScore(Array.isArray(picklist) && picklist.length > 0 ? picklist[0].score : 1);
     setWeightsChanged(false);
   }
 
@@ -384,7 +340,7 @@ const handleAllianceClear = () => {
     }
     
 
-    const roundToThree = (x) => Math.round(x * 1000) / 1000;
+    const roundToThree = (x) => (typeof x !== 'number' || isNaN(x)) ? 0 : Math.round(x * 1000) / 1000;
     
 
     return (
