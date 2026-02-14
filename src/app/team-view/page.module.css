@@ -425,15 +425,18 @@
     flex-direction: row;
     align-items: left;
     justify-content: left;
+    margin-bottom: 10px;
  }
  
  .alignElements {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: center;
     width: 360px;
     align-self: center;
     align-items: center;
+    margin-left: auto;
+    margin-right: auto;
  }
  
  
@@ -504,7 +507,155 @@
     box-shadow: 0px 0px 5px rgba(0,0,0,0.3);
     margin: 10px;
  }
- 
+
+ .leftBoxR1 {
+   display: flex;
+   flex-direction: row;
+   gap: 8px;
+}
+.leftBoxR2 {
+   display: flex;
+   flex-direction: row;
+   gap: 8px;
+}
+.leftBoxR3 {
+   display: flex;
+   flex-direction: row;
+   gap: 8px;
+}
+.endBoxes {
+   display: flex;
+   flex-direction: row;
+   gap: 20px;
+   margin-top: -80px;
+}
+.autoPieBox {
+ margin-top: -50px;
+ width: 300px;
+ height: 300px;
+ margin-left: -30px;
+}
+.autoBox {
+ display: flex;
+ flex-direction: row;
+ margin-bottom: -20px;
+ align-items: center;
+}
+.teleBox1 {
+ display: flex;
+ flex-direction: row;
+ gap: 25px;
+}
+.teleBox2 {
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+}
+.teleBox3 {
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+ align-items: center;
+ margin-top: -20px;
+}
+.horizontalTable1, .horizontalTable1 td {
+ font-size: 13px;
+ border: black 1px solid;
+ border-collapse: collapse;
+ padding: 4px;
+ width: fit-content;
+ height: 13px;
+ text-align: center;
+ flex-direction: row;
+ align-items: left;
+ justify-content: left;
+}
+.endPieBox {
+ margin-top: -30px;
+ margin-bottom: 20px;
+}
+.horizontalTable2, .horizontalTable2 td{
+ border: black 1px solid;
+ border-collapse: collapse;
+ padding: 0px;
+ width: fit-content;
+ height: 10px;
+ text-align: center;
+ flex-direction: row;
+ align-items: left;
+ justify-content: left;
+}
+
+
+.verticalDTable, .verticalDTable td {
+   border: black 1px solid;
+   border-collapse: collapse;
+   padding: 4px;
+   width: fit-content;
+   height: fit-content;
+   text-align: center;
+   flex-direction: row;
+   align-items: left;
+   justify-content: left;
+}
+
+.horizontalDTableBox {
+   visibility: visible;
+}
+
+.verticalDTableBox {
+   display: none;
+   visibility: hidden;
+}
+
+.desktopTables {
+   margin-top: -20px;
+   display: block;
+}
+
+.hBox {
+   display: flex;
+   flex-direction: row;
+   gap: 10px;
+}
+.hBox1{
+   display: flex;
+   flex-direction: column;
+   margin-bottom: 10px;
+}
+.horizontalTable1, .horizontalTable1 td {
+   font-size: 13px;
+   border: black 1px solid;
+   border-collapse: collapse;
+   padding: 4px;
+   width: fit-content;
+   height: 13px;
+   text-align: center;
+   flex-direction: row;
+   align-items: left;
+   justify-content: left;
+ }
+
+ .horizontalDTable, .horizontalDTable td {
+   border: black 1px solid;
+   border-collapse: collapse;
+   padding: 4px;
+   width: fit-content;
+   height: fit-content;
+   text-align: center;
+   flex-direction: row;
+   align-items: left;
+   justify-content: left;
+}
+
+.mobileTables {
+   display: none;
+   visibility: hidden;
+   align-items: center;
+   margin-left: auto;
+   margin-right: auto;
+}
+
  
  @media screen and (max-width: 1150px) {
     .MainDiv {
@@ -555,7 +706,7 @@
     .graphContainer {
         width: 325px;
         margin: 10px auto;
-    }}
+    }
  
  
     .leftBoxR1 {
@@ -587,13 +738,16 @@
     }
     .autoBox {
       display: flex;
-      flex-direction: row;
-      margin-bottom: -20px;
+      flex-direction: column;
       align-items: center;
+      margin-bottom: 10px;
+      justify-content: center;
+      margin-right: auto;
+      margin-left: auto;
     }
     .teleBox1 {
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       gap: 25px;
     }
     .teleBox2 {
@@ -607,18 +761,6 @@
       gap: 10px;
       align-items: center;
       margin-top: -20px;
-    }
-    .horizontalTable1, .horizontalTable1 td {
-      font-size: 13px;
-      border: black 1px solid;
-      border-collapse: collapse;
-      padding: 4px;
-      width: fit-content;
-      height: 13px;
-      text-align: center;
-      flex-direction: row;
-      align-items: left;
-      justify-content: left;
     }
     .endPieBox {
       margin-top: -30px;
@@ -634,3 +776,95 @@
       align-items: left;
       justify-content: left;
     }
+    .defTableBox{
+      width: fit-content;
+      margin-left: -20px;
+
+    }
+
+    .desktopTables {
+      display: none;
+      visibility: hidden;
+   }
+
+   .horizontalTable1, .horizontalTable1 td {
+      font-size: 13px;
+      border: black 1px solid;
+      border-collapse: collapse;
+      padding: 4px;
+      width: fit-content;
+      height: 13px;
+      text-align: center;
+      flex-direction: row;
+      align-items: left;
+      justify-content: left;
+    }
+
+    .horizontalDTable, .horizontalDTable td {
+      border: black 1px solid;
+      border-collapse: collapse;
+      padding: 4px;
+      width: fit-content;
+      height: fit-content;
+      text-align: center;
+      flex-direction: row;
+      align-items: left;
+      justify-content: left;
+   }
+
+   .mobileTables {
+      display: block;
+      visibility: visible;
+      align-items: center;
+      margin-left: auto;
+      margin-right: auto;
+   }
+
+   .vDefBox {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      align-items: center;
+      margin-left: auto;
+      margin-right: auto;
+   }
+
+   .vDefBox1 {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 25px;
+   }
+
+   .verticalDTable, .verticalDTable td, .verticalDTable th {
+      border: black 1px solid;
+      border-collapse: collapse;
+      padding: 4px;
+      width: fit-content;
+      height: fit-content;
+      text-align: center;
+      flex-direction: row;
+      align-items: left;
+      justify-content: left;
+   }
+
+   .verticalTable1, .verticalTable1 td {
+      font-size: 13px;
+      border: black 1px solid;
+      border-collapse: collapse;
+      padding: 4px;
+      width: fit-content;
+      height: 13px;
+      text-align: center;
+      flex-direction: row;
+      align-items: left;
+      justify-content: left;
+    }
+    .verticalTable1 th {
+      border: black 1px solid;
+      border-collapse: collapse;
+    }
+
+
+
+}
