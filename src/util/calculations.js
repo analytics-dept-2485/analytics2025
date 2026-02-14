@@ -1,58 +1,58 @@
+// 2026 REBUILT Game Scoring Rules
+// Auto: Fuel = 1 point per fuel, Climb L1 = 15 points (max 2 robots)
+// Teleop: Fuel = 1 point per fuel, Climb L1 = 10 points, L2 = 20 points, L3 = 30 points
+// Win Auto = indicator only (no points)
+
 function calcAuto(record) {
-    return (
-      record.autol1success * 3 + // Level 1 Coral
-      record.autol2success * 4 + // Level 2 Coral
-      record.autol3success * 6 + // Level 3 Coral
-      record.autol4success * 7 + // Level 4 Coral
-      record.autoprocessorsuccess * 6 + // Processor success
-      record.autonetsuccess * 4 + // Net success
-      (record.leave ? 3 : 0) // Leaving starting zone bonus
-    );
+  let points = 0;
+  
+  // Auto Fuel: 1 point per fuel scored in active HUB
+  if (record.autofuel && record.autofuel > 0) {
+    points += record.autofuel * 1;
   }
   
-  function calcTele(record) {
-    return (
-      record.telel1success * 2 + // Level 1 Coral
-      record.telel2success * 3 + // Level 2 Coral
-      record.telel3success * 4 + // Level 3 Coral
-      record.telel4success * 5 + // Level 4 Coral
-      record.teleprocessorsuccess * 6 + // Processor success in teleop
-      record.telenetsuccess * 4 // Net success in teleop
-
-    );
+  // Auto Climb: L1 = 15 points (only if successfully climbed)
+  // autoclimb: 0=None, 1=Success, 2=Fail (or legacy 2=Success on some branches)
+  if (record.autoclimb === 1 || record.autoclimb === 2) {
+    points += 15; // L1 climb in auto
   }
   
-  function calcEnd(record) {
-    const roundedEndLocation = Math.round(record.endlocation); // Ensure it's an integer
-
-    console.log(`Calculating Endgame Points for endlocation ${record.endlocation} (rounded to ${roundedEndLocation})`);
-
-    let endgamePoints = 0;
-
-    switch (roundedEndLocation) {
-        case 1:
-            endgamePoints = 2; // Parked
-            break;
-        case 3:
-            endgamePoints = 6; // Shallow Dock
-            break;
-        case 4:
-            endgamePoints = 12; // Deep Dock
-            break;
-        case 2:
-            endgamePoints = 2; // Failed Attempt
-            break;
-        default:
-            endgamePoints = 0; // Invalid value
-    }
-
-    return endgamePoints;
+  // Win Auto is just an indicator, no points awarded
+  
+  return points;
 }
 
-
-  
-  function calcEPA(record) {
-    return calcAuto(record) + calcTele(record) + calcEnd(record);
+function calcTele(record) {
+  // Teleop Fuel: 1 point per fuel scored in active HUB (endgame climb is in calcEnd)
+  let points = 0;
+  if (record.telefuel && record.telefuel > 0) {
+    points += record.telefuel * 1;
   }
-  
-  export { calcAuto, calcTele, calcEnd, calcEPA };
+  return points;
+}
+
+function calcEnd(record) {
+  // Endgame Climb: L1 = 10 points, L2 = 20 points, L3 = 30 points
+  // endclimbposition: 0-8 (0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, ...); level = position % 3 → 0=L3, 1=L2, 2=L1
+  if (record.endclimbposition != null && record.endclimbposition !== undefined) {
+    const level = record.endclimbposition % 3;
+    if (level === 0) return 30; // L3
+    if (level === 1) return 20; // L2
+    if (level === 2) return 10; // L1
+  }
+  if (record.endclimb && (record.endclimbposition == null || record.endclimbposition === undefined)) {
+    switch (String(record.endclimb).toUpperCase()) {
+      case 'L1': return 10;
+      case 'L2': return 20;
+      case 'L3': return 30;
+      default: break;
+    }
+  }
+  return 0;
+}
+
+function calcEPA(record) {
+  return calcAuto(record) + calcTele(record) + calcEnd(record);
+}
+
+export { calcAuto, calcTele, calcEnd, calcEPA };

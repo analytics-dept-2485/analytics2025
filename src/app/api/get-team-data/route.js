@@ -4,7 +4,6 @@ import _ from 'lodash';
 import { tidy, mutate, mean, select, summarizeAll, groupBy, summarize, first, n, median, total, arrange, asc, slice } from '@tidyjs/tidy';
 import { calcEPA, calcAuto, calcTele, calcEnd } from "../../../util/calculations.js";
 
-export const dynamic = 'force-dynamic'; // Prevent static generation during build
 export const revalidate = 300; // Cache for 5 minutes
 
 export async function GET(request) {
@@ -24,18 +23,22 @@ export async function GET(request) {
   }
 
   function byAveragingNumbers(index) {
-    if (['noshow', 'leave', 'breakdown', 'defense', 'cageattempt'].includes(index)) {
+    // Boolean fields - return true if any row has it as true
+    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto'].includes(index)) {
       return arr => arr.some(row => row[index] === true);
     }
-    if (['scoutname', 'generalcomments', 'breakdowncomments', 'defensecomments'].includes(index)) {
+    // String/Text fields - join with " - "
+    if (['scoutname', 'generalcomments', 'breakdowncomments', 'autoclimb', 'autoclimbposition', 'endclimb', 'endclimbposition', 'shootingmechanism', 'defense', 'fuelpercent'].includes(index)) {
       return arr => arr.map(row => row[index]).filter(a => a != null).join(" - ") || null;
     }
-    if (['coralspeed', 'processorspeed', 'netspeed', 'algaeremovalspeed', 'climbspeed', 'maneuverability', 'defenseplayed', 'defenseevasion', 'aggression', 'cagehazard'].includes(index)) {
+    // Qualitative ratings (0-5 scale, -1 for not rated)
+    if (['aggression', 'climbhazard', 'hoppercapacity', 'maneuverability', 'durability', 'defenseevasion', 'climbspeed', 'fuelspeed', 'passingspeed', 'autodeclimbspeed', 'bumpspeed'].includes(index)) {
       return arr => {
         let filtered = arr.filter(row => row[index] != -1 && row[index] != null).map(row => row[index]);
         return filtered.length === 0 ? -1 : mean(filtered);
       };
     }
+    // Numeric fields - calculate mean
     return mean(index);
   }
 
@@ -313,7 +316,7 @@ export async function GET(request) {
         defense: arr => {
           const uniqueMatches = new Set(arr.map(row => row.match));
           const uniqueDefenseCount = Array.from(uniqueMatches).filter(match =>
-            arr.some(row => row.match === match && row.defensecomments !== null)
+            arr.some(row => row.match === match && row.playeddefense === true)
           ).length;
           return (uniqueDefenseCount / uniqueMatches.size) * 100;
         },
@@ -374,168 +377,126 @@ export async function GET(request) {
           return result.length > 0 ? result : [];
         },
       
-    defenseComments: arr => {
-      const commentsByMatch = {};
-      arr.forEach(row => {
-        if (row.defensecomments && row.defensecomments.trim()) {
-          if (!commentsByMatch[row.match]) {
-            commentsByMatch[row.match] = [];
-          }
-          commentsByMatch[row.match].push(row.defensecomments);
-        }
-      });
-      
-      const result = Object.entries(commentsByMatch).map(([match, comments]) => 
-        ` *Match ${match}: ${comments.join(' -- ')}*`
-      );
-      
-      return result.length > 0 ? result : [];
-    },
+    // Defense comments removed - not in 2026 schema
+    // Defense information is now in Defense field (weak/harassment/game changing) and PlayedDefense boolean
     autoOverTime: arr => tidy(arr, select(['match', 'auto'])),
     teleOverTime: arr => tidy(arr, select(['match', 'tele'])),
-    leave: arr => {
-      const uniqueLeaveMatches = new Set(arr.filter(e => e.leave === true).map(e => e.match));
-      return uniqueLeaveMatches.size / new Set(arr.map(e => e.match)).size || 0;
-    },
+    // Leave field removed - not in 2026 schema
 
     auto: arr => ({
-      coral: {
-
-      total: (() => {
-        const totalSuccess = rows.reduce((sum, row) => 
-            sum + (row.autol1success || 0) +
-                   (row.autol2success || 0) +
-                   (row.autol3success || 0) +
-                   (row.autol4success || 0), 
-        0);
-        return totalSuccess / rows.length;
-    })(),
-    
-        success: (() => {
-          const totalSuccess = rows.reduce((sum, row) => sum + ((row.autol1success || 0) + (row.autol2success || 0) + (row.autol3success || 0) + (row.autol4success || 0)), 0);
-          const totalAttempts = rows.reduce((sum, row) => sum + ((row.autol1success || 0) + (row.autol2success || 0) + (row.autol3success || 0) + (row.autol4success || 0) + (row.autol1fail || 0) + (row.autol2fail || 0) + (row.autol3fail || 0) + (row.autol4fail || 0)), 0);
-          return totalAttempts > 0 ? (totalSuccess / totalAttempts) * 100 : 0;
+      fuel: {
+        avgFuel: (() => {
+          const validRows = rows.filter(row => row.autofuel != null && row.autofuel >= 0);
+          return validRows.length > 0 
+            ? validRows.reduce((sum, row) => sum + (row.autofuel || 0), 0) / validRows.length 
+            : 0;
         })(),
-        avgL1: (() => rows.length ? rows.reduce((sum, row) => sum + (row.autol1success || 0), 0) / rows.length : 0)(),
-        avgL2: (() => rows.length ? rows.reduce((sum, row) => sum + (row.autol2success || 0), 0) / rows.length : 0)(),
-        avgL3: (() => rows.length ? rows.reduce((sum, row) => sum + (row.autol3success || 0), 0) / rows.length : 0)(),
-        avgL4: (() => rows.length ? rows.reduce((sum, row) => sum + (row.autol4success || 0), 0) / rows.length : 0)(),
-
-
-        successL1: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.autol1success || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.autol1fail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
-        })(),
-    
-        successL2: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.autol2success || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.autol2fail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
-        })(),
-    
-        successL3: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.autol3success || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.autol3fail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
-        })(),
-    
-        successL4: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.autol4success || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.autol4fail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
-        })(),
-
-        
+        totalFuel: (() => rows.reduce((sum, row) => sum + (row.autofuel || 0), 0))(),
       },
-      algae: {
-        removed: (() => rows.length ? rows.reduce((sum, row) => sum + (row.autoalgaeremoved || 0), 0) / rows.length : 0)(),
-        avgProcessor: (() => rows.length ? rows.reduce((sum, row) => sum + (row.autoprocessorsuccess || 0), 0) / rows.length : 0)(),
-        avgNet: (() => rows.length ? rows.reduce((sum, row) => sum + (row.autonetsuccess || 0), 0) / rows.length : 0)(),
-      
-        successProcessor: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.autoprocessorsuccess || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.autoprocessorfail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
+      climb: {
+        // autoclimb: 0=None, 1=Success, 2=Fail (numeric in DB)
+        successRate: (() => {
+          const totalMatches = rows.length;
+          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
+          return totalMatches > 0 ? (successfulClimbs / totalMatches) * 100 : 0;
         })(),
-      
-        successNet: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.autonetsuccess || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.autonetfail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
+        failRate: (() => {
+          const totalMatches = rows.length;
+          const failedClimbs = rows.filter(row => row.autoclimb === 2 || row.autoclimb === '2' || row.autoclimb === 'Fail').length;
+          return totalMatches > 0 ? (failedClimbs / totalMatches) * 100 : 0;
+        })(),
+        noneRate: (() => {
+          const totalMatches = rows.length;
+          const noClimbs = rows.filter(row => row.autoclimb == null || row.autoclimb === 0 || row.autoclimb === '0' || row.autoclimb === 'None').length;
+          return totalMatches > 0 ? (noClimbs / totalMatches) * 100 : 0;
+        })(),
+        positionLeft: (() => {
+          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
+          const leftPosition = rows.filter(row => (row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success') && (row.autoclimbposition === 0 || row.autoclimbposition === 'Left' || row.autoclimbposition === '0')).length;
+          return successfulClimbs > 0 ? (leftPosition / successfulClimbs) * 100 : 0;
+        })(),
+        positionCenter: (() => {
+          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
+          const centerPosition = rows.filter(row => (row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success') && (row.autoclimbposition === 1 || row.autoclimbposition === 'Center' || row.autoclimbposition === '1')).length;
+          return successfulClimbs > 0 ? (centerPosition / successfulClimbs) * 100 : 0;
+        })(),
+        positionRight: (() => {
+          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
+          const rightPosition = rows.filter(row => (row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success') && (row.autoclimbposition === 2 || row.autoclimbposition === 'Right' || row.autoclimbposition === '2')).length;
+          return successfulClimbs > 0 ? (rightPosition / successfulClimbs) * 100 : 0;
         })(),
       },
-      
+      winAuto: (() => {
+        const totalMatches = rows.length;
+        const wonAuto = rows.filter(row => row.winauto === true).length;
+        return totalMatches > 0 ? (wonAuto / totalMatches) * 100 : 0;
+      })(),
     }),
 
     tele: arr => ({
-      coral: {
-        total: (() => {
-          const totalSuccess = rows.reduce((sum, row) => 
-              sum + (row.telel1success || 0) +
-                     (row.telel2success || 0) +
-                     (row.telel3success || 0) +
-                     (row.telel4success || 0), 
-          0);
-          return totalSuccess / rows.length;
+      fuel: {
+        avgFuel: (() => {
+          const validRows = rows.filter(row => row.telefuel != null && row.telefuel >= 0);
+          return validRows.length > 0 
+            ? validRows.reduce((sum, row) => sum + (row.telefuel || 0), 0) / validRows.length 
+            : 0;
+        })(),
+        totalFuel: (() => rows.reduce((sum, row) => sum + (row.telefuel || 0), 0))(),
+      },
+      passing: {
+        bulldozer: (() => {
+          const totalMatches = rows.length;
+          const usedBulldozer = rows.filter(row => row.passingbulldozer === true).length;
+          return totalMatches > 0 ? (usedBulldozer / totalMatches) * 100 : 0;
+        })(),
+        shooter: (() => {
+          const totalMatches = rows.length;
+          const usedShooter = rows.filter(row => row.passingshooter === true).length;
+          return totalMatches > 0 ? (usedShooter / totalMatches) * 100 : 0;
+        })(),
+        dump: (() => {
+          const totalMatches = rows.length;
+          const usedDump = rows.filter(row => row.passingdump === true).length;
+          return totalMatches > 0 ? (usedDump / totalMatches) * 100 : 0;
+        })(),
+      },
+      shootWhileMove: (() => {
+        const totalMatches = rows.length;
+        const shootWhileMoving = rows.filter(row => row.shootwhilemove === true).length;
+        return totalMatches > 0 ? (shootWhileMoving / totalMatches) * 100 : 0;
       })(),
-      
-    
-    success: (() => {
-          const totalSuccess = rows.reduce((sum, row) => sum + ((row.telel1success || 0) + (row.telel2success || 0) + (row.telel3success || 0) + (row.telel4success || 0)), 0);
-          const totalAttempts = rows.reduce((sum, row) => sum + ((row.telel1success || 0) + (row.telel2success || 0) + (row.telel3success || 0) + (row.telel4success || 0) + (row.telel1fail || 0) + (row.telel2fail || 0) + (row.telel3fail || 0) + (row.telel4fail || 0)), 0);
-          return totalAttempts > 0 ? (totalSuccess / totalAttempts) * 100 : 0;
+      defenseLocations: {
+        azOutpost: (() => {
+          const totalMatches = rows.length;
+          const defended = rows.filter(row => row.defenselocationoutpost === true).length;
+          return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
         })(),
-        
-        avgL1: (() => rows.length ? rows.reduce((sum, row) => sum + (row.telel1success || 0), 0) / rows.length : 0)(),
-        avgL2: (() => rows.length ? rows.reduce((sum, row) => sum + (row.telel2success || 0), 0) / rows.length : 0)(),
-        avgL3: (() => rows.length ? rows.reduce((sum, row) => sum + (row.telel3success || 0), 0) / rows.length : 0)(),
-        avgL4: (() => rows.length ? rows.reduce((sum, row) => sum + (row.telel4success || 0), 0) / rows.length : 0)(),
-
-        successL1: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.telel1success || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.telel1fail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
+        azTower: (() => {
+          const totalMatches = rows.length;
+          const defended = rows.filter(row => row.defenselocationtower === true).length;
+          return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
         })(),
-
-        successL2: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.telel2success || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.telel2fail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
+        hub: (() => {
+          const totalMatches = rows.length;
+          const defended = rows.filter(row => row.defenselocationhub === true).length;
+          return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
         })(),
-
-        successL3: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.telel3success || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.telel3fail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
+        nz: (() => {
+          const totalMatches = rows.length;
+          const defended = rows.filter(row => row.defenselocationnz === true).length;
+          return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
         })(),
-
-        successL4: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.telel4success || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.telel4fail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
+        trench: (() => {
+          const totalMatches = rows.length;
+          const defended = rows.filter(row => row.defenselocationtrench === true).length;
+          return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
         })(),
-
-        
-      },
-      algae: {
-        removed: (() => rows.length ? rows.reduce((sum, row) => sum + (row.telealgaeremoved || 0), 0) / rows.length : 0)(),
-        avgProcessor: (() => rows.length ? rows.reduce((sum, row) => sum + (row.teleprocessorsuccess || 0), 0) / rows.length : 0)(),
-        avgNet: (() => rows.length ? rows.reduce((sum, row) => sum + (row.telenetsuccess || 0), 0) / rows.length : 0)(),
-      
-        successProcessor: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.teleprocessorsuccess || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.teleprocessorfail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
-        })(),
-      
-        successNet: (() => {
-          const successes = rows.reduce((sum, row) => sum + (row.telenetsuccess || 0), 0);
-          const totalAttempts = successes + rows.reduce((sum, row) => sum + (row.telenetfail || 0), 0);
-          return totalAttempts > 0 ? (successes / totalAttempts) * 100 : 0;
+        bump: (() => {
+          const totalMatches = rows.length;
+          const defended = rows.filter(row => row.defenselocationbump === true).length;
+          return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
         })(),
       },
-      
     }),
 
 // This appears to be inside a function that returns something via NextResponse
@@ -550,16 +511,15 @@ export async function GET(request) {
   endPlacement: (rows) => {
     console.log("Total number of rows:", rows.length);
     
-    // Group data by match number instead of matchid
+    // Group data by match number
     const matchGroups = {};
     rows.forEach(row => {
-      const matchId = row.match; // Use match number as the identifier
+      const matchId = row.match;
       if (matchId === undefined || matchId === null) {
         console.log("Row missing match number:", row);
-        return; // Skip rows without match
+        return;
       }
       
-      // Create a unique key combining match number and match type (if available)
       const matchKey = row.matchtype ? `${matchId}-${row.matchtype}` : `${matchId}`;
       
       if (!matchGroups[matchKey]) {
@@ -570,74 +530,80 @@ export async function GET(request) {
     
     console.log("Match groups created:", Object.keys(matchGroups).length);
     
-    // Count matches by their most common endlocation
-    const endLocationCounts = {
-      0: 0, // none
-      1: 0, // park
-      2: 0, // parkandFail
-      3: 0, // shallow
-      4: 0  // deep
+    // Count matches by their most common EndClimb level
+    const endClimbCounts = {
+      'L1': 0,
+      'L2': 0,
+      'L3': 0,
+      'none': 0
     };
     
-    // For each match, find the most common endlocation
+    // For each match, find the most common EndClimb level
     Object.entries(matchGroups).forEach(([matchKey, matchRows]) => {
-      // Count occurrences of each endlocation value in this match
-      const locationFrequency = {};
+      // Count occurrences of each EndClimb level in this match
+      const climbFrequency = {};
       
       matchRows.forEach(row => {
-        if (!('endlocation' in row)) {
-          console.log(`Row missing endlocation in match ${matchKey}:`, row);
-          return; // Skip rows without endlocation
+        let level = null;
+        if (row.endclimb != null && row.endclimb !== '') {
+          const endClimb = String(row.endclimb).toUpperCase();
+          if (['L1', 'L2', 'L3'].includes(endClimb)) level = endClimb;
         }
-        
-        const endLoc = Number(row.endlocation);
-        if (!isNaN(endLoc) && endLoc >= 0 && endLoc <= 4) {
-          locationFrequency[endLoc] = (locationFrequency[endLoc] || 0) + 1;
+        if (level == null && row.endclimbposition != null && row.endclimbposition !== '') {
+          const pos = Number(row.endclimbposition);
+          if (!Number.isNaN(pos) && pos >= 0 && pos <= 8) {
+            const mod = pos % 3; // 0=L3, 1=L2, 2=L1
+            level = mod === 0 ? 'L3' : mod === 1 ? 'L2' : 'L1';
+          }
+        }
+        if (level) {
+          climbFrequency[level] = (climbFrequency[level] || 0) + 1;
         } else {
-          console.log(`Invalid endlocation value in match ${matchKey}:`, row.endlocation);
+          climbFrequency['none'] = (climbFrequency['none'] || 0) + 1;
         }
       });
       
-      console.log(`Match ${matchKey} location frequencies:`, locationFrequency);
+      console.log(`Match ${matchKey} climb frequencies:`, climbFrequency);
       
-      // Find the most frequent endlocation for this match
-      let mostFrequentLocation = null;
+      // Find the most frequent EndClimb level for this match
+      let mostFrequentClimb = null;
       let highestCount = 0;
       
-      Object.entries(locationFrequency).forEach(([location, count]) => {
+      Object.entries(climbFrequency).forEach(([level, count]) => {
         if (count > highestCount) {
           highestCount = count;
-          mostFrequentLocation = Number(location);
+          mostFrequentClimb = level;
         }
       });
       
-      console.log(`Match ${matchKey} most frequent location:`, mostFrequentLocation);
+      console.log(`Match ${matchKey} most frequent climb:`, mostFrequentClimb);
       
-      // Increment the count for this endlocation if valid
-      if (mostFrequentLocation !== null && mostFrequentLocation in endLocationCounts) {
-        endLocationCounts[mostFrequentLocation]++;
+      // Increment the count for this EndClimb level if valid
+      if (mostFrequentClimb !== null && mostFrequentClimb in endClimbCounts) {
+        endClimbCounts[mostFrequentClimb]++;
+      } else if (mostFrequentClimb !== null) {
+        endClimbCounts['none']++;
       }
     });
     
-    console.log("Final endlocation counts:", endLocationCounts);
+    console.log("Final EndClimb counts:", endClimbCounts);
     
-    // Calculate total matches with valid endlocations
-    const totalMatches = Object.values(endLocationCounts).reduce((sum, count) => sum + count, 0);
-    console.log("Total matches with valid endlocations:", totalMatches);
+    // Calculate total matches with valid EndClimb data
+    const totalMatches = Object.values(endClimbCounts).reduce((sum, count) => sum + count, 0);
+    console.log("Total matches with valid EndClimb:", totalMatches);
     
     // If no matches, return zeros
     if (totalMatches === 0) {
       console.log("No valid matches found, returning zeros");
-      return { none: 0, park: 0, parkandFail: 0, shallow: 0, deep: 0 };
+      return { none: 0, L1: 0, L2: 0, L3: 0 };
     }
     
     // Calculate percentages
     const percentages = {
-      none: (endLocationCounts[0] / totalMatches) * 100,
-      park: (endLocationCounts[1] / totalMatches) * 100,
-      parkandFail: (endLocationCounts[2] / totalMatches) * 100,
-      shallow: (endLocationCounts[3] / totalMatches) * 100,
-      deep: (endLocationCounts[4] / totalMatches) * 100
+      none: (endClimbCounts['none'] / totalMatches) * 100,
+      L1: (endClimbCounts['L1'] / totalMatches) * 100,
+      L2: (endClimbCounts['L2'] / totalMatches) * 100,
+      L3: (endClimbCounts['L3'] / totalMatches) * 100
     };
     
     console.log("Final percentages:", percentages);
@@ -646,23 +612,23 @@ export async function GET(request) {
   },
 
   attemptCage: (rows) => {
-    // Group data by match (not match ID)
+    // Group data by match
     const matchGroups = {};
     rows.forEach(row => {
-      const match = row.match; // Use match instead of matchid
+      const match = row.match;
       if (!matchGroups[match]) {
         matchGroups[match] = [];
       }
       matchGroups[match].push(row);
     });
     
-    // Count matches where the modal endlocation value indicates a cage attempt
+    // Count matches where the modal EndClimb value indicates a climb attempt (L1, L2, or L3)
     const matchesWithAttempt = Object.values(matchGroups).filter(matchRows => {
-      // Find the most common endlocation for this match
+      // Find the most common EndClimb level for this match
       const counts = {};
       matchRows.forEach(row => {
-        const endLoc = row.endlocation;
-        counts[endLoc] = (counts[endLoc] || 0) + 1;
+        const endClimb = row.endclimb ? String(row.endclimb).toUpperCase() : 'none';
+        counts[endClimb] = (counts[endClimb] || 0) + 1;
       });
       
       let mode = null;
@@ -670,12 +636,12 @@ export async function GET(request) {
       Object.entries(counts).forEach(([value, count]) => {
         if (count > maxCount) {
           maxCount = count;
-          mode = parseInt(value);
+          mode = value;
         }
       });
       
-      // Return true if the modal value indicates a cage attempt
-      return [2, 3, 4].includes(mode);
+      // Return true if the modal value indicates a climb attempt (L1, L2, or L3)
+      return ['L1', 'L2', 'L3'].includes(mode);
     }).length;
     
     const totalMatches = Object.keys(matchGroups).length;
@@ -683,23 +649,23 @@ export async function GET(request) {
   },
   
   successCage: (rows) => {
-    // Group data by match (not match ID)
+    // Group data by match
     const matchGroups = {};
     rows.forEach(row => {
-      const match = row.match; // Use match instead of matchid
+      const match = row.match;
       if (!matchGroups[match]) {
         matchGroups[match] = [];
       }
       matchGroups[match].push(row);
     });
     
-    // Process each match to find its modal endlocation
-    const matchesWithModalEndlocation = Object.values(matchGroups).map(matchRows => {
-      // Find the most common endlocation for this match
+    // Process each match to find its modal EndClimb level
+    const matchesWithModalEndClimb = Object.values(matchGroups).map(matchRows => {
+      // Find the most common EndClimb level for this match
       const counts = {};
       matchRows.forEach(row => {
-        const endLoc = row.endlocation;
-        counts[endLoc] = (counts[endLoc] || 0) + 1;
+        const endClimb = row.endclimb ? String(row.endclimb).toUpperCase() : 'none';
+        counts[endClimb] = (counts[endClimb] || 0) + 1;
       });
       
       let mode = null;
@@ -707,21 +673,21 @@ export async function GET(request) {
       Object.entries(counts).forEach(([value, count]) => {
         if (count > maxCount) {
           maxCount = count;
-          mode = parseInt(value);
+          mode = value;
         }
       });
       
       return mode;
     });
     
-    // Count matches where an attempt was made (endlocation 2, 3, or 4)
-    const attemptedMatches = matchesWithModalEndlocation.filter(mode => 
-      [2, 3, 4].includes(mode)
+    // Count matches where an attempt was made (L1, L2, or L3)
+    const attemptedMatches = matchesWithModalEndClimb.filter(level => 
+      ['L1', 'L2', 'L3'].includes(level)
     ).length;
     
-    // Count successful matches (endlocation 3 or 4, based on your criteria)
-    const successfulMatches = matchesWithModalEndlocation.filter(mode => 
-      [3, 4].includes(mode)
+    // Count successful matches (L2 or L3 - higher level climbs)
+    const successfulMatches = matchesWithModalEndClimb.filter(level => 
+      ['L2', 'L3'].includes(level)
     ).length;
     
     // Calculate success rate among attempted matches only
@@ -737,29 +703,57 @@ export async function GET(request) {
     }
   
     return [
-      { name: "Coral Speed", rating: safeAverage('coralspeed') },
-      { name: "Processor Speed", rating: safeAverage('processorspeed') },
-      { name: "Net Speed", rating: safeAverage('netspeed') },
-      { name: "Algae Removal Speed", rating: safeAverage('algaeremovalspeed') },
-      { name: "Climb Speed", rating: safeAverage('climbspeed') },
-      { name: "Maneuverability", rating: safeAverage('maneuverability') },
-      { name: "Defense Played", rating: safeAverage('defenseplayed') },
-      { name: "Defense Evasion", rating: safeAverage('defenseevasion') },
       { name: "Aggression*", rating: safeAverage('aggression', true) },
-      { name: "Cage Hazard*", rating: safeAverage('cagehazard', true) },
+      { name: "Climb Hazard*", rating: safeAverage('climbhazard', true) },
+      { name: "Hopper Capacity", rating: safeAverage('hoppercapacity') },
+      { name: "Maneuverability", rating: safeAverage('maneuverability') },
+      { name: "Durability", rating: safeAverage('durability') },
+      { name: "Defense Evasion", rating: safeAverage('defenseevasion') },
+      { name: "Climb Speed", rating: safeAverage('climbspeed') },
+      { name: "Fuel Speed", rating: safeAverage('fuelspeed') },
+      { name: "Passing Speed", rating: safeAverage('passingspeed') },
+      { name: "Auto Declimb Speed", rating: safeAverage('autodeclimbspeed') },
+      { name: "Bump Speed", rating: safeAverage('bumpspeed') },
     ];
   }
   
 }));  // This appears to close the object and function call that contains these properties
 
 // The rest of your code seems fine and doesn't need modification for your current issue
+// Defense quality from "defense" column: 0=weak, 1=harassment, 2=game changing (percent of rows; coerce string from CSV)
+const defenseCounts = { 0: 0, 1: 0, 2: 0 };
+rows.forEach(row => {
+  const d = Number(row.defense);
+  if (d === 0 || d === 1 || d === 2) defenseCounts[d]++;
+});
+const totalRows = rows.length;
+const defenseQuality = totalRows > 0
+  ? {
+      weak: (defenseCounts[0] / totalRows) * 100,
+      harassment: (defenseCounts[1] / totalRows) * 100,
+      gameChanging: (defenseCounts[2] / totalRows) * 100,
+    }
+  : { weak: 0, harassment: 0, gameChanging: 0 };
+
+const loc = returnObject[0].tele?.defenseLocations || {};
 returnObject[0] = {
   ...returnObject[0],
-  coralGroundIntake: rows.some(row => row.coralgrndintake === true),
-  coralStationIntake: rows.some(row => row.coralstationintake === true),
-  algaeGroundIntake: rows.some(row => row.algaegrndintake === true),
-  algaeLowReefIntake: rows.some(row => row.algaelowreefintake === true),
-  algaeHighReefIntake: rows.some(row => row.algaehighreefintake === true),
+  intakeGround: rows.some(row => row.intakeground === true),
+  intakeOutpost: rows.some(row => row.intakeoutpost === true),
+  passingBulldozer: rows.some(row => row.passingbulldozer === true),
+  passingShooter: rows.some(row => row.passingshooter === true),
+  passingDump: rows.some(row => row.passingdump === true),
+  shootWhileMove: rows.some(row => row.shootwhilemove === true),
+  defenseQuality,
+  defenseLocation: {
+    allianceZone: ((Number(loc.azOutpost) || 0) + (Number(loc.azTower) || 0)) / 2,
+    neutralZone: Number(loc.nz) || 0,
+    trench: Number(loc.trench) || 0,
+    bump: Number(loc.bump) || 0,
+    tower: Number(loc.azTower) || 0,
+    outpost: Number(loc.azOutpost) || 0,
+    hub: Number(loc.hub) || 0,
+  },
 };
 
 
@@ -799,4 +793,3 @@ console.log("Backend End Placement:", returnObject[0].endPlacement);
 return NextResponse.json(returnObject[0], { status: 200 });
 
 }
-
