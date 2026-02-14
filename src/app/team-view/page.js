@@ -49,60 +49,89 @@ function TeamView() {
    const team = searchParams.get("team");
    const hasTopBar = searchParams.get('team1') !== null;
 
+   function round10(n) {
+     const x = Number(n);
+     return (x !== x) ? 0 : Math.round(x * 10) / 10; // NaN-safe, round to tenth
+   }
+
    function normalizeTeamData(api) {
      if (!api) return null;
      const ep = api.endPlacement;
      const toPos = (pct) => ({ left: 0, right: 0, center: Math.round(Number(pct) || 0) });
+     const dq = api.defenseQuality && typeof api.defenseQuality === 'object' ? api.defenseQuality : {};
+     const dl = api.defenseLocation && typeof api.defenseLocation === 'object' ? api.defenseLocation : {};
      return {
        ...api,
        team: api.team ?? 0,
        name: api.name ?? "—",
-       avgEpa: Number(api.avgEpa) || 0,
-       avgAuto: Number(api.avgAuto) || 0,
-       avgTele: Number(api.avgTele) || 0,
-       avgEnd: Number(api.avgEnd) || 0,
-       last3Epa: Number(api.last3Epa) || 0,
-       last3Auto: Number(api.last3Auto) || 0,
-       last3Tele: Number(api.last3Tele) || 0,
-       last3End: Number(api.last3End) || 0,
-       epaOverTime: Array.isArray(api.epaOverTime) ? api.epaOverTime : [],
-       autoOverTime: Array.isArray(api.autoOverTime) ? api.autoOverTime : [],
-       teleOverTime: Array.isArray(api.teleOverTime) ? api.teleOverTime : [],
+       avgEpa: round10(api.avgEpa),
+       avgAuto: round10(api.avgAuto),
+       avgTele: round10(api.avgTele),
+       avgEnd: round10(api.avgEnd),
+       last3Epa: round10(api.last3Epa),
+       last3Auto: round10(api.last3Auto),
+       last3Tele: round10(api.last3Tele),
+       last3End: round10(api.last3End),
+       epaOverTime: Array.isArray(api.epaOverTime) ? api.epaOverTime.map((d) => ({ ...d, epa: round10(d.epa) })) : [],
+       autoOverTime: Array.isArray(api.autoOverTime) ? api.autoOverTime.map((d) => ({ ...d, auto: round10(d.auto) })) : [],
+       teleOverTime: Array.isArray(api.teleOverTime) ? api.teleOverTime.map((d) => ({ ...d, tele: round10(d.tele) })) : [],
        wonEPA: api.wonEPA ?? [],
        wonAuto: api.auto?.winAuto != null ? [api.auto.winAuto] : [],
        wonTele: api.wonTele ?? [],
-       consistency: Number(api.consistency) ?? 0,
-       stuckOnFuel: Number(api.stuckOnFuel) ?? 0,
+       consistency: round10(api.consistency),
+       stuckOnFuel: round10(api.stuckOnFuel ?? api.stuckonfuel),
        shootingMechanism: api.shootingmechanism ?? api.shootingMechanism ?? "—",
        lastBreakdown: api.lastBreakdown ?? "N/A",
-       noShow: (() => { const n = Number(api.noShow) ?? 0; return n <= 1 ? n * 100 : n; })(),
-       breakdown: Number(api.breakdown) ?? 0,
+       noShow: round10((() => { const n = Number(api.noShow) ?? 0; return n <= 1 ? n * 100 : n; })()),
+       breakdown: round10(api.breakdown),
        matchesScouted: Number(api.matchesScouted) ?? 0,
-       scouts: Array.isArray(api.scouts) ? api.scouts : [],
+       scouts: (() => {
+         if (!Array.isArray(api.scouts) || api.scouts.length === 0) return "";
+         const names = [];
+         api.scouts.forEach((entry) => {
+           const s = String(entry).replace(/^\s*\*Match \d+:\s*/i, "").replace(/\*\s*$/, "").trim();
+           if (s) s.split(/\s*,\s*/).forEach((name) => names.push(name.trim()));
+         });
+         return names.filter(Boolean).join(", ");
+       })(),
        generalComments: Array.isArray(api.generalComments) ? api.generalComments : [],
        breakdownComments: Array.isArray(api.breakdownComments) ? api.breakdownComments : [],
        defenseComments: Array.isArray(api.defenseComments) ? api.defenseComments : [],
        autoclimb: {
-         success: Number(api.auto?.climb?.successRate) ?? 0,
-         fail: Number(api.auto?.climb?.failRate) ?? 0,
-         none: Number(api.auto?.climb?.noneRate) ?? 0,
+         success: round10(api.auto?.climb?.successRate),
+         fail: round10(api.auto?.climb?.failRate),
+         none: round10(api.auto?.climb?.noneRate),
        },
-       autoMedianFuel: Number(api.auto?.fuel?.avgFuel) ?? 0,
-       teleMedianFuel: Number(api.tele?.fuel?.avgFuel) ?? 0,
+       autoMedianFuel: round10(api.auto?.fuel?.avgFuel),
+       teleMedianFuel: round10(api.tele?.fuel?.avgFuel),
        passing: {
-         bulldozer: Number(api.tele?.passing?.bulldozer) ?? 0,
-         shooter: Number(api.tele?.passing?.shooter) ?? 0,
-         dump: Number(api.tele?.passing?.dump) ?? 0,
+         bulldozer: round10(api.tele?.passing?.bulldozer),
+         shooter: round10(api.tele?.passing?.shooter),
+         dump: round10(api.tele?.passing?.dump),
        },
-       defenseQuality: api.defenseQuality ?? { weak: 0, harassment: 0, gameChanging: 0 },
-       defenseLocation: api.defenseLocation ?? { allianceZone: 0, neutralZone: 0, trench: 0, bump: 0, tower: 0, outpost: 0, hub: 0 },
+       defenseQuality: {
+         weak: round10(dq.weak),
+         harassment: round10(dq.harassment),
+         gameChanging: round10(dq.gameChanging),
+       },
+       defenseLocation: {
+         allianceZone: round10(dl.allianceZone),
+         neutralZone: round10(dl.neutralZone),
+         trench: round10(dl.trench),
+         bump: round10(dl.bump),
+         tower: round10(dl.tower),
+         outpost: round10(dl.outpost),
+         hub: round10(dl.hub),
+       },
        endPlacement: {
          none: ep?.none != null ? toPos(ep.none) : { left: 0, right: 0, center: 0 },
          L1: ep?.L1 != null ? toPos(ep.L1) : { left: 0, right: 0, center: 0 },
          L2: ep?.L2 != null ? toPos(ep.L2) : { left: 0, right: 0, center: 0 },
          L3: ep?.L3 != null ? toPos(ep.L3) : { left: 0, right: 0, center: 0 },
        },
-       qualitative: Array.isArray(api.qualitative) ? api.qualitative : [],
+       qualitative: Array.isArray(api.qualitative)
+         ? api.qualitative.map((q) => ({ ...q, rating: typeof q.rating === 'number' && !isNaN(q.rating) ? round10(q.rating) : q.rating }))
+         : [],
        groundIntake: Boolean(api.intakeGround ?? api.groundIntake),
        outpostIntake: Boolean(api.intakeOutpost ?? api.outpostIntake),
        shootWhileMove: Boolean(api.shootWhileMove),
