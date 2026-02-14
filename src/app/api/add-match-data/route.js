@@ -162,7 +162,7 @@ export async function POST(req) {
   }
 
 // Validate Defense (only required if playeddefense is true)
-body.defense = Number(body.defense);
+//body.defense = Number(body.defense);
 
 if (body.playeddefense) {
   body.defense = Number(body.defense);

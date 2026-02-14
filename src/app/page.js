@@ -165,12 +165,13 @@ delete data.defense;
 
 // Map defense type to numeric value
 if (playedDefenseValue && defenseType) {
-const defenseMap = {
-  "Weak": 0,
-  "Harassment": 1,
-  "Game Changing": 2
-};
-  data.defense = defenseMap[defenseType] !== undefined ? defenseMap[defenseType] : null;
+  data.defense = Number(defenseType);
+// const defenseMap = {
+//   "Weak": 0,
+//   "Harassment": 1,
+//   "Game Changing": 2,
+  //};
+  //data.defense = defenseMap[defenseType] !== undefined ? defenseMap[defenseType] : null;
 } else {
   data.defense = null;
 }
