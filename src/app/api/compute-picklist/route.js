@@ -14,8 +14,15 @@ export async function POST(request) {
   let rows = data.rows;
 
   function averageField(index) {
-    if (['breakdown', 'leave', 'noshow'].includes(index)) return arr => arr.some(row => row[index] === true);
-    if (['scoutname', 'generalcomments', 'breakdowncomments', 'defensecomments'].includes(index)) return arr => arr.map(row => row[index]).join(', ');
+    // Boolean fields - return true if any row has it as true
+    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto', 'climbtf', 'wideclimb'].includes(index)) {
+      return arr => arr.some(row => row[index] === true);
+    }
+    // String/Text fields - join with comma
+    if (['scoutname', 'generalcomments', 'breakdowncomments', 'defensecomments'].includes(index)) {
+      return arr => arr.map(row => row[index]).filter(a => a != null).join(', ') || null;
+    }
+    // Numeric fields - calculate mean
     const validValues = arr => arr.map(row => row[index]).filter(val => val != null && !isNaN(val));
     return arr => validValues(arr).length > 0 
       ? validValues(arr).reduce((sum, v) => sum + v, 0) / validValues(arr).length 
@@ -85,64 +92,120 @@ export async function POST(request) {
   }
 
   const calcConsistency = (dr) => {
-    const autoSuccess = (dr.autol1success || 0) + (dr.autol2success || 0) + (dr.autol3success || 0) + (dr.autol4success || 0);
-    const autoAttempts = autoSuccess + (dr.autol1fail || 0) + (dr.autol2fail || 0) + (dr.autol3fail || 0) + (dr.autol4fail || 0);
-    const teleSuccess = (dr.telel1success || 0) + (dr.telel2success || 0) + (dr.telel3success || 0) + (dr.telel4success || 0);
-    const teleAttempts = teleSuccess + (dr.telel1fail || 0) + (dr.telel2fail || 0) + (dr.telel3fail || 0) + (dr.telel4fail || 0);
-    const successRate = (autoAttempts + teleAttempts) > 0 
-        ? ((autoSuccess + teleSuccess) / (autoAttempts + teleAttempts)) * 100 
-        : 0;
-    const endgameSuccess = (dr.endlocation === 2 || dr.endlocation === 3) ? 1 : 0;
-    const noShowPenalty = dr.noshow ? 0 : 1;
+    // Calculate fuel scoring consistency (fuel points scored)
+    const autoFuel = dr.autofuel || 0;
+    const teleFuel = dr.telefuel || 0;
+    const totalFuel = autoFuel + teleFuel;
+    
+    // Normalize fuel to 0-100 scale (assume max 30 auto + 50 tele = 80 fuel)
+    const fuelNormalized = Math.min((totalFuel / 80) * 100, 100);
+    
+    // Climb success consistency
+    // autoclimb: 0=None, 1=Fail, 2=Success
+    const autoClimbSuccess = dr.autoclimb === 2 ? 100 : (dr.autoclimb === 1 ? 50 : 0);
+    
+    // End climb success (higher levels = better consistency)
+    // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+    let endClimbSuccess = 0;
+    if (dr.endclimbposition != null && dr.endclimbposition !== undefined) {
+      // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+      const level = dr.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+      switch (level) {
+        case 0: endClimbSuccess = 100; break; // L3
+        case 1: endClimbSuccess = 67; break;  // L2
+        case 2: endClimbSuccess = 33; break;  // L1
+        default: endClimbSuccess = 0;
+      }
+    }
+    
+    // No-show penalty
+    const noShowPenalty = dr.noshow ? 0 : 100;
+    
+    // Breakdown penalty
     const breakdownPenalty = dr.breakdowncomments && dr.breakdowncomments.trim() !== "" ? 0.8 : 1;
-    const metrics = [successRate, endgameSuccess * 100, noShowPenalty * 100];
+    
+    // Combine metrics
+    const metrics = [fuelNormalized, autoClimbSuccess, endClimbSuccess, noShowPenalty];
     const validMetrics = metrics.filter(val => val >= 0);
+    
     const baseConsistency = validMetrics.length > 0
         ? validMetrics.reduce((sum, value) => sum + value, 0) / validMetrics.length
         : 0;
+    
     return baseConsistency * breakdownPenalty;
   };
 
-  teamTable = tidy(teamTable, mutate({
+  // Calculate passing percentage per team (for passing metric)
+  const teamPassingMap = {};
+  rows.forEach(row => {
+    if (!teamPassingMap[row.team]) {
+      teamPassingMap[row.team] = { matches: new Set(), totalMatches: 0 };
+    }
+    teamPassingMap[row.team].totalMatches++;
+    if (row.passingbulldozer || row.passingshooter || row.passingdump) {
+      teamPassingMap[row.team].matches.add(row.match);
+    }
+  });
 
+  teamTable = tidy(teamTable, mutate({
     auto: d => calcAuto(d),
-    tele: d => calcTele(d),
-    end: d => calcEnd(d),
     epa: d => calcEPA(d),
     last3epa: d => last3EPAMap[d.team] || 0,
-
-    cage: d => {
-      const roundedEndLocation = Math.round(d.endlocation ?? 0);
-      if (roundedEndLocation === 2) return 6;
-      if (roundedEndLocation === 3) return 12;
-      return 0;
+    fuel: d => {
+      // Total fuel scored (auto + tele)
+      return (d.autofuel || 0) + (d.telefuel || 0);
     },
-    consistency: d => calcConsistency(d),
-    coral: d => {
-      const success = (d.autol1success || 0) + (d.autol2success || 0) + (d.autol3success || 0) + (d.autol4success || 0) +
-                     (d.telel1success || 0) + (d.telel2success || 0) + (d.telel3success || 0) + (d.telel4success || 0);
-      const fail = (d.autol1fail || 0) + (d.autol2fail || 0) + (d.autol3fail || 0) + (d.autol4fail || 0) +
-                   (d.telel1fail || 0) + (d.telel2fail || 0) + (d.telel3fail || 0) + (d.telel4fail || 0);
-      const totalAttempts = success + fail;
-      return totalAttempts > 0 ? (success / totalAttempts) * 100 : 0;
-    },
-    algae: d => {
-      const success = (d.autoprocessorsuccess || 0) + (d.teleprocessorsuccess || 0) +
-                      (d.autonetsuccess || 0) + (d.telenetsuccess || 0);
-      const fail = (d.autoprocessorfail || 0) + (d.teleprocessorfail || 0) +
-                   (d.autonetfail || 0) + (d.telenetfail || 0);
-      const totalAttempts = success + fail;
-      return totalAttempts > 0 ? (success / totalAttempts) * 100 : 0;
+    tower: d => {
+      // Endgame climb points based on EndClimbPosition level
+      // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+      if (d.endclimbposition == null || d.endclimbposition === undefined) return 0;
+      // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+      const level = d.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+      switch (level) {
+        case 0: return 30; // L3 = 30 points
+        case 1: return 20; // L2 = 20 points
+        case 2: return 10; // L1 = 10 points
+        default: return 0;
+      }
     },
     defense: d => {
-      const defensePlayed = d.defenseplayed || 0;
-      return defensePlayed > 0 ? defensePlayed * 10 : 0;
+      // Defense score based on PlayedDefense and Defense type
+      // defense: 0=weak, 1=harassment, 2=game changing
+      if (!d.playeddefense) return 0;
+      
+      let score = 10; // Base score for playing defense
+      if (d.defense === 1) score += 5; // harassment
+      if (d.defense === 2) score += 10; // game changing
+      
+      return score;
     },
-  }), select(['team', 'auto', 'tele', 'end', 'epa', 'last3epa', 'cage', 'consistency', 'coral', 'algae', 'defense']));
+    passing: d => {
+      // Combined metric: percentage of matches using any passing + qualitative passing speed rating
+      const teamPassing = teamPassingMap[d.team];
+      if (!teamPassing || teamPassing.totalMatches === 0) {
+        return 0;
+      }
+      
+      // Percentage component: percentage of matches where team used any passing
+      const matchesWithPassing = teamPassing.matches.size;
+      const passingPercentage = (matchesWithPassing / teamPassing.totalMatches) * 100; // 0-100
+      
+      // Qualitative component: average passing speed rating (0-5 scale, -1 for not rated)
+      const passingSpeed = d.passingspeed;
+      let qualitativeScore = 0;
+      if (passingSpeed != null && passingSpeed >= 0 && passingSpeed <= 5) {
+        qualitativeScore = (passingSpeed / 5) * 100; // Normalize to 0-100
+      }
+      
+      // Combine: average of both normalized values
+      return (passingPercentage + qualitativeScore) / 2; // 0-100
+    },
+    consistency: d => calcConsistency(d),
+  }), select(['team', 'epa', 'last3epa', 'fuel', 'auto', 'tower', 'defense', 'passing', 'consistency']));
 
   const getTBARankings = async () => {
     try {
-      const response = await fetch(`https://www.thebluealliance.com/api/v3/event/2025casnd/rankings`, {
+      const response = await fetch(`https://www.thebluealliance.com/api/v3/event/2026capoh/rankings`, {
         headers: {
           'X-TBA-Auth-Key': process.env.TBA_AUTH_KEY,
           'Accept': 'application/json'
@@ -169,16 +232,14 @@ export async function POST(request) {
 
   const maxes = tidy(teamTable, summarizeAll(max))[0];
   teamTable = tidy(teamTable, mutate({
-    auto: d => maxes.auto ? d.auto / maxes.auto : 0,
-    tele: d => maxes.tele ? d.tele / maxes.tele : 0,
-    end: d => maxes.end ? d.end / maxes.end : 0,
     epa: d => maxes.epa ? d.epa / maxes.epa : 0,
     last3epa: d => maxes.last3epa ? d.last3epa / maxes.last3epa : 0,
-    cage: d => maxes.cage ? d.cage / maxes.cage : 0,
-    consistency: d => maxes.consistency ? d.consistency / maxes.consistency : 0,
-    coral: d => maxes.coral ? d.coral / maxes.coral : 0,
-    algae: d => maxes.algae ? d.algae / maxes.algae : 0,
+    fuel: d => maxes.fuel ? d.fuel / maxes.fuel : 0,
+    auto: d => maxes.auto ? d.auto / maxes.auto : 0,
+    tower: d => maxes.tower ? d.tower / maxes.tower : 0,
     defense: d => maxes.defense ? d.defense / maxes.defense : 0,
+    passing: d => maxes.passing ? d.passing / maxes.passing : 0,
+    consistency: d => maxes.consistency ? d.consistency / maxes.consistency : 0,
     score: d => requestBody.reduce((sum, [key, weight]) => {
       const value = d[key] ?? 0;
       return sum + (value * parseFloat(weight));

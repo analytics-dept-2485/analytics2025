@@ -24,12 +24,39 @@ export async function GET(request) {
 
   function byAveragingNumbers(index) {
     // Boolean fields - return true if any row has it as true
-    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto'].includes(index)) {
+    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto', 'climbtf', 'wideclimb'].includes(index)) {
       return arr => arr.some(row => row[index] === true);
     }
     // String/Text fields - join with " - "
-    if (['scoutname', 'generalcomments', 'breakdowncomments', 'autoclimb', 'autoclimbposition', 'endclimb', 'endclimbposition', 'shootingmechanism', 'defense', 'fuelpercent'].includes(index)) {
+    if (['scoutname', 'generalcomments', 'breakdowncomments', 'defensecomments'].includes(index)) {
       return arr => arr.map(row => row[index]).filter(a => a != null).join(" - ") || null;
+    }
+    // Integer enum fields - format and join with " - "
+    if (['autoclimb', 'autoclimbposition', 'endclimbposition', 'shootingmechanism', 'defense', 'fuelpercent'].includes(index)) {
+      return arr => {
+        const values = arr.map(row => row[index]).filter(a => a != null);
+        if (values.length === 0) return null;
+        // Format integers appropriately
+        if (index === 'autoclimb') {
+          const map = {0: 'None', 1: 'Fail', 2: 'Success'};
+          return values.map(v => map[v] || v).join(" - ");
+        } else if (index === 'autoclimbposition') {
+          const map = {0: 'Left', 1: 'Center', 2: 'Right'};
+          return values.map(v => map[v] || v).join(" - ");
+        } else if (index === 'endclimbposition') {
+          const map = {0: 'LeftL3', 1: 'LeftL2', 2: 'LeftL1', 3: 'CenterL3', 4: 'CenterL2', 5: 'CenterL1', 6: 'RightL3', 7: 'RightL2', 8: 'RightL1'};
+          return values.map(v => map[v] || v).join(" - ");
+        } else if (index === 'shootingmechanism') {
+          const map = {0: 'Static', 1: 'Turret'};
+          return values.map(v => map[v] || v).join(" - ");
+        } else if (index === 'defense') {
+          const map = {0: 'weak', 1: 'harassment', 2: 'game changing'};
+          return values.map(v => map[v] || v).join(" - ");
+        } else if (index === 'fuelpercent') {
+          return values.map(v => `${v}%`).join(" - ");
+        }
+        return values.join(" - ");
+      };
     }
     // Qualitative ratings (0-5 scale, -1 for not rated)
     if (['aggression', 'climbhazard', 'hoppercapacity', 'maneuverability', 'durability', 'defenseevasion', 'climbspeed', 'fuelspeed', 'passingspeed', 'autodeclimbspeed', 'bumpspeed'].includes(index)) {
@@ -394,35 +421,34 @@ export async function GET(request) {
         totalFuel: (() => rows.reduce((sum, row) => sum + (row.autofuel || 0), 0))(),
       },
       climb: {
-        // autoclimb: 0=None, 1=Success, 2=Fail (numeric in DB)
         successRate: (() => {
           const totalMatches = rows.length;
-          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
+          const successfulClimbs = rows.filter(row => row.autoclimb === 2).length; // 2 = Success
           return totalMatches > 0 ? (successfulClimbs / totalMatches) * 100 : 0;
         })(),
         failRate: (() => {
           const totalMatches = rows.length;
-          const failedClimbs = rows.filter(row => row.autoclimb === 2 || row.autoclimb === '2' || row.autoclimb === 'Fail').length;
+          const failedClimbs = rows.filter(row => row.autoclimb === 1).length; // 1 = Fail
           return totalMatches > 0 ? (failedClimbs / totalMatches) * 100 : 0;
         })(),
         noneRate: (() => {
           const totalMatches = rows.length;
-          const noClimbs = rows.filter(row => row.autoclimb == null || row.autoclimb === 0 || row.autoclimb === '0' || row.autoclimb === 'None').length;
+          const noClimbs = rows.filter(row => row.autoclimb === 0 || row.autoclimb == null).length; // 0 = None
           return totalMatches > 0 ? (noClimbs / totalMatches) * 100 : 0;
         })(),
         positionLeft: (() => {
-          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
-          const leftPosition = rows.filter(row => (row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success') && (row.autoclimbposition === 0 || row.autoclimbposition === 'Left' || row.autoclimbposition === '0')).length;
+          const successfulClimbs = rows.filter(row => row.autoclimb === 2).length; // 2 = Success
+          const leftPosition = rows.filter(row => row.autoclimb === 2 && row.autoclimbposition === 0).length; // 0 = Left
           return successfulClimbs > 0 ? (leftPosition / successfulClimbs) * 100 : 0;
         })(),
         positionCenter: (() => {
-          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
-          const centerPosition = rows.filter(row => (row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success') && (row.autoclimbposition === 1 || row.autoclimbposition === 'Center' || row.autoclimbposition === '1')).length;
+          const successfulClimbs = rows.filter(row => row.autoclimb === 2).length; // 2 = Success
+          const centerPosition = rows.filter(row => row.autoclimb === 2 && row.autoclimbposition === 1).length; // 1 = Center
           return successfulClimbs > 0 ? (centerPosition / successfulClimbs) * 100 : 0;
         })(),
         positionRight: (() => {
-          const successfulClimbs = rows.filter(row => row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success').length;
-          const rightPosition = rows.filter(row => (row.autoclimb === 1 || row.autoclimb === '1' || row.autoclimb === 'Success') && (row.autoclimbposition === 2 || row.autoclimbposition === 'Right' || row.autoclimbposition === '2')).length;
+          const successfulClimbs = rows.filter(row => row.autoclimb === 2).length; // 2 = Success
+          const rightPosition = rows.filter(row => row.autoclimb === 2 && row.autoclimbposition === 2).length; // 2 = Right
           return successfulClimbs > 0 ? (rightPosition / successfulClimbs) * 100 : 0;
         })(),
       },
@@ -466,12 +492,12 @@ export async function GET(request) {
         return totalMatches > 0 ? (shootWhileMoving / totalMatches) * 100 : 0;
       })(),
       defenseLocations: {
-        azOutpost: (() => {
+        outpost: (() => {
           const totalMatches = rows.length;
           const defended = rows.filter(row => row.defenselocationoutpost === true).length;
           return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
         })(),
-        azTower: (() => {
+        tower: (() => {
           const totalMatches = rows.length;
           const defended = rows.filter(row => row.defenselocationtower === true).length;
           return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
@@ -544,20 +570,20 @@ export async function GET(request) {
       const climbFrequency = {};
       
       matchRows.forEach(row => {
-        let level = null;
-        if (row.endclimb != null && row.endclimb !== '') {
-          const endClimb = String(row.endclimb).toUpperCase();
-          if (['L1', 'L2', 'L3'].includes(endClimb)) level = endClimb;
+        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined) {
+          climbFrequency['none'] = (climbFrequency['none'] || 0) + 1;
+          return;
         }
-        if (level == null && row.endclimbposition != null && row.endclimbposition !== '') {
-          const pos = Number(row.endclimbposition);
-          if (!Number.isNaN(pos) && pos >= 0 && pos <= 8) {
-            const mod = pos % 3; // 0=L3, 1=L2, 2=L1
-            level = mod === 0 ? 'L3' : mod === 1 ? 'L2' : 'L1';
-          }
-        }
-        if (level) {
-          climbFrequency[level] = (climbFrequency[level] || 0) + 1;
+        
+        // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
+        // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+        const level = row.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+        if (level === 0) {
+          climbFrequency['L3'] = (climbFrequency['L3'] || 0) + 1;
+        } else if (level === 1) {
+          climbFrequency['L2'] = (climbFrequency['L2'] || 0) + 1;
+        } else if (level === 2) {
+          climbFrequency['L1'] = (climbFrequency['L1'] || 0) + 1;
         } else {
           climbFrequency['none'] = (climbFrequency['none'] || 0) + 1;
         }
@@ -624,11 +650,24 @@ export async function GET(request) {
     
     // Count matches where the modal EndClimb value indicates a climb attempt (L1, L2, or L3)
     const matchesWithAttempt = Object.values(matchGroups).filter(matchRows => {
-      // Find the most common EndClimb level for this match
+      // Find the most common EndClimbPosition level for this match
       const counts = {};
       matchRows.forEach(row => {
-        const endClimb = row.endclimb ? String(row.endclimb).toUpperCase() : 'none';
-        counts[endClimb] = (counts[endClimb] || 0) + 1;
+        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined) {
+          counts['none'] = (counts['none'] || 0) + 1;
+          return;
+        }
+        // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+        const level = row.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+        if (level === 0) {
+          counts['L3'] = (counts['L3'] || 0) + 1;
+        } else if (level === 1) {
+          counts['L2'] = (counts['L2'] || 0) + 1;
+        } else if (level === 2) {
+          counts['L1'] = (counts['L1'] || 0) + 1;
+        } else {
+          counts['none'] = (counts['none'] || 0) + 1;
+        }
       });
       
       let mode = null;
@@ -661,11 +700,24 @@ export async function GET(request) {
     
     // Process each match to find its modal EndClimb level
     const matchesWithModalEndClimb = Object.values(matchGroups).map(matchRows => {
-      // Find the most common EndClimb level for this match
+      // Find the most common EndClimbPosition level for this match
       const counts = {};
       matchRows.forEach(row => {
-        const endClimb = row.endclimb ? String(row.endclimb).toUpperCase() : 'none';
-        counts[endClimb] = (counts[endClimb] || 0) + 1;
+        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined) {
+          counts['none'] = (counts['none'] || 0) + 1;
+          return;
+        }
+        // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
+        const level = row.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+        if (level === 0) {
+          counts['L3'] = (counts['L3'] || 0) + 1;
+        } else if (level === 1) {
+          counts['L2'] = (counts['L2'] || 0) + 1;
+        } else if (level === 2) {
+          counts['L1'] = (counts['L1'] || 0) + 1;
+        } else {
+          counts['none'] = (counts['none'] || 0) + 1;
+        }
       });
       
       let mode = null;
