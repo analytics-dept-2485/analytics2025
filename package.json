@@ -17,12 +17,12 @@
     "chart.js": "^4.4.7",
     "js-confetti": "^0.12.0",
     "lodash": "^4.17.21",
-    "next": "^15.1.6",
+    "next": "^16.1.6",
     "pg": "^8.13.2",
     "postgres": "^3.4.5",
-    "react": "^19.0.0",
+    "react": "^19.2.4",
     "react-chartjs-2": "^5.3.0",
-    "react-dom": "^19.0.0",
+    "react-dom": "^19.2.4",
     "recharts": "^2.15.4",
     "victory": "^37.3.6"
   }
