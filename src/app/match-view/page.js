@@ -116,6 +116,10 @@ function ScoutingApp() {
     last3Tele: 0,
     last3End: 0,
     last3EPA: 0,
+    displayAuto: 0,
+    displayTele: 0,
+    displayEnd: 0,
+    displayEPA: 0,
     avgFuel: 0,
     leave: false,
     autoClimb: 0,
@@ -205,14 +209,14 @@ function ScoutingApp() {
     ["#FFC999", "#FFB370", "#FF9D47", "#FF7C0A", "#ed5e07"], //orange
   ];
 
-  // Calculate EPA scores
-  let blueScores = [0, get(blueAlliance, "last3Auto")];
-  blueScores.push(blueScores[1] + get(blueAlliance, "last3Tele"));
-  blueScores.push(blueScores[2] + get(blueAlliance, "last3End"));
+  // Calculate EPA scores (blended: (Last 3 + total average) / 2)
+  let blueScores = [0, get(blueAlliance, "displayAuto")];
+  blueScores.push(blueScores[1] + get(blueAlliance, "displayTele"));
+  blueScores.push(blueScores[2] + get(blueAlliance, "displayEnd"));
   
-  let redScores = [0, get(redAlliance, "last3Auto")];
-  redScores.push(redScores[1] + get(redAlliance, "last3Tele"));
-  redScores.push(redScores[2] + get(redAlliance, "last3End"));
+  let redScores = [0, get(redAlliance, "displayAuto")];
+  redScores.push(redScores[1] + get(redAlliance, "displayTele"));
+  redScores.push(redScores[2] + get(redAlliance, "displayEnd"));
 
   // EPA Over Time data
   const epaTimeData = [
@@ -229,8 +233,8 @@ function ScoutingApp() {
   const redTotal = redScores[3];
   const blueFuel = blueScores[2]; // auto + tele
   const redFuel = redScores[2];
-  const blueClimb = get(blueAlliance, "last3End");
-  const redClimb = get(redAlliance, "last3End");
+  const blueClimb = get(blueAlliance, "displayEnd");
+  const redClimb = get(redAlliance, "displayEnd");
 
   const blueRPs = {
     victory: blueTotal > redTotal,
@@ -308,10 +312,10 @@ function ScoutingApp() {
     color: COLORS[idx][1],
     darkColor: COLORS[idx][3],
     lightColor: COLORS[idx][0],
-    epa: Math.round(teamData.last3EPA || 0),
-    autoEPA: Math.round(teamData.last3Auto || 0),
-    teleEPA: Math.round(teamData.last3Tele || 0),
-    endgameEPA: Math.round(teamData.last3End || 0),
+    epa: Math.round(teamData.displayEPA ?? teamData.last3EPA ?? 0),
+    autoEPA: Math.round(teamData.displayAuto ?? teamData.last3Auto ?? 0),
+    teleEPA: Math.round(teamData.displayTele ?? teamData.last3Tele ?? 0),
+    endgameEPA: Math.round(teamData.displayEnd ?? teamData.last3End ?? 0),
     passingFreq: {
       dump: teamData.passing?.dump ?? teamData.passingDump ?? teamData.dump ?? 0,
       bulldozer: teamData.passing?.bulldozer ?? teamData.passingBulldozer ?? teamData.bulldozer ?? 0,
@@ -324,10 +328,10 @@ function ScoutingApp() {
       gameChanging: teamData.qualitative?.defenseevasion ? Math.round(teamData.qualitative.defenseevasion * 10) : 0
     },
     endgamePlacement: {
-      none: teamData.endgame?.none || 0,
-      l1: teamData.endgame?.L1 || 0,
-      l2: teamData.endgame?.L2 || 0,
-      l3: teamData.endgame?.L3 || 0
+      none: teamData.endgame?.None ?? teamData.endgame?.none ?? 0,
+      l1: teamData.endgame?.L1 ?? 0,
+      l2: teamData.endgame?.L2 ?? 0,
+      l3: teamData.endgame?.L3 ?? 0
     }
   }));
 
@@ -430,11 +434,11 @@ function ScoutingApp() {
               <div className={styles.chartSection}>
                 <h2>Fuel Distribution</h2>
                 <div className={styles.pieChartWrapper}>
-                  <Endgame colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} endgameData={redFuelData} />
+                  <Endgame colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} endgameData={redFuelData} />
                 </div>
               </div>
               <div className={styles.radarSection}>
-                <Qualitative radarData={redRadarData} teamIndices={[1, 2, 3]} colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} teamNumbers={[1, 2, 3]} />
+                <Qualitative radarData={radarData} teamIndices={[1, 2, 3]} colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} teamNumbers={[1, 2, 3]} />
               </div>
             </div>
 
@@ -465,11 +469,11 @@ function ScoutingApp() {
               <div className={styles.chartSection}>
                 <h2>Fuel Distribution</h2>
                 <div className={styles.pieChartWrapper}>
-                  <Endgame colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} endgameData={blueFuelData} />
+                  <Endgame colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} endgameData={blueFuelData} />
                 </div>
               </div>
               <div className={styles.radarSection}>
-                <Qualitative radarData={radarData} teamIndices={[1, 2, 3]} colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} teamNumbers={[1, 2, 3]} />
+                <Qualitative radarData={redRadarData} teamIndices={[1, 2, 3]} colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} teamNumbers={[1, 2, 3]} />
               </div>
             </div>
           </div>
