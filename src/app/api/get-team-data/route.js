@@ -720,18 +720,19 @@ export async function GET(request) {
 }));  // This appears to close the object and function call that contains these properties
 
 // The rest of your code seems fine and doesn't need modification for your current issue
-// Defense quality from "defense" column: 0=weak, 1=harassment, 2=game changing (percent of rows; coerce string from CSV)
+// Defense quality from "defense" column: 0=weak, 1=harassment, 2=game changing. Only count matches where they played defense.
 const defenseCounts = { 0: 0, 1: 0, 2: 0 };
-rows.forEach(row => {
+const playedDefenseRows = rows.filter(row => row.playeddefense === true || row.defenseplayed === true);
+playedDefenseRows.forEach(row => {
   const d = Number(row.defense);
   if (d === 0 || d === 1 || d === 2) defenseCounts[d]++;
 });
-const totalRows = rows.length;
-const defenseQuality = totalRows > 0
+const defensePlayedCount = playedDefenseRows.length;
+const defenseQuality = defensePlayedCount > 0
   ? {
-      weak: (defenseCounts[0] / totalRows) * 100,
-      harassment: (defenseCounts[1] / totalRows) * 100,
-      gameChanging: (defenseCounts[2] / totalRows) * 100,
+      weak: (defenseCounts[0] / defensePlayedCount) * 100,
+      harassment: (defenseCounts[1] / defensePlayedCount) * 100,
+      gameChanging: (defenseCounts[2] / defensePlayedCount) * 100,
     }
   : { weak: 0, harassment: 0, gameChanging: 0 };
 
