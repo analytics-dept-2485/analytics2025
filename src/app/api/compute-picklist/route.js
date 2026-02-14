@@ -3,11 +3,11 @@ import { sql } from '@vercel/postgres';
 import { tidy, mutate, arrange, desc, mean, select, summarizeAll, summarize, max, groupBy } from '@tidyjs/tidy';
 import { calcAuto, calcTele, calcEnd, calcEPA } from "@/util/calculations";
 
-export const dynamic = 'force-dynamic'; // Prevent static generation during build
+export const dynamic = 'force-dynamic'; 
 
 export async function POST(request) {
 
-  const requestBody = await request.json(); // Weight inputs
+  const requestBody = await request.json(); 
 
   let data = await sql`SELECT * FROM scc2025;`;
 
@@ -84,7 +84,6 @@ export async function POST(request) {
     last3EPAMap[team] = (typeof avgOfLast3 === 'number' && !isNaN(avgOfLast3)) ? avgOfLast3 : 0;
   }
 
-  // Fuel: autofuel + telefuel per match (SCC / 2026 style; no git –L4 piece counts)
   const teamFuelMap = {};
   rows.forEach((row) => {
     const team = row.team;
@@ -99,7 +98,6 @@ export async function POST(request) {
     teamFuelAvg[team] = t.count > 0 ? t.sum / t.count : 0;
   });
 
-  // Tower: end climb points per match then average (endclimbposition L3=30,L2=20,L1=10 or endlocation cage)
   const towerPointsFromRow = (row) => {
     if (row.endclimbposition != null && row.endclimbposition !== undefined) {
       const level = Number(row.endclimbposition) % 3;
@@ -151,9 +149,10 @@ export async function POST(request) {
       const played = d.defenseplayed ?? d.playeddefense;
       if (played === false || played === null || played === undefined) return 0;
       if (typeof played === 'number' && played > 0) return played * 10;
-      let score = 10;
+      let score = 0;
       const type = d.defense;
-      if (type === 1 || (typeof type === 'string' && String(type).toLowerCase() === 'harassment')) score += 5;
+      if (type === 0 || (typeof type === 'string' && String(type).toLowerCase() === 'weak')) score += 1;
+      else if (type === 1 || (typeof type === 'string' && String(type).toLowerCase() === 'harassment')) score += 5;
       else if (type === 2 || (typeof type === 'string' && String(type).toLowerCase() === 'game changing')) score += 10;
       return score;
     },

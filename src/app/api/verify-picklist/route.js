@@ -136,12 +136,10 @@ export async function GET() {
       defense: (d) => {
         const played = d.defenseplayed ?? d.playeddefense;
         if (played === false || played === null || played === undefined) return 0;
-        if (typeof played === 'number' && played > 0) return played * 10;
-        let score = 10;
         const type = d.defense;
-        if (type === 1 || (typeof type === 'string' && String(type).toLowerCase() === 'harassment')) score += 5;
-        else if (type === 2 || (typeof type === 'string' && String(type).toLowerCase() === 'game changing')) score += 10;
-        return score;
+        if (type === 2 || (typeof type === 'string' && String(type).toLowerCase() === 'game changing')) return 10;
+        if (type === 1 || (typeof type === 'string' && String(type).toLowerCase() === 'harassment')) return 5;
+        return 1; // played but weak (type 0, 'weak', or unknown)
       },
       consistency: (d) => teamConsistencyMap[d.team] ?? 0,
     }), select(['team', 'epa', 'last3epa', 'fuel', 'tower', 'passing', 'defense', 'auto', 'consistency']));
