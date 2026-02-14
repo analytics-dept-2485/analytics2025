@@ -4,7 +4,6 @@ import _ from 'lodash';
 import { tidy, mutate, mean, select, summarizeAll, groupBy, summarize, first, n, median, total, arrange, asc, slice } from '@tidyjs/tidy';
 import { calcEPA, calcAuto, calcTele, calcEnd } from "../../../util/calculations.js";
 
-export const dynamic = 'force-dynamic'; // Prevent static generation during build
 export const revalidate = 300; // Cache for 5 minutes
 
 export async function GET(request) {
@@ -773,6 +772,23 @@ export async function GET(request) {
 }));  // This appears to close the object and function call that contains these properties
 
 // The rest of your code seems fine and doesn't need modification for your current issue
+// Defense quality from "defense" column: 0=weak, 1=harassment, 2=game changing. Only count matches where they played defense.
+const defenseCounts = { 0: 0, 1: 0, 2: 0 };
+const playedDefenseRows = rows.filter(row => row.playeddefense === true || row.defenseplayed === true);
+playedDefenseRows.forEach(row => {
+  const d = Number(row.defense);
+  if (d === 0 || d === 1 || d === 2) defenseCounts[d]++;
+});
+const defensePlayedCount = playedDefenseRows.length;
+const defenseQuality = defensePlayedCount > 0
+  ? {
+      weak: (defenseCounts[0] / defensePlayedCount) * 100,
+      harassment: (defenseCounts[1] / defensePlayedCount) * 100,
+      gameChanging: (defenseCounts[2] / defensePlayedCount) * 100,
+    }
+  : { weak: 0, harassment: 0, gameChanging: 0 };
+
+const loc = returnObject[0].tele?.defenseLocations || {};
 returnObject[0] = {
   ...returnObject[0],
   intakeGround: rows.some(row => row.intakeground === true),
@@ -781,6 +797,16 @@ returnObject[0] = {
   passingShooter: rows.some(row => row.passingshooter === true),
   passingDump: rows.some(row => row.passingdump === true),
   shootWhileMove: rows.some(row => row.shootwhilemove === true),
+  defenseQuality,
+  defenseLocation: {
+    allianceZone: ((Number(loc.azOutpost) || 0) + (Number(loc.azTower) || 0)) / 2,
+    neutralZone: Number(loc.nz) || 0,
+    trench: Number(loc.trench) || 0,
+    bump: Number(loc.bump) || 0,
+    tower: Number(loc.azTower) || 0,
+    outpost: Number(loc.azOutpost) || 0,
+    hub: Number(loc.hub) || 0,
+  },
 };
 
 
@@ -820,4 +846,3 @@ console.log("Backend End Placement:", returnObject[0].endPlacement);
 return NextResponse.json(returnObject[0], { status: 200 });
 
 }
-

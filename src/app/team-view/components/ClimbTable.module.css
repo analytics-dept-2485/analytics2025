@@ -1,0 +1,18 @@
+.ClimbTable{
+    table-layout: fixed;
+    align-self: center;
+    border-collapse: collapse;
+}
+.cell{
+    border: 1px solid black;
+    width: 55px;
+}
+
+.white {
+    background-color: white;
+}
+
+.ClimbTable th:first-child {
+  border-top: none;
+  border-left: none;
+}

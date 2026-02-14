@@ -41,19 +41,21 @@ export async function GET() {
         let auto = calcAuto(row);
         let tele = calcTele(row);
         let end = calcEnd(row);
+        const teamKey = String(row.team);
 
         let frcAPITeamInfo = frcAPITeamData.filter(teamData => parseInt(teamData.team_number) === parseInt(row.team));
 
-        if (!responseObject[row.team]) {
-          responseObject[row.team] = initializeTeamData(row, auto, tele, end, frcAPITeamInfo);
+        if (!responseObject[teamKey]) {
+          responseObject[teamKey] = initializeTeamData(row, auto, tele, end, frcAPITeamInfo);
         } else {
-          accumulateTeamData(responseObject[row.team], row, auto, tele, end);
+          accumulateTeamData(responseObject[teamKey], row, auto, tele, end);
         }
       }
     });
 
     calculateAverages(responseObject, rows);
     calculateLast3EPA(responseObject, rows);
+    calculateDisplayEPA(responseObject);
 
     return NextResponse.json(responseObject, { status: 200 });
 
@@ -67,9 +69,9 @@ function initializeTeamData(row, auto, tele, end, frcAPITeamInfo) {
   // Calculate fuel and climb points
   const fuel = (row.autofuel || 0) + (row.telefuel || 0);
   
-  // Calculate climb points (auto climb = 15 if Success (1), end climb = 10/20/30 for L1/L2/L3)
+  // Calculate climb points (auto climb = 15 if Success (2), end climb = 10/20/30 for L1/L2/L3)
   let climbPoints = 0;
-  if (row.autoclimb === 2) climbPoints += 15; // 2 = Success
+  if (row.autoclimb === 2) climbPoints += 15; // 2 = Success (0=None, 1=Fail, 2=Success)
   if (row.endclimbposition != null && row.endclimbposition !== undefined) {
     // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
     // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
@@ -190,6 +192,7 @@ function calculateAverages(responseObject, rows) {
     teamData.tele = average(teamData.tele, count);
     teamData.end = average(teamData.end, count);
     teamData.fuel = average(teamData.fuel, count);
+    teamData.avgFuel = teamData.fuel; // match-view expects avgFuel
     teamData.climb = average(teamData.climb, count);
 
     // Calculate passing percentages (percentage of matches using each passing type)
@@ -281,5 +284,20 @@ function calculateLast3EPA(responseObject, rows) {
     responseObject[team].last3Tele = avg(last3Matches, "tele");
     responseObject[team].last3End = avg(last3Matches, "end");
     responseObject[team].last3EPA = avg(last3Matches, "epa");
+  });
+}
+
+// Blended EPA for display: (Last 3 + total average) / 2 for total and A/T/E breakdown
+function calculateDisplayEPA(responseObject) {
+  Object.keys(responseObject).forEach(team => {
+    const t = responseObject[team];
+    const avgAuto = t.auto ?? 0;
+    const avgTele = t.tele ?? 0;
+    const avgEnd = t.end ?? 0;
+    const avgEPA = avgAuto + avgTele + avgEnd;
+    t.displayAuto = Math.round(((t.last3Auto ?? 0) + avgAuto) / 2 * 10) / 10;
+    t.displayTele = Math.round(((t.last3Tele ?? 0) + avgTele) / 2 * 10) / 10;
+    t.displayEnd = Math.round(((t.last3End ?? 0) + avgEnd) / 2 * 10) / 10;
+    t.displayEPA = Math.round(((t.last3EPA ?? 0) + avgEPA) / 2 * 10) / 10;
   });
 }
