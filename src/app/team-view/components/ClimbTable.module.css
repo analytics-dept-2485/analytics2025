@@ -1,0 +1,17 @@
+.climbTable {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+    border: 1px solid black;
+}
+
+.climbTable th,
+.climbTable td {
+    border: 1px solid black;
+    padding: 5px;
+    text-align: center;
+}
+
+.climbTable th {
+    font-weight: bold;
+}
