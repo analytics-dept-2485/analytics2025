@@ -445,7 +445,7 @@ function ScoutingApp() {
             {/* Center - EPA Over Time */}
             <div className={styles.centerColumn}>
               <h2 className={styles.centerTitle}>EPA Over Time</h2>
-              <EPALineChart data={epaTimeData} width={500} height={400} />
+              <EPALineChart data={epaTimeData}/>
             </div>
 
             {/* Blue Alliance - RIGHT SIDE */}
