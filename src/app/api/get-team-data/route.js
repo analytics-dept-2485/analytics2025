@@ -329,8 +329,18 @@ export async function GET(request) {
           return 100 - (breakdownRate + epaStdDev);
         },
     
-        lastBreakdown: arr => arr.filter(e => e.breakdowncomments !== null).reduce((a, b) => b.match, "N/A"),
+        lastBreakdown: arr => {
+          const withBreakdown = arr.filter(e => e.breakdowncomments != null && e.breakdowncomments !== '');
+          if (withBreakdown.length === 0) return "N/A";
+          const lastMatch = withBreakdown.reduce((a, b) => b.match, null);
+          return lastMatch != null ? `Match ${lastMatch}` : "N/A";
+        },
         noShow: arr => percentValue(arr, 'noshow', true),
+        stuckOnFuel: arr => {
+          const total = arr.length;
+          const stuck = arr.filter(row => row.stuckonfuel === true).length;
+          return total > 0 ? (stuck / total) * 100 : 0;
+        },
     
         breakdown: arr => {
           const uniqueMatches = new Set(arr.map(row => row.match));
@@ -570,7 +580,7 @@ export async function GET(request) {
       const climbFrequency = {};
       
       matchRows.forEach(row => {
-        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined) {
+        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined || row.endclimbposition > 8) {
           climbFrequency['none'] = (climbFrequency['none'] || 0) + 1;
           return;
         }
@@ -653,7 +663,7 @@ export async function GET(request) {
       // Find the most common EndClimbPosition level for this match
       const counts = {};
       matchRows.forEach(row => {
-        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined) {
+        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined || row.endclimbposition > 8) {
           counts['none'] = (counts['none'] || 0) + 1;
           return;
         }
@@ -703,7 +713,7 @@ export async function GET(request) {
       // Find the most common EndClimbPosition level for this match
       const counts = {};
       matchRows.forEach(row => {
-        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined) {
+        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined || row.endclimbposition > 8) {
           counts['none'] = (counts['none'] || 0) + 1;
           return;
         }
@@ -744,6 +754,16 @@ export async function GET(request) {
     
     // Calculate success rate among attempted matches only
     return attemptedMatches > 0 ? (successfulMatches / attemptedMatches) * 100 : 0;
+  },
+  
+  shootingmechanism: arr => {
+    const values = arr.map(row => row.shootingmechanism).filter(a => a != null);
+    if (values.length === 0) return null;
+    const map = {0: 'Static', 1: 'Turret'};
+    const mapped = values.map(v => map[v] || v);
+    // If all values are the same, return just one value, otherwise join with " - "
+    const unique = [...new Set(mapped)];
+    return unique.length === 1 ? unique[0] : unique.join(" - ");
   },
   
   qualitative: arr => {
@@ -797,6 +817,8 @@ returnObject[0] = {
   passingShooter: rows.some(row => row.passingshooter === true),
   passingDump: rows.some(row => row.passingdump === true),
   shootWhileMove: rows.some(row => row.shootwhilemove === true),
+  bump: rows.some(row => row.bump === true),
+  trench: rows.some(row => row.trench === true),
   defenseQuality,
   defenseLocation: {
     allianceZone: ((Number(loc.azOutpost) || 0) + (Number(loc.azTower) || 0)) / 2,

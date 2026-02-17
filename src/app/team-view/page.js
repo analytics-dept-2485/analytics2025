@@ -329,8 +329,8 @@ function TeamView() {
                <div className={styles.valueBoxes}>
                  <div className={styles.leftColumnBoxes}>
                    <div className={styles.leftBoxR1}>
-                     <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Consistency"} value={data.consistency}/>
-                     <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Stuck on Fuel Easily"} value={data.stuckOnFuel}/>
+                     <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Consistency"} value={typeof data.consistency === 'number' ? `${Math.round(10 * data.consistency) / 10}%` : data.consistency}/>
+                     <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Stuck on Fuel Easily"} value={typeof data.stuckOnFuel === 'number' ? `${Math.round(10 * data.stuckOnFuel) / 10}%` : data.stuckOnFuel}/>
                      <VBox color1={Colors[0][1]} color2={Colors[0][0]} title={"Last Breakdown"} value={data.lastBreakdown}/>
                    </div>
                    <div className={styles.leftBoxR2}>
@@ -348,8 +348,8 @@ function TeamView() {
                         <td style={{backgroundColor: Colors[0][1]}}>Trench</td>
                       </tr>
                       <tr>
-                        <td className={styles.coloredBoxes} style={{backgroundColor: Colors[0][0], width: "50px", height: "30px"}}><input id="groundcheck" type="checkbox" readOnly checked={data.groundIntake}></input></td>
-                        <td className={styles.coloredBoxes} style={{backgroundColor: Colors[0][0], width: "50px", height: "30px"}}><input id="groundcheck" type="checkbox" readOnly checked={data.outpostIntake}></input></td>
+                        <td className={styles.coloredBoxes} style={{backgroundColor: Colors[0][0], width: "50px", height: "30px"}}><input id="bumpcheck" type="checkbox" readOnly checked={data.bumpTrav}></input></td>
+                        <td className={styles.coloredBoxes} style={{backgroundColor: Colors[0][0], width: "50px", height: "30px"}}><input id="trenchcheck" type="checkbox" readOnly checked={data.trenchTrav}></input></td>
                       </tr>
                     </tbody>
                     </table>
