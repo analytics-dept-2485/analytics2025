@@ -16,7 +16,7 @@ import Endgame from "./components/Endgame";
 import Qualitative from "./components/Qualitative";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line, RadarChart, PolarRadiusAxis, PolarAngleAxis, PolarGrid, Radar, Legend } from 'recharts';
 import ClimbTable from "./components/ClimbTable";
-import VBoxCheck from "./components/VBoxCheck";
+//import VBoxCheck from "./components/VBoxCheck";
 
 
 
