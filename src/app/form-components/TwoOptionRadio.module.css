@@ -1,0 +1,55 @@
+.Container {
+  background-color: #D9D26E;
+  color: black;
+  border-radius: 8px;
+  padding: 7px;
+
+  width: 100%;
+  max-width: 210px;
+
+  margin: 10px auto;   /* THIS centers it */
+}
+
+
+.radioGroup {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+.radioGroup input[type="radio"] {
+  appearance: none;
+  -webkit-appearance: none;
+
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 2px solid black;
+  border-radius: 50%;
+  background-color: #fff;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radioGroup input[type="radio"]:checked::before {
+  content: "";
+  width: 0.8rem;
+  height: 0.8rem;
+  background-color: black;
+  border-radius: 50%;
+}
+
+  
+  .radioGroup label {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.6rem;
+    border: 2px solid Black;
+    border-radius: 0.5rem;
+    background-color: #FFFFBA;
+    color: black;
+  }
+  
+  

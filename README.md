@@ -20,7 +20,8 @@ CREATE TABLE scc2025 (
    NoShow BOOLEAN,
    
    -- Auto
-   AutoClimb VARCHAR(50), -- none, yes, fail, L, R, C
+   AutoClimb INT, -- 0=None, 1=Fail, 2=Success
+   AutoClimbPosition INT, -- 0=Left, 1=Center, 2=Right (only set if AutoClimb is Success)
    AutoFuel INT,
    WinAuto BOOLEAN,
    
@@ -32,22 +33,25 @@ CREATE TABLE scc2025 (
    PassingDump BOOLEAN,
    ShootWhileMove BOOLEAN,
    TeleFuel INT,
-   DefenseLocationAZOutpost BOOLEAN,
-   DefenseLocationAZTower BOOLEAN,
+   DefenseLocationOutpost BOOLEAN,
+   DefenseLocationTower BOOLEAN,
+   DefenseLocationHub BOOLEAN,
    DefenseLocationNZ BOOLEAN,
    DefenseLocationTrench BOOLEAN,
    DefenseLocationBump BOOLEAN,
    
    -- End
-   EndClimb VARCHAR(50), -- L1, L2, L3, R, L, C
+   EndClimbPosition INT, -- 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1 9=None
+   WideClimb BOOLEAN, -- True if robot used wide climb
    
    -- Postmatch
-   ShootingMechanism BOOLEAN,
+   ShootingMechanism INT, -- 0=Static, 1=Turret
    Bump BOOLEAN,
    Trench BOOLEAN,
    StuckOnFuel BOOLEAN,
-   FuelPercent VARCHAR(50), -- Percentage as string (e.g., "50%") or number
-   Defense VARCHAR(50), -- weak, harassment, game changing
+   FuelPercent INT, -- Percentage as integer (0-100)
+   PlayedDefense BOOLEAN,
+   Defense INT, -- 0=weak, 1=harassment, 2=game changing (only set if PlayedDefense is true)
    
    -- Qualitative Ratings (0-5 scale, -1 for not rated)
    Aggression INT DEFAULT -1,
@@ -64,31 +68,34 @@ CREATE TABLE scc2025 (
    
    -- Comments
    GeneralComments TEXT,
-   BreakdownComments TEXT
+   BreakdownComments TEXT,
+   DefenseComments TEXT
 );
 
 -- Example INSERT statement
 INSERT INTO scc2025 (
    ScoutName, ScoutTeam, Team, Match, MatchType, NoShow,
-   AutoClimb, AutoFuel, WinAuto,
+   AutoClimb, AutoClimbPosition, AutoFuel, WinAuto,
    IntakeGround, IntakeOutpost, PassingBulldozer, PassingShooter, PassingDump, ShootWhileMove, TeleFuel,
-   DefenseLocationAZOutpost, DefenseLocationAZTower, DefenseLocationNZ, DefenseLocationTrench, DefenseLocationBump,
-   EndClimb,
-   ShootingMechanism, Bump, Trench, StuckOnFuel, FuelPercent, Defense,
+   DefenseLocationOutpost, DefenseLocationTower, DefenseLocationHub, DefenseLocationNZ, DefenseLocationTrench, DefenseLocationBump,
+   EndClimbPosition, WideClimb,
+   ShootingMechanism, Bump, Trench, StuckOnFuel, FuelPercent, PlayedDefense, Defense,
    Aggression, ClimbHazard, HopperCapacity, Maneuverability, Durability, DefenseEvasion,
    ClimbSpeed, FuelSpeed, PassingSpeed, AutoDeclimbSpeed, BumpSpeed,
-   GeneralComments, BreakdownComments
+   GeneralComments, BreakdownComments, DefenseComments
 )
 VALUES (
    'John Doe', 2485, 4909, 12, 2, FALSE,
-   'yes', 15, TRUE,
+   1, 0, 15, TRUE,
    TRUE, FALSE, TRUE, TRUE, FALSE, TRUE, 42,
-   FALSE, FALSE, TRUE, FALSE, FALSE,
-   'L2',
-   TRUE, FALSE, TRUE, FALSE, '75%', 'harassment',
+   TRUE, TRUE, TRUE, FALSE, TRUE, FALSE,
+   2, FALSE,
+   1, FALSE, TRUE, FALSE, 75, TRUE, 1,
    4, 2, 5, 4, 5, 3,
    4, 5, 3, 2, 3,
-   'Performed well overall with strong fuel scoring.', 'did not break down'
+   'Performed well overall with strong fuel scoring.', 'did not break down', 'Played effective defense at outpost'
 );
 
-```
+-- If table already exists, add WideClimb column:
+-- ALTER TABLE scc2025 ADD COLUMN IF NOT EXISTS WideClimb BOOLEAN DEFAULT FALSE;
+

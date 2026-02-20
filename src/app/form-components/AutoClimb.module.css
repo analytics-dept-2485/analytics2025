@@ -1,0 +1,58 @@
+.ClimbYesNo {
+    background-color: #d9d26E;
+    color: black;
+    border-radius: 8px;
+    margin: 10px;
+    padding: 7px;
+    width: 324px;
+    justify-self: center;
+    height: 40px;
+    align-items: center;
+  }
+  
+  .radioGroup {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    justify-self: center;
+    width: 400px;
+    gap: 5px;
+  }
+    .radioGroup input[type="radio"] {
+      appearance: none;
+      -webkit-appearance: none; 
+    
+      /* Create a custom circle */
+      width: 1.2rem;
+      height: 1.2rem;
+      border: 2px solid black;     
+      border-radius: 50%;        
+      background-color: #fff;
+      cursor: pointer;
+      outline: none;             
+      margin-right: 0.5rem;      
+    }
+    
+    .radioGroup input[type="radio"]:checked::before {
+      content: "";
+      display: block;
+      width: 0.8rem;
+      height: 0.8rem;
+      background-color: black;  
+      border-radius: 50%;
+      margin: 0.08rem auto;    
+      margin-bottom: 20rem;   
+    }
+    
+    .radioGroup label {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.3rem 0.6rem;
+      border: 2px solid Black;
+      border-radius: 0.5rem;
+      background-color: #FFFFBA;
+      color: black;
+    }
+    
+    

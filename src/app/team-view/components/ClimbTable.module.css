@@ -1,17 +1,18 @@
-.climbTable {
+.ClimbTable{
+    table-layout: fixed;
+    align-self: center;
     border-collapse: collapse;
-    width: 100%;
-    font-size: 14px;
+}
+.cell{
     border: 1px solid black;
+    width: 55px;
 }
 
-.climbTable th,
-.climbTable td {
-    border: 1px solid black;
-    padding: 5px;
-    text-align: center;
+.white {
+    background-color: white;
 }
 
-.climbTable th {
-    font-weight: bold;
+.ClimbTable th:first-child {
+  border-top: none;
+  border-left: none;
 }

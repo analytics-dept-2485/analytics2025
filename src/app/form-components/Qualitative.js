@@ -26,21 +26,21 @@ export default function Qualitative ({ visibleName, internalName, description, s
                 })}
             </div>
             
-            {rating === -1 && (description == "Coral Speed" || description == "Processor Speed" || description == "Net Speed") && (
+            {rating === -1 && (description == "Fuel Speed" || description == "Passing Speed" || description == "Bump Speed") && (
                 <div>
                     Not Applicable
                 </div>
             )}
 
-            {rating === -1 && description == "Algae Removal Speed" && (
+            {rating === -1 && description == "Auto Declimb Speed" && (
                 <div>
-                    Did Not Try to Remove Algae
+                    Did Not Climb in Auto
                 </div>
             )}
 
             {rating === -1 && description == "Climb Speed" && (
                 <div>
-                    Did Not Try to Climb
+                    Did Not Climb
                 </div>
             )}
 
@@ -50,9 +50,9 @@ export default function Qualitative ({ visibleName, internalName, description, s
                 </div>
             )}
 
-            {rating === -1 && description == "Ability to Play Defense" && (
+            {rating === -1 && description == "Durability" && (
                 <div>
-                    Did Not Defend
+                    Please Provide a Rating
                 </div>
             )}
 
@@ -68,19 +68,45 @@ export default function Qualitative ({ visibleName, internalName, description, s
                 </div>
             )}
 
-            {rating === -1 && description == "Cage Hazard" && (
+            {rating === -1 && description == "Climb Hazard" && (
                 <div>
-                    Did Not Interact With Teammates in the Barge
+                    Did Not Interact With Teammates on Tower
                 </div>
             )}
 
-            {rating >= 0 && (
+            {rating === -1 && description == "Hopper Capacity" && (
+                <div>
+                    Did Not Intake, Inconclusive
+                </div>
+            )}
+
+            {rating >= 0 && description!=="Hopper Capacity" &&(
 
                 <div>
                     {ratingDescriptions[rating]} {description}
                 </div>
             )}
 
+            {/* {rating == 0 && description=="Hopper Capacity" &&(
+
+                <div>
+                    0 - 5 Fuel
+                </div>
+            )} */}
+
+            {rating >= 0 && rating < 5 && description=="Hopper Capacity" &&(
+
+                <div>
+                    {(rating)*15+" - "+15*(rating+1)} Fuel
+                </div>
+            )}
+
+            {rating == 5 && description=="Hopper Capacity" &&(
+
+                <div>
+                    75+ Fuel
+                </div>
+            )}
            
 
 

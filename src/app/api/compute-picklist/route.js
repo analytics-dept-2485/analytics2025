@@ -14,8 +14,15 @@ export async function POST(request) {
   let rows = data.rows;
 
   function averageField(index) {
-    if (['breakdown', 'leave', 'noshow'].includes(index)) return arr => arr.some(row => row[index] === true);
-    if (['scoutname', 'generalcomments', 'breakdowncomments', 'defensecomments'].includes(index)) return arr => arr.map(row => row[index]).join(', ');
+    // Boolean fields - return true if any row has it as true
+    if (['noshow', 'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump', 'shootwhilemove', 'bump', 'trench', 'stuckonfuel', 'playeddefense', 'winauto', 'climbtf', 'wideclimb'].includes(index)) {
+      return arr => arr.some(row => row[index] === true);
+    }
+    // String/Text fields - join with comma
+    if (['scoutname', 'generalcomments', 'breakdowncomments', 'defensecomments'].includes(index)) {
+      return arr => arr.map(row => row[index]).filter(a => a != null).join(', ') || null;
+    }
+    // Numeric fields - calculate mean
     const validValues = arr => arr.map(row => row[index]).filter(val => val != null && !isNaN(val));
     return arr => validValues(arr).length > 0 
       ? validValues(arr).reduce((sum, v) => sum + v, 0) / validValues(arr).length 
@@ -161,7 +168,7 @@ export async function POST(request) {
 
   const getTBARankings = async () => {
     try {
-      const response = await fetch(`https://www.thebluealliance.com/api/v3/event/2025casnd/rankings`, {
+      const response = await fetch(`https://www.thebluealliance.com/api/v3/event/2026capoh/rankings`, {
         headers: {
           'X-TBA-Auth-Key': process.env.TBA_AUTH_KEY,
           'Accept': 'application/json'

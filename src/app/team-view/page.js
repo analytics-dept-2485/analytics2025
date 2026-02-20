@@ -16,7 +16,7 @@ import Endgame from "./components/Endgame";
 import Qualitative from "./components/Qualitative";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, LineChart, Line, RadarChart, PolarRadiusAxis, PolarAngleAxis, PolarGrid, Radar, Legend } from 'recharts';
 import ClimbTable from "./components/ClimbTable";
-//import VBoxCheck from "./components/VBoxCheck";
+import VBoxCheck from "./components/VBoxCheck";
 
 
 
@@ -42,97 +42,127 @@ function filterNegative(value) {
 function TeamView() {
 
 
+   const [data, setData] = useState(null);
    const [loading, setLoading] = useState(true);
    const [error, setError] = useState(null);
    const searchParams = useSearchParams();
    const team = searchParams.get("team");
    const hasTopBar = searchParams.get('team1') !== null;
 
-   let data = {
-     team: 2485,
-     name: "Overclocked",
-     avgEpa: 73,
-     avgAuto: 20,
-     avgTele: 56,
-     avgEnd: 12,
-     last3Epa: 70,
-     last3Auto: 30,
-     last3Tele: 53,
-     last3End: 2,
-     epaOverTime: [
-       { match: 3, epa: 60, won: true },
-       { match: 10, epa: 43, won: false },
-       { match: 13, epa: 12, won: true }
-     ],
-     consistency: 98,
-     stuckOnFuel: 12,
-     defense: 11,
-     shootingMechanism: "Turret",
-     lastBreakdown: 2,
-     noShow: 1,
-     breakdown: 9,
-     matchesScouted: 3,
-     scouts: ["Yael", "Ella", "Max"],
-     generalComments: ["pretty good", "fragile intake", "hooray!"],
-     breakdownComments: ["stopped moving"],
-     defenseComments: ["defended coral human player station"],
-     autoOverTime: [
-       { match: 3, auto: 30, won: true },
-       { match: 10, auto: 10, won: true },
-       { match: 13, auto: 2, won: false }
-     ],
-     autoclimb: { success: 7, fail: 88, none: 3 },
-     autoMedianFuel: 3,
-     teleOverTime: [
-       { match: 3, tele: 30, won: false },
-       { match: 10, tele: 78, won: true },
-       { match: 13, tele: 42, won: false }
-     ],
-     teleMedianFuel: 2,
-     passing: { shooter: 10, bulldozer: 2, dump: 30 },
-     defenseQuality: { weak: 10, harassment: 2, gameChanging: 30 },
-     defenseLocation: {
-       allianceZone: 12,
-       neutralZone: 8,
-       trench: 10,
-       bump: 2,
-       tower: 5,
-       outpost: 3,
-       hub: 7,
-     },
-     endPlacement: {
-       none: { left: 2, right: 3, center: 2 },
-       L1: { left: 3, right: 4, center: 1 },
-       L2: { left: 5, right: 2, center: 3 },
-       L3: { left: 6, right: 1, center: 1 },
-     },
-     qualitative: [
-       { name: "Hopper Capacity", rating: 5 },
-       { name: "Maneuverability", rating: 4 },
-       { name: "Durability", rating: 3 },
-       { name: "Fuel Speed", rating: 5 },
-       { name: "Passing Speed", rating: 3 },
-       { name: "Climb Speed", rating: 4 },
-       { name: "Auto De-Climb Speed", rating: 5 },
-       { name: "Bump Speed", rating: 0 },
-       { name: "Defense Evasion", rating: 1 },
-       { name: "Climb Hazard*", rating: 2 },
-       { name: "Aggression*" },
-     ],
-     groundIntake: true,
-     outpostIntake: true,
-     shootWhileMove: true,
-     bumpTrav: true,
-     trenchTrav: true,
-     wideClimb: true,
-   };
+   function round10(n) {
+     const x = Number(n);
+     return (x !== x) ? 0 : Math.round(x * 10) / 10; // NaN-safe, round to tenth
+   }
+
+   function normalizeTeamData(api) {
+     if (!api) return null;
+     const ep = api.endPlacement;
+     const toPos = (pct) => ({ left: 0, right: 0, center: Math.round(Number(pct) || 0) });
+     const dq = api.defenseQuality && typeof api.defenseQuality === 'object' ? api.defenseQuality : {};
+     const dl = api.defenseLocation && typeof api.defenseLocation === 'object' ? api.defenseLocation : {};
+     return {
+       ...api,
+       team: api.team ?? 0,
+       name: api.name ?? "—",
+       avgEpa: round10(api.avgEpa),
+       avgAuto: round10(api.avgAuto),
+       avgTele: round10(api.avgTele),
+       avgEnd: round10(api.avgEnd),
+       last3Epa: round10(api.last3Epa),
+       last3Auto: round10(api.last3Auto),
+       last3Tele: round10(api.last3Tele),
+       last3End: round10(api.last3End),
+       epaOverTime: Array.isArray(api.epaOverTime) ? api.epaOverTime.map((d) => ({ ...d, epa: round10(d.epa) })) : [],
+       autoOverTime: Array.isArray(api.autoOverTime) ? api.autoOverTime.map((d) => ({ ...d, auto: round10(d.auto) })) : [],
+       teleOverTime: Array.isArray(api.teleOverTime) ? api.teleOverTime.map((d) => ({ ...d, tele: round10(d.tele) })) : [],
+       wonEPA: api.wonEPA ?? [],
+       wonAuto: api.auto?.winAuto != null ? [api.auto.winAuto] : [],
+       wonTele: api.wonTele ?? [],
+       consistency: round10(api.consistency),
+       stuckOnFuel: round10(api.stuckOnFuel ?? api.stuckonfuel),
+       shootingMechanism: api.shootingmechanism ?? api.shootingMechanism ?? "—",
+       lastBreakdown: api.lastBreakdown ?? "N/A",
+       noShow: round10((() => { const n = Number(api.noShow) ?? 0; return n <= 1 ? n * 100 : n; })()),
+       breakdown: round10(api.breakdown),
+       matchesScouted: Number(api.matchesScouted) ?? 0,
+       scouts: (() => {
+         if (!Array.isArray(api.scouts) || api.scouts.length === 0) return "";
+         const names = [];
+         api.scouts.forEach((entry) => {
+           const s = String(entry).replace(/^\s*\*Match \d+:\s*/i, "").replace(/\*\s*$/, "").trim();
+           if (s) s.split(/\s*,\s*/).forEach((name) => names.push(name.trim()));
+         });
+         return names.filter(Boolean).join(", ");
+       })(),
+       generalComments: Array.isArray(api.generalComments) ? api.generalComments : [],
+       breakdownComments: Array.isArray(api.breakdownComments) ? api.breakdownComments : [],
+       defenseComments: Array.isArray(api.defenseComments) ? api.defenseComments : [],
+       autoclimb: {
+         success: round10(api.auto?.climb?.successRate),
+         fail: round10(api.auto?.climb?.failRate),
+         none: round10(api.auto?.climb?.noneRate),
+       },
+       autoMedianFuel: round10(api.auto?.fuel?.avgFuel),
+       teleMedianFuel: round10(api.tele?.fuel?.avgFuel),
+       passing: {
+         bulldozer: round10(api.tele?.passing?.bulldozer),
+         shooter: round10(api.tele?.passing?.shooter),
+         dump: round10(api.tele?.passing?.dump),
+       },
+       defenseQuality: {
+         weak: round10(dq.weak),
+         harassment: round10(dq.harassment),
+         gameChanging: round10(dq.gameChanging),
+       },
+       defenseLocation: {
+         allianceZone: round10(dl.allianceZone),
+         neutralZone: round10(dl.neutralZone),
+         trench: round10(dl.trench),
+         bump: round10(dl.bump),
+         tower: round10(dl.tower),
+         outpost: round10(dl.outpost),
+         hub: round10(dl.hub),
+       },
+       endPlacement: {
+         none: ep?.none != null ? toPos(ep.none) : { left: 0, right: 0, center: 0 },
+         L1: ep?.L1 != null ? toPos(ep.L1) : { left: 0, right: 0, center: 0 },
+         L2: ep?.L2 != null ? toPos(ep.L2) : { left: 0, right: 0, center: 0 },
+         L3: ep?.L3 != null ? toPos(ep.L3) : { left: 0, right: 0, center: 0 },
+       },
+       qualitative: Array.isArray(api.qualitative)
+         ? api.qualitative.map((q) => ({ ...q, rating: typeof q.rating === 'number' && !isNaN(q.rating) ? round10(q.rating) : q.rating }))
+         : [],
+       groundIntake: Boolean(api.intakeGround ?? api.groundIntake),
+       outpostIntake: Boolean(api.intakeOutpost ?? api.outpostIntake),
+       shootWhileMove: Boolean(api.shootWhileMove),
+       bumpTrav: Boolean(api.bump),
+       trenchTrav: Boolean(api.trench),
+       wideClimb: Boolean(api.wideClimb),
+     };
+   }
 
    useEffect(() => {
-     setLoading(false);
-   }, []);
+     if (!team) {
+       setLoading(false);
+       setData(null);
+       return;
+     }
+     setLoading(true);
+     setError(null);
+     fetch(`/api/get-team-data?team=${encodeURIComponent(team)}`)
+       .then((res) => {
+         if (!res.ok) throw new Error(res.status === 404 ? `No data for team ${team}` : "Failed to fetch data");
+         return res.json();
+       })
+       .then((apiData) => setData(normalizeTeamData(apiData)))
+       .catch((err) => {
+         setError(err.message);
+         setData(null);
+       })
+       .finally(() => setLoading(false));
+   }, [team]);
 
    function AllianceButtons({t1, t2, t3, colors}) {
-     console.log(searchParams.get('team6'))
      return <div className={styles.allianceBoard}>
        <Link href={`/team-view?team=${t1 || ""}&${searchParams.toString()}`}>
          <button style={team == t1 ? {background: 'black', color: 'yellow'} : {background: colors[0][1]}}>{t1 || 404}</button>
@@ -190,6 +220,14 @@ function TeamView() {
        );
    }
 
+   if (!data) {
+       return (
+           <div>
+               <h1>No data found for team {team}</h1>
+               {error && <p style={{ color: '#c00' }}>{error}</p>}
+           </div>
+       );
+   }
 
    const Colors = [
        //light to dark
@@ -382,48 +420,49 @@ function TeamView() {
                wonTele={data.wonTele}
              />
            </div>
+      
      <div className={styles.teleRightAlignment}>
        <div className={styles.alignElements}>
            <div className={styles.alignElements}>
              <div className={styles.rightColumnBoxesTwo}>
-          <div className={styles.teleBox3}>
-          <div className={styles.teleBox1}>
-           <VBox color1={Colors[2][2]} color2={Colors[2][0]} color3={Colors[2][2]} title={"Median Fuel"} value={Math.round(10*data.teleMedianFuel)/10} />
-           <div className={styles.teleBox2}>
-            <table className={styles.horizontalTable}> 
-              <tbody>
-                <tr>
-                  <td style={{backgroundColor: Colors[2][2]}} rowSpan="2">Passing</td>
-                  <td style={{backgroundColor: Colors[2][1]}}>Shooter</td>
-                  <td style={{backgroundColor: Colors[2][1]}}>Bulldozer</td>
-                  <td style={{backgroundColor: Colors[2][1]}}>Dump</td>
-                </tr>
-                <tr>
-                  <td style={{backgroundColor: Colors[2][0]}}>{data.passing.shooter}%</td>
-                  <td style={{backgroundColor: Colors[2][0]}}>{data.passing.bulldozer}%</td>
-                  <td style={{backgroundColor: Colors[2][0]}}>{data.passing.dump}%</td>
-                </tr>
-              </tbody>
-            </table>
-            <table className={styles.horizontalTable1}> 
-              <tbody>
-                <tr>
-                  <td style={{backgroundColor: Colors[2][2]}} rowSpan="2">Defense Quality</td>
-                  <td style={{backgroundColor: Colors[2][1]}}>Weak</td>
-                  <td style={{backgroundColor: Colors[2][1]}}>Harassment</td>
-                  <td style={{backgroundColor: Colors[2][1]}}>Game Changing</td>
-                </tr>
-                <tr>
-                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.weak}%</td>
-                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.harassment}%</td>
-                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.gameChanging}%</td>
-                </tr>
-              </tbody>
-            </table>
-            </div>
-          </div>
 
+          <div className={styles.desktopTables}>
+          <div className={styles.hBox}>
+            <VBox color1={Colors[2][2]} color2={Colors[2][0]} color3={Colors[2][2]} title={"Median Fuel"} value={Math.round(10*data.teleMedianFuel)/10} />
+            <div className={styles.hBox1}>
             <table className={styles.horizontalTable}> 
+                <tbody>
+                  <tr>
+                    <td style={{backgroundColor: Colors[2][2]}} rowSpan="2">Passing</td>
+                    <td style={{backgroundColor: Colors[2][1]}}>Shooter</td>
+                    <td style={{backgroundColor: Colors[2][1]}}>Bulldozer</td>
+                    <td style={{backgroundColor: Colors[2][1]}}>Dump</td>
+                  </tr>
+                  <tr>
+                    <td style={{backgroundColor: Colors[2][0]}}>{data.passing.shooter}%</td>
+                    <td style={{backgroundColor: Colors[2][0]}}>{data.passing.bulldozer}%</td>
+                    <td style={{backgroundColor: Colors[2][0]}}>{data.passing.dump}%</td>
+                  </tr>
+                </tbody>
+              </table>
+            <table className={styles.horizontalTable1}> 
+                <tbody>
+                  <tr>
+                    <td style={{backgroundColor: Colors[2][2]}} rowSpan="2">Defense Quality</td>
+                    <td style={{backgroundColor: Colors[2][1]}}>Weak</td>
+                    <td style={{backgroundColor: Colors[2][1]}}>Harassment</td>
+                    <td style={{backgroundColor: Colors[2][1]}}>Game Changing</td>
+                  </tr>
+                  <tr>
+                    <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.weak}%</td>
+                    <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.harassment}%</td>
+                    <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.gameChanging}%</td>
+                  </tr>
+                </tbody>
+              </table>
+              </div>
+            </div>
+            <table className={styles.horizontalDTable}> 
               <tbody>
                 <tr>
                   <td style={{backgroundColor: Colors[2][2]}} rowSpan="2">Defense</td>
@@ -447,6 +486,86 @@ function TeamView() {
               </tbody>
             </table>
             </div>
+
+          <div className={styles.mobileTables}>
+          <table className={styles.horizontalTable}> 
+              <tbody>
+                <tr>
+                  <td style={{backgroundColor: Colors[2][2]}} rowSpan="2">Passing</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Shooter</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Bulldozer</td>
+                  <td style={{backgroundColor: Colors[2][1]}}>Dump</td>
+                </tr>
+                <tr>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.passing.shooter}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.passing.bulldozer}%</td>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.passing.dump}%</td>
+                </tr>
+              </tbody>
+            </table>
+            <div className={styles.vDefBox}>
+              <div className={styles.vDefBox1}>
+                <VBox color1={Colors[2][2]} color2={Colors[2][0]} color3={Colors[2][2]} title={"Median Fuel"} value={Math.round(10*data.teleMedianFuel)/10} />
+                <table className={styles.verticalTable1}> 
+                  <tbody>
+                    <tr>
+                      <th style={{backgroundColor: Colors[2][2]}}>Defense Quality (v)</th>
+                      <td style={{backgroundColor: Colors[2][2]}}>%</td>
+                    </tr>
+                    <tr>
+                      <th style={{backgroundColor: Colors[2][1]}}>Weak</th>
+                      <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.weak}%</td>
+                    </tr>
+                    <tr>
+                      <th style={{backgroundColor: Colors[2][1]}}>Harassment</th>
+                      <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.harassment}%</td>
+                    </tr>
+                    <tr>
+                      <th style={{backgroundColor: Colors[2][1]}}>Game Changing</th>
+                      <td style={{backgroundColor: Colors[2][0]}}>{data.defenseQuality.gameChanging}%</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            <table className={styles.verticalDTable}> 
+              <tbody>
+                <tr>
+                  <th style={{backgroundColor: Colors[2][2]}}>Defense (v)</th>
+                  <td style={{backgroundColor: Colors[2][2]}}>%</td>
+                </tr>
+                <tr>
+                  <th style={{backgroundColor: Colors[2][1]}}>AZ</th>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.allianceZone}%</td>
+                </tr>
+                <tr>
+                  <th style={{backgroundColor: Colors[2][1]}}>NZ</th>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.neutralZone}%</td>
+                </tr>
+                <tr>
+                  <th style={{backgroundColor: Colors[2][1]}}>Trench</th>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.trench}%</td>
+                </tr>
+                <tr>
+                  <th style={{backgroundColor: Colors[2][1]}}>Bump</th>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.bump}%</td>
+                </tr>
+                <tr>
+                  <th style={{backgroundColor: Colors[2][1]}}>Tower</th>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.tower}%</td>
+                </tr>
+                <tr>
+                  <th style={{backgroundColor: Colors[2][1]}}>Outpost</th>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.outpost}%</td>
+                </tr>
+                <tr>
+                  <th style={{backgroundColor: Colors[2][1]}}>Hub</th>
+                  <td style={{backgroundColor: Colors[2][0]}}>{data.defenseLocation.hub}%</td>
+                </tr>
+              </tbody>
+            </table>
+            </div>
+          </div>
+
             </div>
          </div>
        </div>

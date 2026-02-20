@@ -13,7 +13,7 @@ export default function Endgame({ data, color }) {
   }
   return (
     <VictoryPie
-      padding={100}
+      padding={80}
       data={data}
       colorScale={color}
       labels={({ datum }) => `${datum.x}: ${Math.round(datum.y)}%`}
