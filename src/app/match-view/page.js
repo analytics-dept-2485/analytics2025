@@ -412,10 +412,9 @@ function ScoutingApp() {
         <AllianceButtons t1={data.team4 || defaultTeam} t2={data.team5 || defaultTeam} t3={data.team6 || defaultTeam} colors={[COLORS[0], COLORS[1], COLORS[2]]}></AllianceButtons>
       </div>
 
-          <div className={styles.allianceBoard}>
-            {/* Red Alliance - LEFT SIDE */}
-            <div className={styles.allianceColumn}>
-              <div className={styles.EPABox} style={{ backgroundColor: '#FFD4DC', borderColor: '#8B0000' }}>
+  <div className={styles.allianceHeadRow}>
+    <div className={styles.headWidthRed}>
+      <div className={styles.EPABox} style={{ backgroundColor: '#FFD4DC', borderColor: '#8B0000' }}>
                 <div className={styles.epaLabel}>EPA</div>
                 <div className={styles.epaValue}>{matchData.redAlliance.totalEPA}</div>
               </div>
@@ -426,19 +425,42 @@ function ScoutingApp() {
               </div>
               <div className={styles.RPs}>
                 <div className={styles.rpLabel}>RPs</div>
-                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.victory ? '#C8F5D4' : '#fff' }}>Victory</div>
-                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.energized ? '#C8F5D4' : '#fff' }}>Energized</div>
-                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.supercharged ? '#C8F5D4' : '#fff' }}>Supercharged</div>
-                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.traversal ? '#C8F5D4' : '#fff' }}>Traversal</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.victory ? '#C8F5D4' : '#FF7F7F' }}>Victory</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.energized ? '#C8F5D4' : '#FF7F7F' }}>Energized</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.supercharged ? '#C8F5D4' : '#FF7F7F' }}>Supercharged</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.redAlliance.rps.traversal ? '#C8F5D4' : '#FF7F7F' }}>Traversal</div>
               </div>
+          </div>
+              <div className={styles.headWidthBlue}>
+      <div className={styles.EPABox} style={{ backgroundColor: '#D4E8F5', borderColor: '#00008B' }}>
+                <div className={styles.epaLabel}>EPA</div>
+                <div className={styles.epaValue}>{matchData.blueAlliance.totalEPA}</div>
+              </div>
+              <div className={styles.EPABreakdown}>
+                <div style={{ backgroundColor: '#8FA5F5', borderColor: '#00008B' }}>A: {matchData.blueAlliance.autoEPA}</div>
+                <div style={{ backgroundColor: '#8FA5F5', borderColor: '#00008B' }}>T: {matchData.blueAlliance.teleEPA}</div>
+                <div style={{ backgroundColor: '#8FA5F5', borderColor: '#00008B' }}>E: {matchData.blueAlliance.endgameEPA}</div>
+              </div>
+              <div className={styles.RPs}>
+                <div className={styles.rpLabel}>RPs</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.victory ? '#C8F5D4' : '#FF7F7F' }}>Victory</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.energized ? '#C8F5D4' : '#FF7F7F' }}>Energized</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.supercharged ? '#C8F5D4' : '#FF7F7F' }}>Supercharged</div>
+                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.traversal ? '#C8F5D4' : '#FF7F7F' }}>Traversal</div>
+              </div>
+            </div>
+          </div>
+          <div className={styles.allianceBoard}>
+            {/* Red Alliance - LEFT SIDE */}
+            <div className={styles.allianceColumn}>
               <div className={styles.chartSection}>
                 <h2>Fuel Distribution</h2>
                 <div className={styles.pieChartWrapper}>
-                  <Endgame colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} endgameData={redFuelData} />
+                  <Endgame colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} endgameData={redFuelData} />
                 </div>
               </div>
               <div className={styles.radarSection}>
-                <Qualitative radarData={radarData} teamIndices={[1, 2, 3]} colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} teamNumbers={[1, 2, 3]} />
+                <Qualitative radarData={radarData} teamIndices={[1, 2, 3]} colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} teamNumbers={[1, 2, 3]} />
               </div>
             </div>
 
@@ -450,30 +472,14 @@ function ScoutingApp() {
 
             {/* Blue Alliance - RIGHT SIDE */}
             <div className={styles.allianceColumn}>
-              <div className={styles.EPABox} style={{ backgroundColor: '#D4E8F5', borderColor: '#00008B' }}>
-                <div className={styles.epaLabel}>EPA</div>
-                <div className={styles.epaValue}>{matchData.blueAlliance.totalEPA}</div>
-              </div>
-              <div className={styles.EPABreakdown}>
-                <div style={{ backgroundColor: '#8FA5F5', borderColor: '#00008B' }}>A: {matchData.blueAlliance.autoEPA}</div>
-                <div style={{ backgroundColor: '#8FA5F5', borderColor: '#00008B' }}>T: {matchData.blueAlliance.teleEPA}</div>
-                <div style={{ backgroundColor: '#8FA5F5', borderColor: '#00008B' }}>E: {matchData.blueAlliance.endgameEPA}</div>
-              </div>
-              <div className={styles.RPs}>
-                <div className={styles.rpLabel}>RPs</div>
-                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.victory ? '#C8F5D4' : '#fff' }}>Victory</div>
-                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.energized ? '#C8F5D4' : '#fff' }}>Energized</div>
-                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.supercharged ? '#C8F5D4' : '#fff' }}>Supercharged</div>
-                <div className={styles.rpCell} style={{ backgroundColor: matchData.blueAlliance.rps.traversal ? '#C8F5D4' : '#fff' }}>Traversal</div>
-              </div>
               <div className={styles.chartSection}>
                 <h2>Fuel Distribution</h2>
                 <div className={styles.pieChartWrapper}>
-                  <Endgame colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} endgameData={blueFuelData} />
+                  <Endgame colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} endgameData={blueFuelData} />
                 </div>
               </div>
               <div className={styles.radarSection}>
-                <Qualitative radarData={redRadarData} teamIndices={[1, 2, 3]} colors={[COLORS[3][1], COLORS[4][1], COLORS[5][1]]} teamNumbers={[1, 2, 3]} />
+                <Qualitative radarData={redRadarData} teamIndices={[1, 2, 3]} colors={[COLORS[0][1], COLORS[1][1], COLORS[2][1]]} teamNumbers={[1, 2, 3]} />
               </div>
             </div>
           </div>
