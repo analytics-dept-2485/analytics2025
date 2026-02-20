@@ -27,6 +27,7 @@ export default function EndPlacement () {
                 <input name="endlocation" type="radio" id="DeepSuccess" value={4} onChange={(e) => setEndLocation(e.target.value)}></input>
                 <label htmlFor="DeepSuccess">Deep Cage</label>
             </div>
+            <button type="button" className="Clear" onClick={() => setEndLocation(-1)}>Clear</button>
         </div>
     )
 }

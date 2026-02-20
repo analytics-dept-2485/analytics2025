@@ -6,6 +6,8 @@
     padding: 7px;
     width: 324px;
     justify-self: center;
+    height: 40px;
+    align-items: center;
   }
   
   .radioGroup {

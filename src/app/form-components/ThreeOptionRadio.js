@@ -1,57 +1,55 @@
 "use client";
 import { useState, useEffect } from 'react';
-import styles from './AutoClimb.module.css';
+import styles from './ThreeOptionRadio.module.css';
 
-export default function AutoClimb({ onClimbChange, defaultValue }) {
-    const [selectedType, setSelectedType] = useState(defaultValue);
+export default function ThreeOptionRadio({ onThreeOptionRadioChange, defaultValue, internalName, value1, value2, value3 }) {
+    const [selectedOption, setSelectedOption] = useState();
 
     useEffect(() => {
         if (defaultValue) {
-            setSelectedType(defaultValue);
-            onClimbChange(defaultValue)
+            setSelectedOption(defaultValue);
+            onThreeOptionRadioChange(defaultValue)
         }
-    }, [setSelectedType, onClimbChange]);
+    }, [setSelectedOption, onThreeOptionRadioChange]);
 
     const handleChange = (e) => {
         const newValue = e.target.value;
-        setSelectedType(newValue);
-        onClimbChange(newValue);
+        setSelectedOption(newValue);
+        onThreeOptionRadioChange(newValue);
     };
-    console.log("climbYesNo",selectedType);
-    console.log("default value",defaultValue)
 
     return (
-        <div className={styles.ClimbYesNo}>
+        <div className={styles.Container}>
             <div className={styles.radioGroup}>
                 <label>
                     <input
                         type="radio"
-                        name="climbYesNo"
+                        name={internalName}
                         value="0"
-                        checked={selectedType === "0"}
+                        checked={selectedOption === "0"}
                         onChange={handleChange}
                     />
-                    None
+                    {value1}
                 </label>
                 <label>
                     <input
                         type="radio"
-                        name="climbYesNo"
+                        name={internalName}
                         value="1"
-                        checked={selectedType === "1"}
+                        checked={selectedOption === "1"}
                         onChange={handleChange}
                     />
-                    Fail
+                    {value2}
                 </label>
                 <label>
                     <input
                         type="radio"
-                        name="climbYesNo"
+                        name={internalName}
                         value="2"
-                        checked={selectedType === "2"}
+                        checked={selectedOption === "2"}
                         onChange={handleChange}
                     />
-                    Success
+                    {value3}
                 </label>
             </div>
         </div>

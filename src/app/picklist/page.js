@@ -1,9 +1,10 @@
 'use client';
 
 import styles from "./page.module.css";
-import { useEffect, useState, useRef, memo } from "react";
+import { useEffect, useState, useRef} from "react";
 
 export default function Picklist() {
+  console.log("yes?");
   const [fields, setFields] = useState([]);
   const [picklist, setPicklist] = useState([]);
   const [maxScore, setMaxScore] = useState(1);
@@ -25,7 +26,7 @@ export default function Picklist() {
     const urlParams = new URLSearchParams(window.location.search);
   
     // Weight keys filter
-    const weightKeys = ['epa', 'last3epa', 'consistency', 'auto', 'tele', 'end', 'coral', 'algae', 'defense'];
+    const weightKeys = ['epa', 'last3epa', 'fuel', 'tower', 'passing', 'defense', 'auto', 'consistency'];
     const urlWeights = Object.fromEntries(
       Array.from(urlParams).filter(([key]) => weightKeys.includes(key))
     );
@@ -64,59 +65,12 @@ export default function Picklist() {
     
     const picklist = await fetch('/api/compute-picklist', {
       method: 'POST',
-      body: JSON.stringify(weightEntries)
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(weightEntries),
     }).then(resp => resp.json());
-    
 
-    // Static data
-    // const picklist = [
-    //   {
-    //     team: 2485,
-    //     score: 0.95,
-    //     firstRanking: 4,
-    //     epa: 0.9,
-    //     auto: 0.85,
-    //     tele: 0.95,
-    //     end: 0.8,
-    //     cage: 0.75,
-    //     consistency: 0.95,
-    //     coral: 0.9,
-    //     algae: 0.85,
-    //     defense: 0.7
-    //   },
-    //   {
-    //     team: 1678,
-    //     score: 0.75,
-    //     firstRanking: 3,
-    //     epa: 0.7,
-    //     auto: 0.8,
-    //     tele: 0.75,
-    //     end: 0.7,
-    //     cage: 0.8,
-    //     consistency: 0.75,
-    //     coral: 0.8,
-    //     algae: 0.7,
-    //     defense: 0.75
-    //   },
-    //   {
-    //     team: 254,
-    //     score: 0.85,
-    //     firstRanking: 2,
-    //     epa: 0.8,
-    //     auto: 0.75,
-    //     tele: 0.85,
-    //     end: 0.9,
-    //     cage: 0.85,
-    //     consistency: 0.8,
-    //     coral: 0.75,
-    //     algae: 0.8,
-    //     defense: 0.85
-    //   },
-    // ];
-    
-
-    setPicklist(picklist);
-    setMaxScore(picklist[0].score);
+    setPicklist(Array.isArray(picklist) ? picklist : []);
+    setMaxScore(Array.isArray(picklist) && picklist.length > 0 ? picklist[0].score : 1);
     setWeightsChanged(false);
   }
 
@@ -147,26 +101,26 @@ export default function Picklist() {
         <tr>
           <td><label htmlFor="epa">EPA:</label></td>
           <td><input id="epa" type="number" value={weights.epa || 0} name="epa" onChange={handleWeightChange}></input></td>
-          <td><label htmlFor="tele">Tele:</label></td>
-          <td><input id="tele" type="number" value={weights.tele || 0} name="tele" onChange={handleWeightChange}></input></td>
-          <td><label htmlFor="coral">Coral:</label></td>
-          <td><input id="coral" type="number" value={weights.coral || 0} name="coral" onChange={handleWeightChange}></input></td>
-        </tr>
-        <tr>
-          <td><label htmlFor="last3epa">Last 3:</label></td>
+          <td><label htmlFor="last3epa">Last 3 EPA:</label></td>
           <td><input id="last3epa" type="number" value={weights.last3epa || 0} name="last3epa" onChange={handleWeightChange}></input></td>
-          <td><label htmlFor="auto">Auto:</label></td>
-          <td><input id="auto" type="number" value={weights.auto || 0} name="auto" onChange={handleWeightChange}></input></td>
-          <td><label htmlFor="algae">Algae:</label></td>
-          <td><input id="algae" type="number" value={weights.algae || 0} name="algae" onChange={handleWeightChange}></input></td>
         </tr>
         <tr>
-          <td><label htmlFor="consistency">Cnstcy:</label></td>
-          <td><input id="consistency" type="number" value={weights.consistency || 0} name="consistency" onChange={handleWeightChange}></input></td>
-          <td><label htmlFor="end">End:</label></td>
-          <td><input id="end" type="number" value={weights.end || 0} name="end" onChange={handleWeightChange}></input></td>
+          <td><label htmlFor="fuel">Fuel:</label></td>
+          <td><input id="fuel" type="number" value={weights.fuel || 0} name="fuel" onChange={handleWeightChange}></input></td>
+          <td><label htmlFor="tower">Tower:</label></td>
+          <td><input id="tower" type="number" value={weights.tower || 0} name="tower" onChange={handleWeightChange}></input></td>
+        </tr>
+        <tr>
+          <td><label htmlFor="passing">Passing:</label></td>
+          <td><input id="passing" type="number" value={weights.passing || 0} name="passing" onChange={handleWeightChange}></input></td>
           <td><label htmlFor="defense">Defense:</label></td>
           <td><input id="defense" type="number" value={weights.defense || 0} name="defense" onChange={handleWeightChange}></input></td>
+        </tr>
+        <tr>
+          <td><label htmlFor="auto">Auto:</label></td>
+          <td><input id="auto" type="number" value={weights.auto || 0} name="auto" onChange={handleWeightChange}></input></td>
+          <td><label htmlFor="consistency">Cnstcy:</label></td>
+          <td><input id="consistency" type="number" value={weights.consistency || 0} name="consistency" onChange={handleWeightChange}></input></td>
         </tr>
       </tbody>
     </table>
@@ -209,10 +163,12 @@ export default function Picklist() {
   }
 
   useEffect(() => {
+    console.log('useEffect starting...');
     setIsClient(true);
-  
+    console.log('isClient set to true');
     // First, try to load alliance data from localStorage
     const storedAlliances = localStorage.getItem('allianceData');
+    console.log('Retrieved from localStorage:', storedAlliances);
     let localStorageAlliances = {};
     if (storedAlliances) {
       localStorageAlliances = JSON.parse(storedAlliances);
@@ -384,7 +340,7 @@ const handleAllianceClear = () => {
     }
     
 
-    const roundToThree = (x) => Math.round(x * 1000) / 1000;
+    const roundToThree = (x) => (typeof x !== 'number' || isNaN(x)) ? 0 : Math.round(x * 1000) / 1000;
     
 
     return (
@@ -394,18 +350,17 @@ const handleAllianceClear = () => {
           <table className={styles.picklistTable} id="teamTable">
           <thead>
           <tr>
-            <th>Picklist Rank</th>
-            <th>TBA Rank</th>
+            <th>Rank</th>
+            <th>TBA</th>
             <th>Team</th>
             <th>EPA</th>
-            <th>Last 3 EPA</th>
-            <th>Auto</th>
-            <th>Tele</th>
-            <th>End</th>
-            <th>Cnstcy</th>
-            <th>Coral</th>
-            <th>Algae</th>
+            <th>Last 3</th>
+            <th>Fuel</th>
+            <th>Tower</th>
+            <th>Passing</th>
             <th>Defense</th>
+            <th>Auto</th>
+            <th>Cnstcy</th>
             <th>Rating</th>
             <th>Comments</th>
           </tr>
@@ -422,10 +377,6 @@ const handleAllianceClear = () => {
                   <tr key={teamData.team}>
                     <td>
                       <div className={styles.picklistRank}>
-                        {/* <div className={styles.arrows}>
-                          <button onClick={() => handleUp()}>⬆️</button>
-                          <button onClick={() => handleDown()}>⬇️</button>
-                        </div> */}
                         {displayRank}
                       </div>
                     </td>
@@ -437,13 +388,12 @@ const handleAllianceClear = () => {
                       </td>
                       <td style={{ backgroundColor: valueToColor(teamData.epa) }}>{roundToThree(teamData.epa)}</td>
                       <td style={{ backgroundColor: valueToColor(teamData.last3epa) }}>{roundToThree(teamData.last3epa)}</td>
-                      <td style={{ backgroundColor: valueToColor(teamData.auto) }}>{roundToThree(teamData.auto)}</td>
-                      <td style={{ backgroundColor: valueToColor(teamData.tele) }}>{roundToThree(teamData.tele)}</td>
-                      <td style={{ backgroundColor: valueToColor(teamData.end) }}>{roundToThree(teamData.end)}</td>
-                      <td style={{ backgroundColor: valueToColor(teamData.consistency) }}>{roundToThree(teamData.consistency)}</td>
-                      <td style={{ backgroundColor: valueToColor(teamData.coral) }}>{roundToThree(teamData.coral)}</td>
-                      <td style={{ backgroundColor: valueToColor(teamData.algae) }}>{roundToThree(teamData.algae)}</td>
+                      <td style={{ backgroundColor: valueToColor(teamData.fuel) }}>{roundToThree(teamData.fuel)}</td>
+                      <td style={{ backgroundColor: valueToColor(teamData.tower) }}>{roundToThree(teamData.tower)}</td>
+                      <td style={{ backgroundColor: valueToColor(teamData.passing) }}>{roundToThree(teamData.passing)}</td>
                       <td style={{ backgroundColor: valueToColor(teamData.defense) }}>{roundToThree(teamData.defense)}</td>
+                      <td style={{ backgroundColor: valueToColor(teamData.auto) }}>{roundToThree(teamData.auto)}</td>
+                      <td style={{ backgroundColor: valueToColor(teamData.consistency) }}>{roundToThree(teamData.consistency)}</td>
                       <td>
                         {teamRatings[teamData.team] !== true &&
                           <button onClick={() => handleThumbsUp(teamData.team)}>✅</button>

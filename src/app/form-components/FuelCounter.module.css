@@ -1,8 +1,7 @@
-
 .IncButton {
     background-color: #9DE387;
-    border: 1px solid black; 
-    color: black;
+    border: 1px solid rgb(255, 255, 255); 
+    color: rgb(7, 85, 0);
     padding: 5px 10px;
     cursor: pointer;
     width: 67px;
@@ -13,8 +12,8 @@
 
 .DecButton {
     background-color: #FFC1C1; 
-    border: 1px solid black;
-    color: black;
+    border: 1px solid rgb(255, 255, 255);
+    color: rgb(108, 0, 0);
     padding: 5px 10px;
     cursor: pointer;
     width: 67px;

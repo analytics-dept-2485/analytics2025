@@ -13,6 +13,10 @@ import JSConfetti from 'js-confetti';
 import FuelCounter from "./form-components/FuelCounter";
 import AutoClimb from "./form-components/AutoClimb";
 import autoClimbStyles from "./form-components/AutoClimb.module.css";
+import ClimbCheckbox from "./form-components/ClimbCheckbox";
+import DefenseBreakdown from "./form-components/DefenseBreakdown";
+import ThreeOptionRadio from "./form-components/ThreeOptionRadio";
+import TwoOptionRadio from "./form-components/TwoOptionRadio";
 
 export default function Home() {
   const [noShow, setNoShow] = useState(false);
@@ -21,7 +25,9 @@ export default function Home() {
   const [matchType, setMatchType] = useState("2");
   const [scoutProfile, setScoutProfile] = useState(null);
   const [climbYesNo, setClimbYesNo] = useState("0");
-  const [climbPosition, setClimbPosition] = useState("0");
+  const [climbPosition, setClimbPosition] = useState(null); // Will be "0", "1", or "2" for auto climb position
+  const [defenseType, setDefenseType] = useState("");
+  const [shootingMechanism, setShootingMechanism] = useState("");
 
   const form = useRef();
 
@@ -45,16 +51,22 @@ export default function Home() {
     let checked = e.target.checked;
     setBreakdown(checked);
   }
+
   function onDefenseChange(e) {
     let checked = e.target.checked;
     setDefense(checked);
+    if (!checked) {
+      setDefenseType(""); // Clear defense type when unchecked
+    }
   }
 
+  function onDefenseTypeChange(value) {
+    setDefenseType(value);
+  }
   
   function handleMatchTypeChange(value){
     setMatchType(value);
     console.log("Selected match type:", value);
-
 };
 
   function handleClimbYesNo (value) {
@@ -67,15 +79,19 @@ export default function Home() {
     console.log("Selected climb position:", value);
 };
 
+  function handleShootingMechanism (value) {
+    setShootingMechanism(value);
+};
+
   // added from last years code (still review)
   async function submit(e) {
     e.preventDefault();
     //disable submit
-    let submitButton = document.querySelector("#submit");//todo: get changed to a useRef
+    let submitButton = document.querySelector("#submit");
     submitButton.disabled = true;
     //import values from form to data variable
 
-    let data = {noshow: false, leave: false, algaelowreefintake: false, algaehighreefintake: false, algaegrndintake: false, coralgrndintake: false, coralstationintake: false, srcintake: false, breakdown: false, defense: false, stageplacement: -1, breakdowncomments: null, defensecomments: null, generalcomments: null };
+    let data = { noshow: false, breakdowncomments: null, defensecomments: null, generalcomments: null };
     [...new FormData(form.current).entries()].forEach(([name, value]) => {
       if (value == 'on') {
         data[name] = true;
@@ -88,35 +104,145 @@ export default function Home() {
       }
     });
      
-    //clear unneeded checkbox values
-    data.breakdown = undefined;
-    data.defense = undefined;
+    // Map form field names to API field names and convert data types
+    
+    // Auto Climb: climbYesNo (string "0","1","2") -> autoclimb (integer 0=None, 1=Fail, 2=Success)
+    if (data.climbYesNo !== undefined) {
+      data.autoclimb = parseInt(data.climbYesNo);
+      delete data.climbYesNo;
+    }
+    
+    if (data.autoClimbPosition !== undefined && data.autoclimb === 2) {
+      data.autoclimbposition = parseInt(data.autoClimbPosition);
+      delete data.autoClimbPosition;
+    } else {
+      data.autoclimbposition = null;
+      delete data.autoClimbPosition;
+    }
+    
+  
+    // 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1, 9=None
+    if (data.endClimbPosition !== undefined && data.endClimbPosition !== null && data.endClimbPosition !== "") {
+      data.endclimbposition = parseInt(data.endClimbPosition);
+      delete data.endClimbPosition;
+    } else {
+      data.endclimbposition = null;
+      delete data.endClimbPosition;
+    }
 
-    //check pre-match data
+    // WideClimb: checkbox (true if checked)
+    data.wideclimb = data.wideclimb === true;
+    
+    // Shooting Mechanism: staticShooting radio -> shootingmechanism (0=Static, 1=Turret)
+    // const staticShootingRadio = document.querySelector('input[name="staticShooting"]:checked');
+    // if (staticShootingRadio) {
+    //   const label = staticShootingRadio.closest('label');
+    //   const labelText = label ? label.textContent.trim() : "";
+    //   if (labelText === "Static") {
+    //     data.shootingmechanism = 0;
+    //   } else if (labelText === "Turret") {
+    //     data.shootingmechanism = 1;
+    //   } else {
+
+    //     data.shootingmechanism = 0;
+    //   }
+    // } else {
+
+    //   data.shootingmechanism = 0;
+    // }
+    // delete data.staticShooting;
+    
+
+    data.fuelpercent = (data.percentfuel != null && data.percentfuel !== "")
+      ? (parseInt(String(data.percentfuel).replace('%', '').trim(), 10) || 0)
+      : 0;
+    delete data.percentfuel;
+    
+// After setting playeddefense
+const playedDefenseValue = data.defense === true;
+data.playeddefense = playedDefenseValue;
+delete data.defense; 
+
+// Map defense type to numeric value
+if (playedDefenseValue && defenseType) {
+  data.defense = Number(defenseType);
+// const defenseMap = {
+//   "Weak": 0,
+//   "Harassment": 1,
+//   "Game Changing": 2,
+  //};
+  //data.defense = defenseMap[defenseType] !== undefined ? defenseMap[defenseType] : null;
+} else {
+  data.defense = null;
+}
+    
+    
+    if (Array.isArray(data.defenselocationoutpost)) {
+      data.defenselocationoutpost = data.defenselocationoutpost.some(v => v === true);
+    } else {
+      data.defenselocationoutpost = data.defenselocationoutpost === true;
+    }
+    data.defenselocationtower = data.defenselocationtower === true;
+    data.defenselocationhub = data.defenselocationhub === true;
+    data.defenselocationnz = data.defenselocationnz === true;
+    data.defenselocationtrench = data.defenselocationtrench === true;
+    data.defenselocationbump = data.defenselocationbump === true;
+
+    data.intakeground = data.intakeground === true;
+    data.intakeoutpost = data.intakeoutpost === true;
+    data.passingbulldozer = data.passingbulldozer === true;
+    data.passingshooter = data.passingshooter === true;
+    data.passingdump = data.passingdump === true;
+    
+    // Field name fixes: normalize to lowercase with no spaces
+    // "win auto" -> "winauto" (unchecked = not in FormData, so default false)
+    data.winauto = data["win auto"] === true;
+    delete data["win auto"];
+
+    data.autofuel = data["auto fuel"] != null && data["auto fuel"] !== "" ? Number(data["auto fuel"]) : 0;
+    delete data["auto fuel"];
+
+    data.telefuel = data["tele fuel"] != null && data["tele fuel"] !== "" ? Number(data["tele fuel"]) : 0;
+    delete data["tele fuel"];
+
+    data.shootwhilemove = (data["shoot while move"] === true || data.shootwhilemove === true);
+    delete data["shoot while move"];
+
+    data.stuckonfuel = (data["stuckOnFuel"] === true || data.stuckonfuel === true);
+    delete data["stuckOnFuel"];
+
+    data.bump = data.bump === true;
+    data.trench = data.trench === true;
+
+    data.breakdown = undefined;
+
+    //check pre-match data (skip percentfuel — 0% is valid)
     let preMatchInputs = document.querySelectorAll(".preMatchInput"); //todo: use the data object
     for (let preMatchInput of preMatchInputs) {
-      if(preMatchInput.value == "" || preMatchInput.value <= "0") {
+      if (preMatchInput.name === "percentfuel") continue; // allow 0 for percent fuel
+      if (preMatchInput.value == "" || preMatchInput.value <= "0") {
         alert("Invalid Pre-Match Data!");
         submitButton.disabled = false;
         return;
-      } 
+      }
     }
     if (matchType == 2) {
-      try {
-        const response = await fetch(`/api/get-valid-team?team=${data.team}&match=${data.match}`)
-        const validationData = await response.json();
+      // try {
+      //   const response = await fetch(`/api/get-valid-team?team=${data.team}&match=${data.match}`)
+      //   const validationData = await response.json();
         
-        if (!validationData.valid) {
-          alert("Invalid Team and Match Combination!");
-          submitButton.disabled = false;
-          return;
-        }
-      } catch (error) {
-        console.error("Validation error:", error);
-        alert("Error validating team and match. Please try again.");
-        submitButton.disabled = false;
-        return;
-      } 
+      //   if (!validationData.valid) {
+      //     alert("Invalid Team and Match Combination!");
+      //     submitButton.disabled = false;
+      //     return;
+      //   }
+      // } catch (error) {
+      //   console.error("Validation error:", error);
+      //   alert("Error validating team and match. Please try again.");
+      //   submitButton.disabled = false;
+      //   return;
+      // } 
+    // }
     } else {
       try {
         const response = await fetch(`/api/get-valid-match-teams?team=${data.team}`)
@@ -134,6 +260,7 @@ export default function Home() {
         return;
       } 
     }
+
     //confirm and submit
     if (confirm("Are you sure you want to submit?") == true) {
       fetch('/api/add-match-data', {
@@ -150,7 +277,7 @@ export default function Home() {
         alert("Thank you!");
         const jsConfetti = new JSConfetti();
         jsConfetti.addConfetti({
-        emojis: ['🐠', '🐡', '🦀', '🪸'],
+        emojis: ['🪲', '🪲','🟡', '🟡', '🟡', '🔎', '🟡'],
         emojiSize: 100,
         confettiRadius: 3,
         confettiNumber: 100,
@@ -228,88 +355,146 @@ console.log("page",matchType)
         </div>
         {!noShow && (
           <>
+          <br></br>
             <div className={styles.Auto}>
               <Header headerName={"Auto"}/>
 
               <FuelCounter internalName={"auto fuel"}/>
             <div className={styles.AutoClimb}>
               <SubHeader subHeaderName={"Climb"}></SubHeader>
-
-              <AutoClimb 
-                onClimbChange={handleClimbYesNo} 
+              <ThreeOptionRadio
+                onThreeOptionRadioChange={handleClimbYesNo}
+                internalName="climbYesNo"
                 defaultValue={climbYesNo}
+                value1="None"
+                value2="Fail"
+                value3="Success"
               />
-            
+              {climbYesNo === "2" && (
+                <ThreeOptionRadio
+                  onThreeOptionRadioChange={handleClimbPosition}
+                  internalName="autoClimbPosition"
+                  defaultValue={climbPosition}
+                  value1="Left"
+                  value2="Center"
+                  value3="Right"
+                />
+                )}
               
-              {climbYesNo === "1" && (
-                <div className={autoClimbStyles.ClimbYesNo}>
-                  <div className={autoClimbStyles.radioGroup}>
-                    <label>
-                      <input
-                        type="radio"
-                        name="climbPosition"
-                        value="1"
-                        checked={climbPosition === "1"}
-                        onChange={(e) => handleClimbPosition(e.target.value)}
-                      />
-                      Left
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="climbPosition"
-                        value="2"
-                        checked={climbPosition === "2"}
-                        onChange={(e) => handleClimbPosition(e.target.value)}
-                      />
-                      Center
-                    </label>
-                    <label>
-                      <input
-                        type="radio"
-                        name="climbPosition"
-                        value="3"
-                        checked={climbPosition === "3"}
-                        onChange={(e) => handleClimbPosition(e.target.value)}
-                      />
-                      Right
-                    </label>
-                  </div>
-                </div>
-              )}
           </div>
               <Checkbox visibleName={"Win Auto?"} internalName={"win auto"}/>
             </div>
               
-              
+              <br></br>
+              <br></br>
             <div className={styles.Tele}>
-              <Header headerName={"Tele"}/>
+             <Header headerName={"Tele"}/>
 
-              <p>fuel</p>
 
-              <p>intake</p>
+             <br></br>
 
-              <p>passing</p>
 
-              <p>shoot while move?</p>
+             <SubHeader subHeaderName={"Intake"}></SubHeader>
+             <div className={styles.intakeBox}>
+               <Checkbox visibleName={"Ground"} internalName={"intakeground"}></Checkbox>
+               <Checkbox visibleName={"Outpost"} internalName={"intakeoutpost"}></Checkbox>
+             </div>
+
+
+             <br></br>
+             <br></br>
+
+
+             <FuelCounter internalName={"tele fuel"}/>
+             <Checkbox visibleName={"Shoot while move?"} internalName={"shootwhilemove"}></Checkbox>
+             <br></br>
+             <br></br>
+             <SubHeader subHeaderName={"Passing?"}></SubHeader>
+             <div className={styles.passingBox}>
+               <Checkbox visibleName={"Bulldozer"} internalName={"passingbulldozer"}></Checkbox>
+               <Checkbox visibleName={"Dumper"} internalName={"passingdump"}></Checkbox>
+               <Checkbox visibleName={"Shooter"} internalName={"passingshooter"}></Checkbox>
+             </div>
+             <br></br>
+             <SubHeader subHeaderName={"Defense Location"}></SubHeader>
+             <div className={styles.defenseBox}>
+               <Checkbox visibleName={"Alliance Zone"} internalName={"defenselocationoutpost"}></Checkbox>
+               <Checkbox visibleName={"Neutral Zone"} internalName={"defenselocationnz"}></Checkbox>
+               <Checkbox visibleName={"Bump"} internalName={"defenselocationbump"}></Checkbox>
+               <Checkbox visibleName={"Trench"} internalName={"defenselocationtrench"}></Checkbox>
+               <Checkbox visibleName={"Tower"} internalName={"defenselocationtower"}></Checkbox>
+               <Checkbox visibleName={"Hub"} internalName={"defenselocationhub"}></Checkbox>
+               <Checkbox visibleName={"Outpost"} internalName={"defenselocationoutpost"}></Checkbox>
+             </div>
+           </div>
+           <div className={styles.PostMatch}>
+            <Header headerName={"Endgame"}/>
+            <br></br>
+            <SubHeader subHeaderName={"Climb"}></SubHeader>
+            <div>
+              <ClimbCheckbox></ClimbCheckbox>
             </div>
 
+            <Checkbox visibleName={"Wide Climb?"} internalName={"wideclimb"} />
 
-            <div className={styles.PostMatch}>
-              <br></br>
+           </div>
+
+
+            <div className={styles.PostMatch}>       
               <Header headerName={"Post-Match"}/>
-                <p>shooting mechanism</p>
-                <p>hopper capacity</p>
-                <p>bump or trench?</p>
-                <p>defense quality</p>
-                <p>defense location</p>
-                <p>breakdown</p>
-                <p>stuck on fuel</p>
+              <br></br>
+                <div className={styles.percentFuel}>
+                  <TextInput 
+                    visibleName={"% of Alliance Fuel Scored by Robot:"} 
+                    internalName={"percentfuel"} 
+                    defaultValue={""}
+                    type={"text"}
+                  />
+                </div>
+
+                <br></br>
+
+                <SubHeader subHeaderName={"Shooting Mechanism"}></SubHeader>
+                <div className= {styles.shootingBox}>
+                  <TwoOptionRadio
+                    onTwoOptionRadioChange={handleShootingMechanism}
+                    internalName="shootingmechanism"
+                    defaultValue={shootingMechanism}
+                    value1="Static"
+                    value2="Turret"
+                  />
+                  {/* <div className={autoClimbStyles.radioGroup}>
+                    <label>
+                        <input
+                          type="radio"
+                          name="staticShooting"
+                        />
+                        Static
+                    </label>
+
+                    <label>
+                        <input
+                          type="radio"
+                          name="turretShooting"
+                        />
+                        Turret
+                    </label>
+                  </div> */}
+                </div>
+                <br></br>
+
+                <SubHeader subHeaderName={"Terrain Capability"}></SubHeader>
+                <div className={styles.terrainBox}>
+                  <Checkbox visibleName={"Bump"} internalName={"bump"}></Checkbox>
+                  <Checkbox visibleName={"Trench"} internalName={"trench"}></Checkbox>
+                </div>
+
+                <Checkbox visibleName={"Stuck on Fuel Easily?"} internalName={"stuckOnFuel"} />
               
                 <div className={styles.Qual}>
                   <Qualitative                   
                     visibleName={"Hopper Capacity"}
-                    internalName={"Hopper Capacity"}
+                    internalName={"hoppercapacity"}
                     description={"Hopper Capacity"}/>
                   <Qualitative                   
                     visibleName={"Maneuverability"}
@@ -356,13 +541,14 @@ console.log("page",matchType)
                 </div>
               <br></br>
 
-              <Checkbox visibleName={"Broke down?"} internalName={"breakdown"} changeListener={onBreakdownChange} />
-              { breakdown &&
-                <CommentBox
-                  visibleName={"Breakdown Elaboration"}
-                  internalName={"breakdowncomments"}
-                />
-              }
+              <DefenseBreakdown 
+                onBreakdownChange={onBreakdownChange}
+                onDefenseChange={onDefenseChange}
+                onDefenseTypeChange={onDefenseTypeChange}
+                breakdownValue={breakdown}
+                defenseValue={defense}
+                defenseTypeValue={defenseType}
+              />
               <CommentBox
                 visibleName={"General Comments"}
                 internalName={"generalcomments"}

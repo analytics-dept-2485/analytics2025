@@ -8,6 +8,7 @@
     min-height: calc(100vh - 45px);
     font-family: "Belleza", sans-serif;
     justify-items: center;
+    align-items: center;
 }
 
 .MatchInfo {
@@ -27,18 +28,6 @@
 }
 .Endgame {
   justify-items: center;
-}
-.Coral {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-.L1,.L2,.L3,.L4 {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-evenly;
-    text-align: center;
 }
 
 .Table {
@@ -64,25 +53,6 @@
 .Table th {
   padding-right: 19px;
   margin-bottom: 20px;
-}
-
-.AlgaeRemoved {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-.Processor {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
-.Net {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 
 .MainDiv h2 {
@@ -147,20 +117,21 @@ hr.subsubheading {
   background-color: white;
 }
 
-.Intake {
+.intakeBox {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
-  background-color:#3d3d3d;
-  color: black;
-  border-radius: 8px;
-  align-items: center;
-  padding: 3px;
-  width: 250px;
-  height: 375px;
-  justify-self: center;
-  margin: 15px;
-  gap: -5px;
+  justify-content: space-between;
+  gap: 5px;
+  width: 350px;
+  align-self: center;
+}
+
+.terrainBox {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 350px;
+  align-self: center;
 }
 
 .Auto {
@@ -168,12 +139,14 @@ hr.subsubheading {
   flex-direction: column;
   align-content: center;
   align-self: center;
-  margin: -30px;
 }
 
 .AutoClimb {
-  width: 200px;
+  width: 350px;
   align-self: center;
+  text-align: center;
+  align-items: center;
+  align-content: center;
 }
 
 .MainDiv input:focus,
@@ -186,6 +159,25 @@ hr.subsubheading {
     border-color: rgb(184, 0, 0);
 }
 
+.defenseBox {
+  display: grid;
+  grid-template-columns: 180px 180px;
+  align-self: center;
+}
 
+.defenseBox > :last-child {
+  grid-column: 1 / -1;
+  justify-self: center; 
+}
 
+.Tele {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
 
+.PostMatch {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}

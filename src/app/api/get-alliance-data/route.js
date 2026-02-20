@@ -21,7 +21,7 @@ export async function GET() {
     // Try to fetch TBA team data, but don't fail if it doesn't work
     let frcAPITeamData = [];
     try {
-      const tbaResponse = await fetch(`https://www.thebluealliance.com/api/v3/event/2025casnd/teams`, {
+      const tbaResponse = await fetch(`https://www.thebluealliance.com/api/v3/event/2026capoh/teams`, {
         headers: {
           "X-TBA-Auth-Key": process.env.TBA_AUTH_KEY || "",
           "Accept": "application/json"

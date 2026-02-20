@@ -35,31 +35,12 @@ const data = await sql`SELECT * FROM scc2025;`;
 
 ## Getting Your Database Credentials
 
-### Step 1: Create Postgres Database in Vercel (if you haven't already)
-
-1. Go to your Vercel dashboard (vercel.com)
-2. Select your project (`analytics2026`)
-3. Go to the **Storage** tab
-4. Click **Create Database** → Select **Postgres**
-5. Choose a name for your database (or use the default)
-6. Select your region and plan
-7. Click **Create**
-
-### Step 2: Get Connection Strings
-
-1. Once your database is created, click on it
-2. Go to the **.env.local** tab
-3. You'll see connection strings like:
-   - `POSTGRES_URL`
-   - `POSTGRES_PRISMA_URL`
-   - `POSTGRES_URL_NON_POOLING`
-4. **Copy all three connection strings**
-
-### Step 3: Create `.env.local` File Locally
-
-1. In your project root (`/Users/milgupta/projects/Robotics 2026/analytics2026/`)
-2. Create a file named `.env.local` (note the dot at the beginning)
-3. Paste the connection strings you copied
+1. Go to your Vercel dashboard
+2. Select your project
+3. Go to **Settings** > **Storage** > **Postgres**
+4. Click on your database
+5. Go to the **.env.local** tab
+6. Copy the connection strings
 
 ## Verifying the Connection
 
