@@ -25,9 +25,9 @@ export default function Qualitative({ radarData, teamIndices, colors, teamNumber
         chartInstance.current = new Chart(ctx, {
           type: 'radar',
           data: {
-            labels: radarData.map(item => item.qual),
+            labels: radarData.map(item => formatLabel(item.qual)),
             datasets: teamIndices.map((teamIndex, index) => ({
-              label: `${teamNumbers[index] || 404}`, // Use teamNumbers instead of teamIndex
+              label: `Team ${teamNumbers[index] || 404}`,
               data: radarData.map(item => item[`team${teamIndex}`] || 0),
               fill: true,
               backgroundColor: colors[index] + '4D',
@@ -65,6 +65,24 @@ export default function Qualitative({ radarData, teamIndices, colors, teamNumber
       }
     };
   }, [isClient, radarData, teamIndices, colors, teamNumbers]);
+
+  // Helper function to format labels
+  const formatLabel = (label) => {
+    const labelMap = {
+      fuelspeed: 'Fuel Speed',
+      maneuverability: 'Maneuverability',
+      durability: 'Durability',
+      collectioncapacity: 'Collection Capacity',
+      passingspeed: 'Passing Speed',
+      climbingspeed: 'Climbing Speed',
+      autodeclimbspeed: 'Auto Climb Speed',
+      bumpspeed: 'Bump Speed',
+      defenseevasion: 'Defense Evasion',
+      aggression: 'Aggression',
+      climbhazard: 'Climb Hazard'
+    };
+    return labelMap[label] || label;
+  };
 
   if (!isClient) {
     return null;

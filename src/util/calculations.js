@@ -24,6 +24,7 @@ function calcAuto(record) {
 }
 
 function calcTele(record) {
+  // Teleop Fuel: 1 point per fuel scored in active HUB (endgame climb is in calcEnd)
   // Teleop: fuel only (1 point per fuel). End climb is in calcEnd, not here.
   let points = 0;
   if (record.telefuel && record.telefuel > 0) {
