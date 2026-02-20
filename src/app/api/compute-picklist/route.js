@@ -3,11 +3,11 @@ import { sql } from '@vercel/postgres';
 import { tidy, mutate, arrange, desc, mean, select, summarizeAll, summarize, max, groupBy } from '@tidyjs/tidy';
 import { calcAuto, calcTele, calcEnd, calcEPA } from "@/util/calculations";
 
-export const dynamic = 'force-dynamic'; // Prevent static generation during build
+export const dynamic = 'force-dynamic'; 
 
 export async function POST(request) {
 
-  const requestBody = await request.json(); // Weight inputs
+  const requestBody = await request.json(); 
 
   let data = await sql`SELECT * FROM scc2025;`;
 
@@ -29,8 +29,8 @@ export async function POST(request) {
       : 0;    
   }
 
-  // Pre-process: remove no-shows
-  rows = rows.filter(row => !row.noshow);
+  // Pre-process: remove no-shows and invalid teams
+  rows = rows.filter(row => !row.noshow && row.team != null && row.team !== '' && Number(row.team) > 0);
 
   // Calculate consistency per team before summarizing
   const teamConsistencyMap = Object.fromEntries(
@@ -45,7 +45,7 @@ export async function POST(request) {
             ? (uniqueBreakdownCount / uniqueMatches.size) * 100 
             : 0;
 
-          const epaValues = arr.map(row => row.epa).filter(v => typeof v === 'number' && !isNaN(v));
+          const epaValues = arr.map(row => calcEPA(row)).filter(v => typeof v === 'number' && !isNaN(v));
           const meanVal = epaValues.reduce((a, b) => a + b, 0) / epaValues.length || 0;
           const variance = epaValues.reduce((sum, v) => sum + Math.pow(v - meanVal, 2), 0) / epaValues.length || 0;
           const epaStdDev = Math.sqrt(variance);
@@ -85,123 +85,86 @@ export async function POST(request) {
       .slice(0, 3);
 
     const avgOfLast3 = matches.length > 0
-      ? matches.reduce((sum, m) => sum + m.avgEpa, 0) / matches.length
+      ? matches.reduce((sum, m) => sum + (Number(m.avgEpa) || 0), 0) / matches.length
       : 0;
 
-    last3EPAMap[team] = avgOfLast3;
+    last3EPAMap[team] = (typeof avgOfLast3 === 'number' && !isNaN(avgOfLast3)) ? avgOfLast3 : 0;
   }
 
-  const calcConsistency = (dr) => {
-    // Calculate fuel scoring consistency (fuel points scored)
-    const autoFuel = dr.autofuel || 0;
-    const teleFuel = dr.telefuel || 0;
-    const totalFuel = autoFuel + teleFuel;
-    
-    // Normalize fuel to 0-100 scale (assume max 30 auto + 50 tele = 80 fuel)
-    const fuelNormalized = Math.min((totalFuel / 80) * 100, 100);
-    
-    // Climb success consistency
-    // autoclimb: 0=None, 1=Fail, 2=Success
-    const autoClimbSuccess = dr.autoclimb === 2 ? 100 : (dr.autoclimb === 1 ? 50 : 0);
-    
-    // End climb success (higher levels = better consistency)
-    // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
-    let endClimbSuccess = 0;
-    if (dr.endclimbposition != null && dr.endclimbposition !== undefined) {
-      // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
-      const level = dr.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
-      switch (level) {
-        case 0: endClimbSuccess = 100; break; // L3
-        case 1: endClimbSuccess = 67; break;  // L2
-        case 2: endClimbSuccess = 33; break;  // L1
-        default: endClimbSuccess = 0;
-      }
-    }
-    
-    // No-show penalty
-    const noShowPenalty = dr.noshow ? 0 : 100;
-    
-    // Breakdown penalty
-    const breakdownPenalty = dr.breakdowncomments && dr.breakdowncomments.trim() !== "" ? 0.8 : 1;
-    
-    // Combine metrics
-    const metrics = [fuelNormalized, autoClimbSuccess, endClimbSuccess, noShowPenalty];
-    const validMetrics = metrics.filter(val => val >= 0);
-    
-    const baseConsistency = validMetrics.length > 0
-        ? validMetrics.reduce((sum, value) => sum + value, 0) / validMetrics.length
-        : 0;
-    
-    return baseConsistency * breakdownPenalty;
-  };
+  const teamFuelMap = {};
+  rows.forEach((row) => {
+    const team = row.team;
+    if (!teamFuelMap[team]) teamFuelMap[team] = { sum: 0, count: 0 };
+    const f = (Number(row.autofuel) || 0) + (Number(row.telefuel) || 0);
+    teamFuelMap[team].sum += f;
+    teamFuelMap[team].count += 1;
+  });
+  const teamFuelAvg = {};
+  Object.keys(teamFuelMap).forEach((team) => {
+    const t = teamFuelMap[team];
+    teamFuelAvg[team] = t.count > 0 ? t.sum / t.count : 0;
+  });
 
-  // Calculate passing percentage per team (for passing metric)
+  const towerPointsFromRow = (row) => {
+    if (row.endclimbposition != null && row.endclimbposition !== undefined) {
+      const level = Number(row.endclimbposition) % 3;
+      if (level === 0) return 30;
+      if (level === 1) return 20;
+      if (level === 2) return 10;
+      return 0;
+    }
+    const loc = Math.round(Number(row.endlocation) || 0);
+    if (loc === 2) return 6;
+    if (loc === 3) return 12;
+    return 0;
+  };
+  const teamTowerMap = {};
+  rows.forEach((row) => {
+    const team = row.team;
+    if (!teamTowerMap[team]) teamTowerMap[team] = { sum: 0, count: 0 };
+    teamTowerMap[team].sum += towerPointsFromRow(row);
+    teamTowerMap[team].count += 1;
+  });
+  const teamTowerAvg = {};
+  Object.keys(teamTowerMap).forEach((team) => {
+    const t = teamTowerMap[team];
+    teamTowerAvg[team] = t.count > 0 ? t.sum / t.count : 0;
+  });
+
+
   const teamPassingMap = {};
-  rows.forEach(row => {
-    if (!teamPassingMap[row.team]) {
-      teamPassingMap[row.team] = { matches: new Set(), totalMatches: 0 };
-    }
-    teamPassingMap[row.team].totalMatches++;
-    if (row.passingbulldozer || row.passingshooter || row.passingdump) {
-      teamPassingMap[row.team].matches.add(row.match);
-    }
+  rows.forEach((row) => {
+    const team = row.team;
+    if (!teamPassingMap[team]) teamPassingMap[team] = { withPassing: 0, total: 0 };
+    teamPassingMap[team].total += 1;
+    if (row.passingbulldozer || row.passingshooter || row.passingdump) teamPassingMap[team].withPassing += 1;
+  });
+  const teamPassingPct = {};
+  Object.keys(teamPassingMap).forEach((team) => {
+    const t = teamPassingMap[team];
+    teamPassingPct[team] = t.total > 0 ? (t.withPassing / t.total) * 100 : 0;
   });
 
   teamTable = tidy(teamTable, mutate({
     auto: d => calcAuto(d),
     epa: d => calcEPA(d),
     last3epa: d => last3EPAMap[d.team] || 0,
-    fuel: d => {
-      // Total fuel scored (auto + tele)
-      return (d.autofuel || 0) + (d.telefuel || 0);
-    },
-    tower: d => {
-      // Endgame climb points based on EndClimbPosition level
-      // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
-      if (d.endclimbposition == null || d.endclimbposition === undefined) return 0;
-      // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
-      const level = d.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
-      switch (level) {
-        case 0: return 30; // L3 = 30 points
-        case 1: return 20; // L2 = 20 points
-        case 2: return 10; // L1 = 10 points
-        default: return 0;
-      }
-    },
+    fuel: d => teamFuelAvg[d.team] ?? 0,
+    tower: d => teamTowerAvg[d.team] ?? 0,
+    passing: d => teamPassingPct[d.team] ?? 0,
     defense: d => {
-      // Defense score based on PlayedDefense and Defense type
-      // defense: 0=weak, 1=harassment, 2=game changing
-      if (!d.playeddefense) return 0;
-      
-      let score = 10; // Base score for playing defense
-      if (d.defense === 1) score += 5; // harassment
-      if (d.defense === 2) score += 10; // game changing
-      
+      const played = d.defenseplayed ?? d.playeddefense;
+      if (played === false || played === null || played === undefined) return 0;
+      if (typeof played === 'number' && played > 0) return played * 10;
+      let score = 0;
+      const type = d.defense;
+      if (type === 0 || (typeof type === 'string' && String(type).toLowerCase() === 'weak')) score += 1;
+      else if (type === 1 || (typeof type === 'string' && String(type).toLowerCase() === 'harassment')) score += 5;
+      else if (type === 2 || (typeof type === 'string' && String(type).toLowerCase() === 'game changing')) score += 10;
       return score;
     },
-    passing: d => {
-      // Combined metric: percentage of matches using any passing + qualitative passing speed rating
-      const teamPassing = teamPassingMap[d.team];
-      if (!teamPassing || teamPassing.totalMatches === 0) {
-        return 0;
-      }
-      
-      // Percentage component: percentage of matches where team used any passing
-      const matchesWithPassing = teamPassing.matches.size;
-      const passingPercentage = (matchesWithPassing / teamPassing.totalMatches) * 100; // 0-100
-      
-      // Qualitative component: average passing speed rating (0-5 scale, -1 for not rated)
-      const passingSpeed = d.passingspeed;
-      let qualitativeScore = 0;
-      if (passingSpeed != null && passingSpeed >= 0 && passingSpeed <= 5) {
-        qualitativeScore = (passingSpeed / 5) * 100; // Normalize to 0-100
-      }
-      
-      // Combine: average of both normalized values
-      return (passingPercentage + qualitativeScore) / 2; // 0-100
-    },
-    consistency: d => calcConsistency(d),
-  }), select(['team', 'epa', 'last3epa', 'fuel', 'auto', 'tower', 'defense', 'passing', 'consistency']));
+    consistency: d => teamConsistencyMap[d.team] ?? 0,
+  }), select(['team', 'epa', 'last3epa', 'fuel', 'tower', 'passing', 'defense', 'auto', 'consistency']));
 
   const getTBARankings = async () => {
     try {
@@ -232,17 +195,18 @@ export async function POST(request) {
 
   const maxes = tidy(teamTable, summarizeAll(max))[0];
   teamTable = tidy(teamTable, mutate({
-    epa: d => maxes.epa ? d.epa / maxes.epa : 0,
-    last3epa: d => maxes.last3epa ? d.last3epa / maxes.last3epa : 0,
-    fuel: d => maxes.fuel ? d.fuel / maxes.fuel : 0,
-    auto: d => maxes.auto ? d.auto / maxes.auto : 0,
-    tower: d => maxes.tower ? d.tower / maxes.tower : 0,
-    defense: d => maxes.defense ? d.defense / maxes.defense : 0,
-    passing: d => maxes.passing ? d.passing / maxes.passing : 0,
-    consistency: d => maxes.consistency ? d.consistency / maxes.consistency : 0,
+    epa: d => (maxes.epa && Number(maxes.epa)) ? d.epa / maxes.epa : 0,
+    last3epa: d => (maxes.last3epa && Number(maxes.last3epa)) ? d.last3epa / maxes.last3epa : 0,
+    fuel: d => (maxes.fuel && Number(maxes.fuel)) ? d.fuel / maxes.fuel : 0,
+    tower: d => (maxes.tower && Number(maxes.tower)) ? d.tower / maxes.tower : 0,
+    passing: d => (maxes.passing && Number(maxes.passing)) ? d.passing / maxes.passing : 0,
+    defense: d => (maxes.defense && Number(maxes.defense)) ? d.defense / maxes.defense : 0,
+    auto: d => (maxes.auto && Number(maxes.auto)) ? d.auto / maxes.auto : 0,
+    consistency: d => (maxes.consistency && Number(maxes.consistency)) ? d.consistency / maxes.consistency : 0,
     score: d => requestBody.reduce((sum, [key, weight]) => {
       const value = d[key] ?? 0;
-      return sum + (value * parseFloat(weight));
+      const num = Number(value);
+      return sum + ((!isNaN(num) ? num : 0) * parseFloat(weight));
     }, 0),
   }), arrange(desc('score')));
 

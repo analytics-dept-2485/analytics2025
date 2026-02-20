@@ -11,7 +11,7 @@
 
 .weightsTable {
     height: 200px;
-    width: 375px;
+    width: 355px;
     font-size: 20px;
     padding: 10px;
     border: 1px solid gray;
@@ -157,7 +157,7 @@
 
 .picklistTable th {
     border-bottom: 2px solid black;
-    font-size: 30px;
+    font-size: 25px;
 }
 
 .picklistTable td {
@@ -166,7 +166,12 @@
     padding: 5px;
     border-radius: 3px;
     font-weight: 400;
-    font-size: 25px;
+    font-size: 20px;
+    min-width: 50px;
+}
+
+.picklistTable td:first-child {
+    text-align: center;
 }
 
 .picklistTable td:first-child, .picklistTable td:nth-child(2) {
@@ -214,12 +219,15 @@ button.recalculateIsMad {
 }
 
 .picklistRank {
-    /* display: flex;
-    flex-direction: row; */
+    display: flex;
+    flex-direction: row;
     align-items: center;
     width: 50px;
     height: 50px;
-    justify-content: space-between;
+    justify-content: center;
+    text-align: center;
+    align-content: center;
+
     /* gap: 5px;
     justify-self: left; */
 }
