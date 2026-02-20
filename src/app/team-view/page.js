@@ -509,7 +509,7 @@ function TeamView() {
                 <table className={styles.verticalTable1}> 
                   <tbody>
                     <tr>
-                      <th style={{backgroundColor: Colors[2][2]}}>Defense Quality (v)</th>
+                      <th style={{backgroundColor: Colors[2][2]}}>Defense Quality</th>
                       <td style={{backgroundColor: Colors[2][2]}}>%</td>
                     </tr>
                     <tr>
@@ -530,7 +530,7 @@ function TeamView() {
             <table className={styles.verticalDTable}> 
               <tbody>
                 <tr>
-                  <th style={{backgroundColor: Colors[2][2]}}>Defense (v)</th>
+                  <th style={{backgroundColor: Colors[2][2]}}>Defense</th>
                   <td style={{backgroundColor: Colors[2][2]}}>%</td>
                 </tr>
                 <tr>

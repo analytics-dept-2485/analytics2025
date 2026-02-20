@@ -390,7 +390,7 @@
     justify-content: center;
     align-items: center;
     margin-bottom: 10px;
-    width: 400px;
+    width: 375px;
  }
  
  
@@ -530,10 +530,10 @@
    margin-top: -80px;
 }
 .autoPieBox {
- margin-top: -50px;
+ margin-top: -30px;
  width: 300px;
- height: 300px;
- margin-left: -30px;
+ height: 270px;
+ margin-left: 30px;
 }
 .autoBox {
  display: flex;
@@ -571,8 +571,8 @@
  justify-content: left;
 }
 .endPieBox {
- margin-top: -30px;
- margin-bottom: 20px;
+ margin-top: -10px;
+ margin-bottom: 40px;
 }
 .horizontalTable2, .horizontalTable2 td{
  border: black 1px solid;
@@ -730,12 +730,12 @@
         gap: 20px;
         margin-top: -80px;
     }
-    .autoPieBox {
-      margin-top: -50px;
+   .autoPieBox {
+      margin-top: -30px;
       width: 300px;
-      height: 300px;
+      height: 270px;
       margin-left: -30px;
-    }
+   }
     .autoBox {
       display: flex;
       flex-direction: column;
@@ -762,9 +762,10 @@
       align-items: center;
       margin-top: -20px;
     }
-    .endPieBox {
-      margin-top: -30px;
-    }
+   .endPieBox {
+      margin-top: -10px;
+      margin-bottom: 40px;
+   }
     .horizontalTable2, .horizontalTable2 td{
       border: black 1px solid;
       border-collapse: collapse;
