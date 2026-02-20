@@ -24,37 +24,11 @@ function calcAuto(record) {
 }
 
 function calcTele(record) {
+  // Teleop: fuel only (1 point per fuel). End climb is in calcEnd, not here.
   let points = 0;
-  
-  // Teleop Fuel: 1 point per fuel scored in active HUB
   if (record.telefuel && record.telefuel > 0) {
     points += record.telefuel * 1;
   }
-  
-  // Endgame Climb points (scored during teleop period):
-  // L1 = 10 points, L2 = 20 points, L3 = 30 points
-  // Support both endclimb (string) and endclimbposition (int 0-8: 0,3,6=L3; 1,4,7=L2; 2,5,8=L1)
-  if (record.endclimb) {
-    switch (String(record.endclimb).toUpperCase()) {
-      case 'L1':
-        points += 10;
-        break;
-      case 'L2':
-        points += 20;
-        break;
-      case 'L3':
-        points += 30;
-        break;
-      default:
-        break;
-    }
-  } else if (record.endclimbposition != null && record.endclimbposition !== undefined && record.endclimbposition !== '') {
-    const level = Number(record.endclimbposition) % 3;
-    if (level === 0) points += 30;  // L3
-    else if (level === 1) points += 20;  // L2
-    else if (level === 2) points += 10;  // L1
-  }
-  
   return points;
 }
 
