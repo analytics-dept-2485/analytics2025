@@ -786,6 +786,7 @@ returnObject[0] = {
   shootWhileMove: rows.some(row => row.shootwhilemove === true),
   bump: rows.some(row => row.bump === true),
   trench: rows.some(row => row.trench === true),
+  wideClimb: rows.some(row => row.wideclimb === true),
   defenseQuality,
   defenseLocation: {
     allianceZone: ((Number(loc.azOutpost) || 0) + (Number(loc.azTower) || 0)) / 2,

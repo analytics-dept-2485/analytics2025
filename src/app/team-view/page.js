@@ -138,7 +138,7 @@ function TeamView() {
        shootWhileMove: Boolean(api.shootWhileMove),
        bumpTrav: Boolean(api.bump),
        trenchTrav: Boolean(api.trench),
-       wideClimb: Boolean(api.wideClimb),
+       wideClimb: Boolean(api.wideClimb ?? api.wideclimb),
      };
    }
 
