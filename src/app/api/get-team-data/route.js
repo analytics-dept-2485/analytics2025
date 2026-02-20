@@ -312,10 +312,10 @@ export async function GET(request) {
           return latest3Matches.reduce((sum, m) => sum + m.avgEnd, 0) / latest3Matches.length;
         },
         
-        // Extract match and performance metrics
-        epaOverTime: arr => tidy(arr, select(['epa', 'match'])),
-        autoOverTime: arr => tidy(arr, select(['match', 'auto'])),
-        teleOverTime: arr => tidy(arr, select(['match', 'tele'])),
+        // Extract match and performance metrics (include winauto for win/loss dots on all over-time charts)
+        epaOverTime: arr => tidy(arr, select(['epa', 'match', 'winauto'])),
+        autoOverTime: arr => tidy(arr, select(['match', 'auto', 'winauto'])),
+        teleOverTime: arr => tidy(arr, select(['match', 'tele', 'winauto'])),
       
         // Consistency calculation
         consistency: arr => {
@@ -329,8 +329,18 @@ export async function GET(request) {
           return 100 - (breakdownRate + epaStdDev);
         },
     
-        lastBreakdown: arr => arr.filter(e => e.breakdowncomments !== null).reduce((a, b) => b.match, "N/A"),
+        lastBreakdown: arr => {
+          const withBreakdown = arr.filter(e => e.breakdowncomments != null && e.breakdowncomments !== '');
+          if (withBreakdown.length === 0) return "N/A";
+          const lastMatch = withBreakdown.reduce((a, b) => b.match, null);
+          return lastMatch != null ? `Match ${lastMatch}` : "N/A";
+        },
         noShow: arr => percentValue(arr, 'noshow', true),
+        stuckOnFuel: arr => {
+          const total = arr.length;
+          const stuck = arr.filter(row => row.stuckonfuel === true).length;
+          return total > 0 ? (stuck / total) * 100 : 0;
+        },
     
         breakdown: arr => {
           const uniqueMatches = new Set(arr.map(row => row.match));
@@ -406,8 +416,8 @@ export async function GET(request) {
       
     // Defense comments removed - not in 2026 schema
     // Defense information is now in Defense field (weak/harassment/game changing) and PlayedDefense boolean
-    autoOverTime: arr => tidy(arr, select(['match', 'auto'])),
-    teleOverTime: arr => tidy(arr, select(['match', 'tele'])),
+    autoOverTime: arr => tidy(arr, select(['match', 'auto', 'winauto'])),
+    teleOverTime: arr => tidy(arr, select(['match', 'tele', 'winauto'])),
     // Leave field removed - not in 2026 schema
 
     auto: arr => ({
@@ -570,7 +580,7 @@ export async function GET(request) {
       const climbFrequency = {};
       
       matchRows.forEach(row => {
-        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined) {
+        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined || row.endclimbposition > 8) {
           climbFrequency['none'] = (climbFrequency['none'] || 0) + 1;
           return;
         }
@@ -653,7 +663,7 @@ export async function GET(request) {
       // Find the most common EndClimbPosition level for this match
       const counts = {};
       matchRows.forEach(row => {
-        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined) {
+        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined || row.endclimbposition > 8) {
           counts['none'] = (counts['none'] || 0) + 1;
           return;
         }
@@ -703,7 +713,7 @@ export async function GET(request) {
       // Find the most common EndClimbPosition level for this match
       const counts = {};
       matchRows.forEach(row => {
-        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined) {
+        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined || row.endclimbposition > 8) {
           counts['none'] = (counts['none'] || 0) + 1;
           return;
         }
@@ -744,6 +754,15 @@ export async function GET(request) {
     
     // Calculate success rate among attempted matches only
     return attemptedMatches > 0 ? (successfulMatches / attemptedMatches) * 100 : 0;
+  },
+  
+  shootingmechanism: arr => {
+    const values = arr.map(row => row.shootingmechanism).filter(a => a != null);
+    if (values.length === 0) return null;
+    const staticCount = values.filter(v => v === 0).length;
+    const turretCount = values.filter(v => v === 1).length;
+    // Show only the most occurring type; on tie, default to Turret
+    return staticCount > turretCount ? 'Static' : 'Turret';
   },
   
   qualitative: arr => {
@@ -797,6 +816,8 @@ returnObject[0] = {
   passingShooter: rows.some(row => row.passingshooter === true),
   passingDump: rows.some(row => row.passingdump === true),
   shootWhileMove: rows.some(row => row.shootwhilemove === true),
+  bump: rows.some(row => row.bump === true),
+  trench: rows.some(row => row.trench === true),
   defenseQuality,
   defenseLocation: {
     allianceZone: ((Number(loc.azOutpost) || 0) + (Number(loc.azTower) || 0)) / 2,
@@ -819,6 +840,13 @@ function aggregateByMatch(dataArray) {
         epa: mean("epa"),
         auto: mean("auto"),
         tele: mean("tele"),
+        // Per-match win (auto): majority of scouts; undefined if no winauto data
+        won: (items) => {
+          const withVal = items.filter(d => d.winauto !== undefined && d.winauto !== null);
+          if (withVal.length === 0) return undefined;
+          const wins = withVal.filter(d => d.winauto === true || d.winauto === 1).length;
+          return wins >= withVal.length / 2;
+        },
       }),
     ]),
     mutate({

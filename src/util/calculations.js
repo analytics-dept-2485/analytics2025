@@ -1,6 +1,6 @@
 // 2026 REBUILT Game Scoring Rules
-// Auto: Fuel = 1 point per fuel, Climb L1 = 15 points (max 2 robots)
-// Teleop: Fuel = 1 point per fuel, Climb L1 = 10 points, L2 = 20 points, L3 = 30 points
+// Auto: Only autoclimb is worth points — L1 success = 15 points. No auto fuel points.
+// Teleop: Fuel = 1 point per fuel. End climb is in calcEnd (L1=10, L2=20, L3=30).
 // Win Auto = indicator only (no points)
 
 function calcAuto(record) {
@@ -59,9 +59,23 @@ function calcTele(record) {
 }
 
 function calcEnd(record) {
-  // Endgame points are already calculated in calcTele
-  // This function is kept for compatibility but returns 0
-  // The climb points are part of teleop scoring
+  // Endgame Climb: L1 = 10 points, L2 = 20 points, L3 = 30 points
+  // endclimbposition: 0-8 only; 9 or higher = none (no points)
+  if (record.endclimbposition != null && record.endclimbposition !== undefined) {
+    if (record.endclimbposition > 8) return 0; // 9 = none
+    const level = record.endclimbposition % 3;
+    if (level === 0) return 30; // L3
+    if (level === 1) return 20; // L2
+    if (level === 2) return 10; // L1
+  }
+  if (record.endclimb && (record.endclimbposition == null || record.endclimbposition === undefined)) {
+    switch (String(record.endclimb).toUpperCase()) {
+      case 'L1': return 10;
+      case 'L2': return 20;
+      case 'L3': return 30;
+      default: break;
+    }
+  }
   return 0;
 }
 
