@@ -26,7 +26,8 @@ export async function GET() {
             const meanVal = epaValues.length ? epaValues.reduce((a, b) => a + b, 0) / epaValues.length : 0;
             const variance = epaValues.length ? epaValues.reduce((sum, v) => sum + Math.pow(v - meanVal, 2), 0) / epaValues.length : 0;
             const epaStdDev = Math.sqrt(variance);
-            return 100 - (breakdownRate + epaStdDev);
+            const raw = 100 - (breakdownRate + epaStdDev);
+            return Math.max(0, Math.min(100, raw));
           },
         }),
       ])).map((d) => [d.team, d.consistency])

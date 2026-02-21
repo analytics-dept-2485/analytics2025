@@ -209,7 +209,6 @@ function ScoutingApp() {
     ["#FFC999", "#FFB370", "#FF9D47", "#FF7C0A", "#ed5e07"], //orange
   ];
 
-  // Calculate EPA scores (blended: (Last 3 + total average) / 2)
   let blueScores = [0, get(blueAlliance, "displayAuto")];
   blueScores.push(blueScores[1] + get(blueAlliance, "displayTele"));
   blueScores.push(blueScores[2] + get(blueAlliance, "displayEnd"));
@@ -271,9 +270,9 @@ function ScoutingApp() {
     { qual: 'fuelspeed', team1: filterNegative(data?.team1?.qualitative?.fuelspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.fuelspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.fuelspeed) || 0 },
     { qual: 'maneuverability', team1: filterNegative(data?.team1?.qualitative?.maneuverability) || 0, team2: filterNegative(data?.team2?.qualitative?.maneuverability) || 0, team3: filterNegative(data?.team3?.qualitative?.maneuverability) || 0 },
     { qual: 'durability', team1: filterNegative(data?.team1?.qualitative?.durability) || 0, team2: filterNegative(data?.team2?.qualitative?.durability) || 0, team3: filterNegative(data?.team3?.qualitative?.durability) || 0 },
-    { qual: 'collectioncapacity', team1: filterNegative(data?.team1?.qualitative?.collectioncapacity) || 0, team2: filterNegative(data?.team2?.qualitative?.collectioncapacity) || 0, team3: filterNegative(data?.team3?.qualitative?.collectioncapacity) || 0 },
+    { qual: 'collectioncapacity', team1: filterNegative(data?.team1?.qualitative?.hoppercapacity) || 0, team2: filterNegative(data?.team2?.qualitative?.hoppercapacity) || 0, team3: filterNegative(data?.team3?.qualitative?.hoppercapacity) || 0 },
     { qual: 'passingspeed', team1: filterNegative(data?.team1?.qualitative?.passingspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.passingspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.passingspeed) || 0 },
-    { qual: 'climbingspeed', team1: filterNegative(data?.team1?.qualitative?.climbingspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.climbingspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.climbingspeed) || 0 },
+    { qual: 'climbingspeed', team1: filterNegative(data?.team1?.qualitative?.climbspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.climbspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.climbspeed) || 0 },
     { qual: 'autodeclimbspeed', team1: filterNegative(data?.team1?.qualitative?.autodeclimbspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.autodeclimbspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.autodeclimbspeed) || 0 },
     { qual: 'bumpspeed', team1: filterNegative(data?.team1?.qualitative?.bumpspeed) || 0, team2: filterNegative(data?.team2?.qualitative?.bumpspeed) || 0, team3: filterNegative(data?.team3?.qualitative?.bumpspeed) || 0 },
     { qual: 'defenseevasion', team1: filterNegative(data?.team1?.qualitative?.defenseevasion) || 0, team2: filterNegative(data?.team2?.qualitative?.defenseevasion) || 0, team3: filterNegative(data?.team3?.qualitative?.defenseevasion) || 0 },
@@ -286,9 +285,9 @@ function ScoutingApp() {
     { qual: 'fuelspeed', team1: filterNegative(data?.team4?.qualitative?.fuelspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.fuelspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.fuelspeed) || 0 },
     { qual: 'maneuverability', team1: filterNegative(data?.team4?.qualitative?.maneuverability) || 0, team2: filterNegative(data?.team5?.qualitative?.maneuverability) || 0, team3: filterNegative(data?.team6?.qualitative?.maneuverability) || 0 },
     { qual: 'durability', team1: filterNegative(data?.team4?.qualitative?.durability) || 0, team2: filterNegative(data?.team5?.qualitative?.durability) || 0, team3: filterNegative(data?.team6?.qualitative?.durability) || 0 },
-    { qual: 'collectioncapacity', team1: filterNegative(data?.team4?.qualitative?.collectioncapacity) || 0, team2: filterNegative(data?.team5?.qualitative?.collectioncapacity) || 0, team3: filterNegative(data?.team6?.qualitative?.collectioncapacity) || 0 },
+    { qual: 'collectioncapacity', team1: filterNegative(data?.team4?.qualitative?.hoppercapacity) || 0, team2: filterNegative(data?.team5?.qualitative?.hoppercapacity) || 0, team3: filterNegative(data?.team6?.qualitative?.hoppercapacity) || 0 },
     { qual: 'passingspeed', team1: filterNegative(data?.team4?.qualitative?.passingspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.passingspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.passingspeed) || 0 },
-    { qual: 'climbingspeed', team1: filterNegative(data?.team4?.qualitative?.climbingspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.climbingspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.climbingspeed) || 0 },
+    { qual: 'climbingspeed', team1: filterNegative(data?.team4?.qualitative?.climbspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.climbspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.climbspeed) || 0 },
     { qual: 'autodeclimbspeed', team1: filterNegative(data?.team4?.qualitative?.autodeclimbspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.autodeclimbspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.autodeclimbspeed) || 0 },
     { qual: 'bumpspeed', team1: filterNegative(data?.team4?.qualitative?.bumpspeed) || 0, team2: filterNegative(data?.team5?.qualitative?.bumpspeed) || 0, team3: filterNegative(data?.team6?.qualitative?.bumpspeed) || 0 },
     { qual: 'defenseevasion', team1: filterNegative(data?.team4?.qualitative?.defenseevasion) || 0, team2: filterNegative(data?.team5?.qualitative?.defenseevasion) || 0, team3: filterNegative(data?.team6?.qualitative?.defenseevasion) || 0 },
