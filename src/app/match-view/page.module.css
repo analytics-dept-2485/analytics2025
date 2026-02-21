@@ -202,7 +202,6 @@
     display: flex;
     justify-content: space-evenly;
     flex-grow: 1;
-    flex-wrap: wrap;
 }
 
 .allianceColumn {
@@ -215,6 +214,7 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+    gap: 40px;
 }
 
 .headWidthBlue {
@@ -236,6 +236,10 @@
     justify-content: flex-start;
     padding-top: 0;
 }
+
+/* .centerMargin {
+    margin-bottom: 300px;
+}*/
 
 .centerTitle {
     font-size: 32px;
@@ -492,7 +496,8 @@
 /* Responsive */
 @media screen and (max-width: 1400px) {
     .allianceBoard {
-        flex-direction: column;
+        display: flex;
+        flex-direction: row;
         align-items: center;
     }
     
@@ -506,14 +511,16 @@
         display: flex;
         flex-direction: row;
     }
-}
 
-.headWidthBlue {
-    width: 600px;
-}
-
+    .headWidthBlue {
+        width: 600px;
+        margin-left: 20px;
+    }
+    
 .headWidthRed {
-    width: 600px;
+        width: 600px;
+        margin-right: 20px;
+    }
 }
 
 @media screen and (max-width: 900px) {
