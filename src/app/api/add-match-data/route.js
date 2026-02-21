@@ -91,7 +91,7 @@ export async function POST(req) {
   const teleBooleans = [
     'intakeground', 'intakeoutpost', 'passingbulldozer', 'passingshooter', 'passingdump',
     'shootwhilemove', 'defenselocationoutpost', 'defenselocationtower', 'defenselocationhub',
-    'defenselocationnz', 'defenselocationtrench', 'defenselocationbump'
+    'defenselocationaz', 'defenselocationnz', 'defenselocationtrench', 'defenselocationbump'
   ];
   for (const key of teleBooleans) {
     if (!_.isBoolean(body[key])) body[key] = false;
@@ -113,6 +113,7 @@ export async function POST(req) {
       _.isBoolean(body.defenselocationoutpost) &&
       _.isBoolean(body.defenselocationtower) &&
       _.isBoolean(body.defenselocationhub) &&
+      _.isBoolean(body.defenselocationaz) &&
       _.isBoolean(body.defenselocationnz) &&
       _.isBoolean(body.defenselocationtrench) &&
       _.isBoolean(body.defenselocationbump)
@@ -201,7 +202,7 @@ if (body.playeddefense) {
       scoutname, scoutteam, team, match, matchtype, noshow,
       autoclimb, autoclimbposition, autofuel, winauto,
       intakeground, intakeoutpost, passingbulldozer, passingshooter, passingdump, shootwhilemove, telefuel,
-      defenselocationoutpost, defenselocationtower, defenselocationhub, defenselocationnz, defenselocationtrench, defenselocationbump,
+      defenselocationoutpost, defenselocationtower, defenselocationhub, defenselocationaz, defenselocationnz, defenselocationtrench, defenselocationbump,
       endclimbposition, wideclimb,
       shootingmechanism, bump, trench, stuckonfuel, fuelpercent, playeddefense, defense,
       aggression, climbhazard, hoppercapacity, maneuverability, durability, defenseevasion,
@@ -212,7 +213,7 @@ if (body.playeddefense) {
       ${body.scoutname}, ${body.scoutteam}, ${body.team}, ${adjustedMatch}, ${body.matchType}, ${body.noshow},
       ${body.autoclimb}, ${body.autoclimb === 2 ? body.autoclimbposition : null}, ${body.autofuel}, ${body.winauto},
       ${body.intakeground}, ${body.intakeoutpost}, ${body.passingbulldozer}, ${body.passingshooter}, ${body.passingdump}, ${body.shootwhilemove}, ${body.telefuel},
-      ${body.defenselocationoutpost}, ${body.defenselocationtower}, ${body.defenselocationhub}, ${body.defenselocationnz}, ${body.defenselocationtrench}, ${body.defenselocationbump},
+      ${body.defenselocationoutpost}, ${body.defenselocationtower}, ${body.defenselocationhub}, ${body.defenselocationaz}, ${body.defenselocationnz}, ${body.defenselocationtrench}, ${body.defenselocationbump},
       ${body.endclimbposition}, ${body.wideclimb},
       ${body.shootingmechanism}, ${body.bump}, ${body.trench}, ${body.stuckonfuel}, ${body.fuelpercent}, ${body.playeddefense}, ${body.defense},
       ${body.aggression}, ${body.climbhazard}, ${body.hoppercapacity}, ${body.maneuverability}, ${body.durability}, ${body.defenseevasion},

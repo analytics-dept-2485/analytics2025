@@ -517,6 +517,11 @@ export async function GET(request) {
           const defended = rows.filter(row => row.defenselocationhub === true).length;
           return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
         })(),
+        az: (() => {
+          const totalMatches = rows.length;
+          const defended = rows.filter(row => row.defenselocationaz === true).length;
+          return totalMatches > 0 ? (defended / totalMatches) * 100 : 0;
+        })(),
         nz: (() => {
           const totalMatches = rows.length;
           const defended = rows.filter(row => row.defenselocationnz === true).length;
@@ -789,12 +794,12 @@ returnObject[0] = {
   wideClimb: rows.some(row => row.wideclimb === true || row.wideclimb === 'true'),
   defenseQuality,
   defenseLocation: {
-    allianceZone: ((Number(loc.azOutpost) || 0) + (Number(loc.azTower) || 0)) / 2,
+    allianceZone: Number(loc.az) || 0,
     neutralZone: Number(loc.nz) || 0,
     trench: Number(loc.trench) || 0,
     bump: Number(loc.bump) || 0,
-    tower: Number(loc.azTower) || 0,
-    outpost: Number(loc.azOutpost) || 0,
+    tower: Number(loc.tower) || 0,
+    outpost: Number(loc.outpost) || 0,
     hub: Number(loc.hub) || 0,
   },
 };

@@ -184,6 +184,7 @@ if (playedDefenseValue && defenseType) {
     }
     data.defenselocationtower = data.defenselocationtower === true;
     data.defenselocationhub = data.defenselocationhub === true;
+    data.defenselocationaz = data.defenselocationaz === true;
     data.defenselocationnz = data.defenselocationnz === true;
     data.defenselocationtrench = data.defenselocationtrench === true;
     data.defenselocationbump = data.defenselocationbump === true;
@@ -418,7 +419,7 @@ console.log("page",matchType)
              <br></br>
              <SubHeader subHeaderName={"Defense Location"}></SubHeader>
              <div className={styles.defenseBox}>
-               <Checkbox visibleName={"Alliance Zone"} internalName={"defenselocationoutpost"}></Checkbox>
+               <Checkbox visibleName={"Alliance Zone (AZ)"} internalName={"defenselocationaz"}></Checkbox>
                <Checkbox visibleName={"Neutral Zone"} internalName={"defenselocationnz"}></Checkbox>
                <Checkbox visibleName={"Bump"} internalName={"defenselocationbump"}></Checkbox>
                <Checkbox visibleName={"Trench"} internalName={"defenselocationtrench"}></Checkbox>

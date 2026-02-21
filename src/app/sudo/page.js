@@ -158,6 +158,7 @@ export default function Sudo() {
     "defenselocationoutpost",
     "defenselocationtower",
     "defenselocationhub",
+    "defenselocationaz",
     "defenselocationnz",
     "defenselocationtrench",
     "defenselocationbump",
