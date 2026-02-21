@@ -312,10 +312,10 @@ export async function GET(request) {
           return latest3Matches.reduce((sum, m) => sum + m.avgEnd, 0) / latest3Matches.length;
         },
         
-        // Extract match and performance metrics
-        epaOverTime: arr => tidy(arr, select(['epa', 'match'])),
-        autoOverTime: arr => tidy(arr, select(['match', 'auto'])),
-        teleOverTime: arr => tidy(arr, select(['match', 'tele'])),
+        // Extract match and performance metrics (include winauto for win/loss dots on all over-time charts)
+        epaOverTime: arr => tidy(arr, select(['epa', 'match', 'winauto'])),
+        autoOverTime: arr => tidy(arr, select(['match', 'auto', 'winauto'])),
+        teleOverTime: arr => tidy(arr, select(['match', 'tele', 'winauto'])),
       
         // Consistency calculation
         consistency: arr => {
@@ -416,8 +416,8 @@ export async function GET(request) {
       
     // Defense comments removed - not in 2026 schema
     // Defense information is now in Defense field (weak/harassment/game changing) and PlayedDefense boolean
-    autoOverTime: arr => tidy(arr, select(['match', 'auto'])),
-    teleOverTime: arr => tidy(arr, select(['match', 'tele'])),
+    autoOverTime: arr => tidy(arr, select(['match', 'auto', 'winauto'])),
+    teleOverTime: arr => tidy(arr, select(['match', 'tele', 'winauto'])),
     // Leave field removed - not in 2026 schema
 
     auto: arr => ({
@@ -759,11 +759,10 @@ export async function GET(request) {
   shootingmechanism: arr => {
     const values = arr.map(row => row.shootingmechanism).filter(a => a != null);
     if (values.length === 0) return null;
-    const map = {0: 'Static', 1: 'Turret'};
-    const mapped = values.map(v => map[v] || v);
-    // If all values are the same, return just one value, otherwise join with " - "
-    const unique = [...new Set(mapped)];
-    return unique.length === 1 ? unique[0] : unique.join(" - ");
+    const staticCount = values.filter(v => v === 0).length;
+    const turretCount = values.filter(v => v === 1).length;
+    // Show only the most occurring type; on tie, default to Turret
+    return staticCount > turretCount ? 'Static' : 'Turret';
   },
   
   qualitative: arr => {
@@ -841,6 +840,13 @@ function aggregateByMatch(dataArray) {
         epa: mean("epa"),
         auto: mean("auto"),
         tele: mean("tele"),
+        // Per-match win (auto): majority of scouts; undefined if no winauto data
+        won: (items) => {
+          const withVal = items.filter(d => d.winauto !== undefined && d.winauto !== null);
+          if (withVal.length === 0) return undefined;
+          const wins = withVal.filter(d => d.winauto === true || d.winauto === 1).length;
+          return wins >= withVal.length / 2;
+        },
       }),
     ]),
     mutate({
