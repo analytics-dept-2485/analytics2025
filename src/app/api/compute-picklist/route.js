@@ -51,7 +51,7 @@ export async function POST(request) {
           const epaStdDev = Math.sqrt(variance);
 
           const raw = 100 - (breakdownRate + epaStdDev);
-          return Math.max(0, Math.min(100, raw));
+          return raw < 0 ? 1 : raw;
         }
       })
     ])).map(d => [d.team, d.consistency])
