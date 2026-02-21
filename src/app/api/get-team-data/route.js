@@ -545,106 +545,74 @@ export async function GET(request) {
   
   // First part of your object definition with fixed endPlacement
   endPlacement: (rows) => {
-    console.log("Total number of rows:", rows.length);
-    
     // Group data by match number
     const matchGroups = {};
     rows.forEach(row => {
       const matchId = row.match;
-      if (matchId === undefined || matchId === null) {
-        console.log("Row missing match number:", row);
-        return;
-      }
-      
+      if (matchId === undefined || matchId === null) return;
       const matchKey = row.matchtype ? `${matchId}-${row.matchtype}` : `${matchId}`;
-      
-      if (!matchGroups[matchKey]) {
-        matchGroups[matchKey] = [];
-      }
+      if (!matchGroups[matchKey]) matchGroups[matchKey] = [];
       matchGroups[matchKey].push(row);
     });
-    
-    console.log("Match groups created:", Object.keys(matchGroups).length);
-    
-    // Count matches by their most common EndClimb level
-    const endClimbCounts = {
-      'L1': 0,
-      'L2': 0,
-      'L3': 0,
-      'none': 0
+
+    const totalMatches = Object.keys(matchGroups).length;
+    if (totalMatches === 0) {
+      return {
+        none: 0,
+        L1: { left: 0, center: 0, right: 0 },
+        L2: { left: 0, center: 0, right: 0 },
+        L3: { left: 0, center: 0, right: 0 },
+      };
+    }
+
+    // 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1; >8 = none
+    const positionCounts = {
+      L1: { left: 0, center: 0, right: 0 },
+      L2: { left: 0, center: 0, right: 0 },
+      L3: { left: 0, center: 0, right: 0 },
     };
-    
-    // For each match, find the most common EndClimb level
-    Object.entries(matchGroups).forEach(([matchKey, matchRows]) => {
-      // Count occurrences of each EndClimb level in this match
-      const climbFrequency = {};
-      
+    let noneCount = 0;
+
+    Object.values(matchGroups).forEach((matchRows) => {
+      // Count occurrences of each endclimbposition (0-8) in this match
+      const posCounts = {};
       matchRows.forEach(row => {
-        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined || row.endclimbposition > 8) {
-          climbFrequency['none'] = (climbFrequency['none'] || 0) + 1;
+        const ep = row.endclimbposition;
+        if (ep == null || ep === undefined || ep === '' || ep < 0 || ep > 8) {
+          posCounts['none'] = (posCounts['none'] || 0) + 1;
           return;
         }
-        
-        // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
-        // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
-        const level = row.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
-        if (level === 0) {
-          climbFrequency['L3'] = (climbFrequency['L3'] || 0) + 1;
-        } else if (level === 1) {
-          climbFrequency['L2'] = (climbFrequency['L2'] || 0) + 1;
-        } else if (level === 2) {
-          climbFrequency['L1'] = (climbFrequency['L1'] || 0) + 1;
-        } else {
-          climbFrequency['none'] = (climbFrequency['none'] || 0) + 1;
+        const n = Number(ep);
+        if (n >= 0 && n <= 8) posCounts[n] = (posCounts[n] || 0) + 1;
+      });
+
+      // Most common value for this match (endclimbposition 0-8 or 'none')
+      let mode = null;
+      let maxCount = 0;
+      Object.entries(posCounts).forEach(([key, count]) => {
+        if (count > maxCount) {
+          maxCount = count;
+          mode = key === 'none' ? 'none' : Number(key);
         }
       });
-      
-      console.log(`Match ${matchKey} climb frequencies:`, climbFrequency);
-      
-      // Find the most frequent EndClimb level for this match
-      let mostFrequentClimb = null;
-      let highestCount = 0;
-      
-      Object.entries(climbFrequency).forEach(([level, count]) => {
-        if (count > highestCount) {
-          highestCount = count;
-          mostFrequentClimb = level;
-        }
-      });
-      
-      console.log(`Match ${matchKey} most frequent climb:`, mostFrequentClimb);
-      
-      // Increment the count for this EndClimb level if valid
-      if (mostFrequentClimb !== null && mostFrequentClimb in endClimbCounts) {
-        endClimbCounts[mostFrequentClimb]++;
-      } else if (mostFrequentClimb !== null) {
-        endClimbCounts['none']++;
+
+      if (mode === 'none' || mode === null) {
+        noneCount++;
+        return;
       }
+      // mode is 0-8: position 0-2=left, 3-5=center, 6-8=right; level 0=L3, 1=L2, 2=L1
+      const levelKey = mode % 3 === 0 ? 'L3' : mode % 3 === 1 ? 'L2' : 'L1';
+      const position = mode < 3 ? 'left' : mode < 6 ? 'center' : 'right';
+      positionCounts[levelKey][position]++;
     });
-    
-    console.log("Final EndClimb counts:", endClimbCounts);
-    
-    // Calculate total matches with valid EndClimb data
-    const totalMatches = Object.values(endClimbCounts).reduce((sum, count) => sum + count, 0);
-    console.log("Total matches with valid EndClimb:", totalMatches);
-    
-    // If no matches, return zeros
-    if (totalMatches === 0) {
-      console.log("No valid matches found, returning zeros");
-      return { none: 0, L1: 0, L2: 0, L3: 0 };
-    }
-    
-    // Calculate percentages
-    const percentages = {
-      none: (endClimbCounts['none'] / totalMatches) * 100,
-      L1: (endClimbCounts['L1'] / totalMatches) * 100,
-      L2: (endClimbCounts['L2'] / totalMatches) * 100,
-      L3: (endClimbCounts['L3'] / totalMatches) * 100
+
+    const pct = (count) => Math.round((count / totalMatches) * 1000) / 10;
+    return {
+      none: pct(noneCount),
+      L1: { left: pct(positionCounts.L1.left), center: pct(positionCounts.L1.center), right: pct(positionCounts.L1.right) },
+      L2: { left: pct(positionCounts.L2.left), center: pct(positionCounts.L2.center), right: pct(positionCounts.L2.right) },
+      L3: { left: pct(positionCounts.L3.left), center: pct(positionCounts.L3.center), right: pct(positionCounts.L3.right) },
     };
-    
-    console.log("Final percentages:", percentages);
-    return percentages;
-  
   },
 
   attemptCage: (rows) => {
@@ -663,12 +631,12 @@ export async function GET(request) {
       // Find the most common EndClimbPosition level for this match
       const counts = {};
       matchRows.forEach(row => {
-        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined || row.endclimbposition > 8) {
+        const ep = row.endclimbposition; // 0-8 valid; >8 (e.g. 9) = none
+        if (ep == null || ep === undefined || ep < 0 || ep > 8) {
           counts['none'] = (counts['none'] || 0) + 1;
           return;
         }
-        // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
-        const level = row.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+        const level = Number(ep) % 3; // 0=L3, 1=L2, 2=L1
         if (level === 0) {
           counts['L3'] = (counts['L3'] || 0) + 1;
         } else if (level === 1) {
@@ -713,12 +681,12 @@ export async function GET(request) {
       // Find the most common EndClimbPosition level for this match
       const counts = {};
       matchRows.forEach(row => {
-        if (!row.endclimbposition || row.endclimbposition === null || row.endclimbposition === undefined || row.endclimbposition > 8) {
+        const ep = row.endclimbposition; // 0-8 valid; >8 (e.g. 9) = none
+        if (ep == null || ep === undefined || ep < 0 || ep > 8) {
           counts['none'] = (counts['none'] || 0) + 1;
           return;
         }
-        // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
-        const level = row.endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+        const level = Number(ep) % 3; // 0=L3, 1=L2, 2=L1
         if (level === 0) {
           counts['L3'] = (counts['L3'] || 0) + 1;
         } else if (level === 1) {
@@ -818,6 +786,7 @@ returnObject[0] = {
   shootWhileMove: rows.some(row => row.shootwhilemove === true),
   bump: rows.some(row => row.bump === true),
   trench: rows.some(row => row.trench === true),
+  wideClimb: rows.some(row => row.wideclimb === true || row.wideclimb === 'true'),
   defenseQuality,
   defenseLocation: {
     allianceZone: ((Number(loc.azOutpost) || 0) + (Number(loc.azTower) || 0)) / 2,

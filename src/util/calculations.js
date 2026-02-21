@@ -34,8 +34,9 @@ function calcTele(record) {
 
 function calcEnd(record) {
   // Endgame Climb: L1 = 10 points, L2 = 20 points, L3 = 30 points
-  // endclimbposition: 0-8 (0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, ...); level = position % 3 → 0=L3, 1=L2, 2=L1
+  // endclimbposition: 0-8 (0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, ...); >8 (e.g. 9) = none, 0 points
   if (record.endclimbposition != null && record.endclimbposition !== undefined) {
+    if (record.endclimbposition > 8) return 0; // 9 = none
     const level = record.endclimbposition % 3;
     if (level === 0) return 30; // L3
     if (level === 1) return 20; // L2
