@@ -41,16 +41,17 @@ export async function POST(request) {
           const uniqueBreakdownCount = Array.from(uniqueMatches).filter(match =>
             arr.some(row => row.match === match && row.breakdowncomments && row.breakdowncomments.trim() !== "")
           ).length;
-          const breakdownRate = uniqueMatches.size > 0 
-            ? (uniqueBreakdownCount / uniqueMatches.size) * 100 
+          const breakdownRate = uniqueMatches.size > 0
+            ? (uniqueBreakdownCount / uniqueMatches.size) * 100
             : 0;
 
           const epaValues = arr.map(row => calcEPA(row)).filter(v => typeof v === 'number' && !isNaN(v));
-          const meanVal = epaValues.reduce((a, b) => a + b, 0) / epaValues.length || 0;
-          const variance = epaValues.reduce((sum, v) => sum + Math.pow(v - meanVal, 2), 0) / epaValues.length || 0;
+          const meanVal = epaValues.length ? epaValues.reduce((a, b) => a + b, 0) / epaValues.length : 0;
+          const variance = epaValues.length ? epaValues.reduce((sum, v) => sum + Math.pow(v - meanVal, 2), 0) / epaValues.length : 0;
           const epaStdDev = Math.sqrt(variance);
 
-          return 100 - (breakdownRate + epaStdDev);
+          const raw = 100 - (breakdownRate + epaStdDev);
+          return raw < 0 ? 1 : raw;
         }
       })
     ])).map(d => [d.team, d.consistency])

@@ -317,16 +317,16 @@ export async function GET(request) {
         autoOverTime: arr => tidy(arr, select(['match', 'auto', 'winauto'])),
         teleOverTime: arr => tidy(arr, select(['match', 'tele', 'winauto'])),
       
-        // Consistency calculation
+        // Consistency: 100 − (breakdownRate + EPA std dev); if negative, use 1%
         consistency: arr => {
           const uniqueMatches = new Set(arr.map(row => row.match));
           const uniqueBreakdownCount = Array.from(uniqueMatches).filter(match =>
             arr.some(row => row.match === match && row.breakdowncomments !== null)
           ).length;
-          const breakdownRate = (uniqueBreakdownCount / uniqueMatches.size) * 100;
-        
+          const breakdownRate = uniqueMatches.size > 0 ? (uniqueBreakdownCount / uniqueMatches.size) * 100 : 0;
           const epaStdDev = standardDeviation(arr, 'epa');
-          return 100 - (breakdownRate + epaStdDev);
+          const raw = 100 - (breakdownRate + epaStdDev);
+          return raw < 0 ? 1 : raw;
         },
     
         lastBreakdown: arr => {
