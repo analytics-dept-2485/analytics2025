@@ -296,7 +296,8 @@ function ScoutingApp() {
     { qual: 'climbhazard', team1: filterNegative(data?.team4?.qualitative?.climbhazard) || 0, team2: filterNegative(data?.team5?.qualitative?.climbhazard) || 0, team3: filterNegative(data?.team6?.qualitative?.climbhazard) || 0 }
   ];
 
-  // Team View Data - Using actual database data
+  // Team View Data - Red alliance = red/pink (COLORS 3,4,5), Blue alliance = blue/green (COLORS 0,1,2)
+  const colorIndex = (idx) => (idx < 3 ? idx + 3 : idx - 3);
   const teamsData = [
     // Red alliance teams
     data.team1 || defaultTeam,
@@ -306,12 +307,14 @@ function ScoutingApp() {
     data.team4 || defaultTeam,
     data.team5 || defaultTeam,
     data.team6 || defaultTeam
-  ].map((teamData, idx) => ({
+  ].map((teamData, idx) => {
+    const c = colorIndex(idx);
+    return {
     number: teamData.team,
     name: teamData.teamName,
-    color: COLORS[idx][1],
-    darkColor: COLORS[idx][3],
-    lightColor: COLORS[idx][0],
+    color: COLORS[c][1],
+    darkColor: COLORS[c][3],
+    lightColor: COLORS[c][0],
     epa: Math.round(teamData.displayEPA ?? teamData.last3EPA ?? 0),
     autoEPA: Math.round(teamData.displayAuto ?? teamData.last3Auto ?? 0),
     teleEPA: Math.round(teamData.displayTele ?? teamData.last3Tele ?? 0),
@@ -333,15 +336,15 @@ function ScoutingApp() {
       l2: teamData.endgame?.L2 ?? 0,
       l3: teamData.endgame?.L3 ?? 0
     }
-  }));
+  }; });
 
-  // Match View Data structure
+  // Red alliance = red/pink tones (COLORS 3,4,5); Blue alliance = blue/green tones (COLORS 0,1,2)
   const matchData = {
     redAlliance: {
       teams: [
-        { number: redAlliance[0].team, color: COLORS[0][1], darkColor: COLORS[0][3] },
-        { number: redAlliance[1].team, color: COLORS[1][1], darkColor: COLORS[1][3] },
-        { number: redAlliance[2].team, color: COLORS[2][1], darkColor: COLORS[2][3] }
+        { number: redAlliance[0].team, color: COLORS[3][1], darkColor: COLORS[3][3] },
+        { number: redAlliance[1].team, color: COLORS[4][1], darkColor: COLORS[4][3] },
+        { number: redAlliance[2].team, color: COLORS[5][1], darkColor: COLORS[5][3] }
       ],
       totalEPA: Math.round(redScores[3]),
       autoEPA: Math.round(redScores[1]),
@@ -351,9 +354,9 @@ function ScoutingApp() {
     },
     blueAlliance: {
       teams: [
-        { number: blueAlliance[0].team, color: COLORS[3][1], darkColor: COLORS[3][3] },
-        { number: blueAlliance[1].team, color: COLORS[4][1], darkColor: COLORS[4][3] },
-        { number: blueAlliance[2].team, color: COLORS[5][1], darkColor: COLORS[5][3] }
+        { number: blueAlliance[0].team, color: COLORS[0][1], darkColor: COLORS[0][3] },
+        { number: blueAlliance[1].team, color: COLORS[1][1], darkColor: COLORS[1][3] },
+        { number: blueAlliance[2].team, color: COLORS[2][1], darkColor: COLORS[2][3] }
       ],
       totalEPA: Math.round(blueScores[3]),
       autoEPA: Math.round(blueScores[1]),

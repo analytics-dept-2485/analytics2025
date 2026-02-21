@@ -427,19 +427,19 @@ console.log("page",matchType)
                <Checkbox visibleName={"Outpost"} internalName={"defenselocationoutpost"}></Checkbox>
              </div>
            </div>
-
-           <br></br>
-           <div className={styles.Endgame}>
+           <div className={styles.PostMatch}>
             <Header headerName={"Endgame"}/>
             <br></br>
             <SubHeader subHeaderName={"Climb"}></SubHeader>
             <div>
               <ClimbCheckbox></ClimbCheckbox>
             </div>
+
             <Checkbox visibleName={"Wide Climb?"} internalName={"wideclimb"} />
+
            </div>
 
-           <br></br>
+
             <div className={styles.PostMatch}>       
               <Header headerName={"Post-Match"}/>
               <br></br>

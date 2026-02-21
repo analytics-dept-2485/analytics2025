@@ -57,8 +57,7 @@ function TeamView() {
    function normalizeTeamData(api) {
      if (!api) return null;
      const ep = api.endPlacement;
-     // endPlacement from API: none = number; L1/L2/L3 = { left, center, right }
-     const toPos = (pct) => (typeof pct === 'object' && pct != null && 'left' in pct ? pct : { left: 0, right: 0, center: Math.round(Number(pct) || 0) });
+     const toPos = (pct) => ({ left: 0, right: 0, center: Math.round(Number(pct) || 0) });
      const dq = api.defenseQuality && typeof api.defenseQuality === 'object' ? api.defenseQuality : {};
      const dl = api.defenseLocation && typeof api.defenseLocation === 'object' ? api.defenseLocation : {};
      return {
@@ -125,7 +124,7 @@ function TeamView() {
          hub: round10(dl.hub),
        },
        endPlacement: {
-         none: ep?.none != null ? { left: 0, right: 0, center: round10(Number(ep.none)) } : { left: 0, right: 0, center: 0 },
+         none: ep?.none != null ? toPos(ep.none) : { left: 0, right: 0, center: 0 },
          L1: ep?.L1 != null ? toPos(ep.L1) : { left: 0, right: 0, center: 0 },
          L2: ep?.L2 != null ? toPos(ep.L2) : { left: 0, right: 0, center: 0 },
          L3: ep?.L3 != null ? toPos(ep.L3) : { left: 0, right: 0, center: 0 },
@@ -138,7 +137,7 @@ function TeamView() {
        shootWhileMove: Boolean(api.shootWhileMove),
        bumpTrav: Boolean(api.bump),
        trenchTrav: Boolean(api.trench),
-       wideClimb: Boolean(api.wideClimb ?? api.wideclimb),
+       wideClimb: Boolean(api.wideClimb),
      };
    }
 
@@ -618,15 +617,15 @@ function TeamView() {
                 </tbody>
               </table> */}
               <ClimbTable
-                R1C1={data.endPlacement.L3.left}
-                R1C2={data.endPlacement.L3.center}
-                R1C3={data.endPlacement.L3.right}
-                R2C1={data.endPlacement.L2.left}
-                R2C2={data.endPlacement.L2.center}
-                R2C3={data.endPlacement.L2.right}
-                R3C1={data.endPlacement.L1.left}
-                R3C2={data.endPlacement.L1.center}
-                R3C3={data.endPlacement.L1.right}
+                R1C1 = {data.endPlacement.L1.left}
+                R1C2 = {data.endPlacement.L1.center}
+                R1C3 = {data.endPlacement.L1.right}
+                R2C1 = {data.endPlacement.L2.left}
+                R2C2 = {data.endPlacement.L2.center}
+                R2C3 = {data.endPlacement.L2.right}
+                R3C1 = {data.endPlacement.L3.left}
+                R3C2 = {data.endPlacement.L3.center}
+                R3C3 = {data.endPlacement.L1.right}
                 color1={Colors[3][2]} 
                 color2={Colors[3][1]}
                 color3={Colors[3][0]}
