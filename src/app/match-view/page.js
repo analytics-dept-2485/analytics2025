@@ -27,86 +27,86 @@ function ScoutingApp() {
   const searchParams = useSearchParams();
   const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch all team data from database
+  // Fetch team data (match-specific when match is in URL so points are for that match only)
   useEffect(() => {
-    fetch("/api/get-alliance-data")
+    if (!searchParams) return;
+    const matchParam = searchParams.get('match');
+    const url = matchParam != null && matchParam !== ''
+      ? "/api/get-alliance-data?match=" + encodeURIComponent(matchParam)
+      : "/api/get-alliance-data";
+    fetch(url)
       .then(resp => resp.json())
       .then(data => {
         console.log("[Match View] get-alliance-data response (keys = team numbers):", data);
         setAllData(data);
       });
-  }, []);
+  }, [searchParams]);
 
   // Load team data based on URL parameters
   useEffect(() => {
-    if (searchParams && allData) {
-      if (searchParams.get('match') == null || searchParams.get('match') == "") {
-        // Search by teams (trim so "2485" matches API keys)
-        let [team1, team2, team3, team4, team5, team6] = [
-          searchParams.get("team1")?.trim?.() ?? searchParams.get("team1"),
-          searchParams.get("team2")?.trim?.() ?? searchParams.get("team2"),
-          searchParams.get("team3")?.trim?.() ?? searchParams.get("team3"),
-          searchParams.get("team4")?.trim?.() ?? searchParams.get("team4"),
-          searchParams.get("team5")?.trim?.() ?? searchParams.get("team5"),
-          searchParams.get("team6")?.trim?.() ?? searchParams.get("team6")
-        ];
-        const lookup = (t) => (t != null && t !== '') ? (allData[t] ?? allData[String(t)]) : undefined;
-        const next = {
-          team1: lookup(team1),
-          team2: lookup(team2),
-          team3: lookup(team3),
-          team4: lookup(team4),
-          team5: lookup(team5),
-          team6: lookup(team6)
-        };
-        console.log("[Match View] Team data for view (by teams):", next);
-        setData(next);
-      } else {
-        // Search by match
-        fetch('/api/get-teams-of-match?match=' + encodeURIComponent(searchParams.get('match')))
-          .then(resp => resp.json())
-          .then(matchData => {
-            if (matchData.message) {
-              alert(matchData.message);
-              const matchParam = searchParams.get('match');
-              const backUrl = matchParam ? `${window.location.pathname}?match=${encodeURIComponent(matchParam)}` : window.location.pathname;
-              window.history.replaceState(null, 'Match View', backUrl);
-              setData({});
-            } else {
-              const newParams = new URLSearchParams(searchParams);
-              newParams.set('team1', String(matchData.team1));
-              newParams.set('team2', String(matchData.team2));
-              newParams.set('team3', String(matchData.team3));
-              newParams.set('team4', String(matchData.team4));
-              newParams.set('team5', String(matchData.team5));
-              newParams.set('team6', String(matchData.team6));
-              newParams.delete('match');
+    if (!searchParams || !allData) return;
+    const matchParam = searchParams.get('match');
+    const hasMatch = matchParam != null && matchParam !== '';
+    const hasTeams = [1, 2, 3, 4, 5, 6].every((i) => (searchParams.get(`team${i}`)?.trim?.() ?? searchParams.get(`team${i}`)));
+    const team1 = searchParams.get("team1")?.trim?.() ?? searchParams.get("team1");
+    const team2 = searchParams.get("team2")?.trim?.() ?? searchParams.get("team2");
+    const team3 = searchParams.get("team3")?.trim?.() ?? searchParams.get("team3");
+    const team4 = searchParams.get("team4")?.trim?.() ?? searchParams.get("team4");
+    const team5 = searchParams.get("team5")?.trim?.() ?? searchParams.get("team5");
+    const team6 = searchParams.get("team6")?.trim?.() ?? searchParams.get("team6");
+    const lookup = (t) => (t != null && t !== '') ? (allData[t] ?? allData[String(t)]) : undefined;
 
-              const newUrl = `${window.location.pathname}?${newParams.toString()}`;
-              window.history.replaceState(null, 'Match View', newUrl);
-
-              const lookup = (t) => (t != null && t !== '') ? (allData[String(t)] ?? allData[t]) : undefined;
-              const next = {
-                team1: lookup(matchData.team1),
-                team2: lookup(matchData.team2),
-                team3: lookup(matchData.team3),
-                team4: lookup(matchData.team4),
-                team5: lookup(matchData.team5),
-                team6: lookup(matchData.team6)
-              };
-              console.log("[Match View] Team data for view (by match):", next);
-              setData(next);
-            }
-          })
-          .catch(err => {
-            alert('Could not load match: ' + (err.message || 'Network error'));
-            const matchParam = searchParams.get('match');
+    if (hasMatch && !hasTeams) {
+      // Resolve match number to team list, keep match in URL so points stay match-specific
+      fetch('/api/get-teams-of-match?match=' + encodeURIComponent(matchParam))
+        .then(resp => resp.json())
+        .then(matchData => {
+          if (matchData.message) {
+            alert(matchData.message);
             const backUrl = matchParam ? `${window.location.pathname}?match=${encodeURIComponent(matchParam)}` : window.location.pathname;
             window.history.replaceState(null, 'Match View', backUrl);
             setData({});
-          });
-      }
+          } else {
+            const newParams = new URLSearchParams(searchParams);
+            newParams.set('team1', String(matchData.team1));
+            newParams.set('team2', String(matchData.team2));
+            newParams.set('team3', String(matchData.team3));
+            newParams.set('team4', String(matchData.team4));
+            newParams.set('team5', String(matchData.team5));
+            newParams.set('team6', String(matchData.team6));
+            newParams.set('match', matchParam);
+
+            const newUrl = `${window.location.pathname}?${newParams.toString()}`;
+            window.history.replaceState(null, 'Match View', newUrl);
+
+            setData({
+              team1: lookup(matchData.team1),
+              team2: lookup(matchData.team2),
+              team3: lookup(matchData.team3),
+              team4: lookup(matchData.team4),
+              team5: lookup(matchData.team5),
+              team6: lookup(matchData.team6)
+            });
+          }
+        })
+        .catch(err => {
+          alert('Could not load match: ' + (err.message || 'Network error'));
+          const backUrl = matchParam ? `${window.location.pathname}?match=${encodeURIComponent(matchParam)}` : window.location.pathname;
+          window.history.replaceState(null, 'Match View', backUrl);
+          setData({});
+        });
+      return;
     }
+
+    // Lookup by team1..team6 (with or without match in URL; when match in URL, allData is match-specific)
+    setData({
+      team1: lookup(team1),
+      team2: lookup(team2),
+      team3: lookup(team3),
+      team4: lookup(team4),
+      team5: lookup(team5),
+      team6: lookup(team6)
+    });
   }, [searchParams, allData]);
 
   const defaultTeam = {

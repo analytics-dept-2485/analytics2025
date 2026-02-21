@@ -13,9 +13,16 @@ const avgNonNegative = (values) => {
 };
 
 
-export async function GET() {
+export async function GET(request) {
   try {
-    const { rows } = await sql`SELECT * FROM scc2025;`;
+    const { searchParams } = new URL(request?.url ?? '', 'http://localhost');
+    const matchParam = searchParams.get('match');
+    let rows = (await sql`SELECT * FROM scc2025;`).rows;
+    const matchOnly = matchParam != null && matchParam !== '' && !isNaN(parseInt(matchParam, 10));
+    if (matchOnly) {
+      const matchNum = parseInt(matchParam, 10);
+      rows = rows.filter((r) => Number(r.match) === matchNum);
+    }
     let responseObject = {};
 
     // Try to fetch TBA team data, but don't fail if it doesn't work
@@ -54,8 +61,19 @@ export async function GET() {
     });
 
     calculateAverages(responseObject, rows);
-    calculateLast3EPA(responseObject, rows);
-    calculateDisplayEPA(responseObject);
+    if (matchOnly) {
+      // For match view: display values = this match's points only (no blend with last 3)
+      Object.keys(responseObject).forEach((team) => {
+        const t = responseObject[team];
+        t.displayAuto = t.auto ?? 0;
+        t.displayTele = t.tele ?? 0;
+        t.displayEnd = t.end ?? 0;
+        t.displayEPA = Math.round((t.displayAuto + t.displayTele + t.displayEnd) * 10) / 10;
+      });
+    } else {
+      calculateLast3EPA(responseObject, rows);
+      calculateDisplayEPA(responseObject);
+    }
 
     return NextResponse.json(responseObject, { status: 200 });
 
