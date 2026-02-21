@@ -18,6 +18,7 @@
     gap: 5px;
     width: 350px;
     align-self: center;
+    flex-wrap: wrap;
   }
 .allMatchInfo {
   display: flex;
