@@ -17,12 +17,10 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request?.url ?? '', 'http://localhost');
     const matchParam = searchParams.get('match');
-    let rows = (await sql`SELECT * FROM scc2025;`).rows;
+    const allRows = (await sql`SELECT * FROM scc2025;`).rows;
     const matchOnly = matchParam != null && matchParam !== '' && !isNaN(parseInt(matchParam, 10));
-    if (matchOnly) {
-      const matchNum = parseInt(matchParam, 10);
-      rows = rows.filter((r) => Number(r.match) === matchNum);
-    }
+    // Always use all rows to build team data (so we can compute last-3 for every team)
+    let rows = allRows;
     let responseObject = {};
 
     // Try to fetch TBA team data, but don't fail if it doesn't work
@@ -61,17 +59,25 @@ export async function GET(request) {
     });
 
     calculateAverages(responseObject, rows);
+    // Always compute last-3 EPA and last-3 charts (for match-view team cards)
+    calculateLast3EPA(responseObject, rows);
+    calculateLast3Charts(responseObject, rows);
+
     if (matchOnly) {
-      // For match view: display values = this match's points only (no blend with last 3)
+      // For match view header: display values = this match's points only; team cards still use last3*
+      const matchNum = parseInt(matchParam, 10);
+      const matchRows = allRows.filter((r) => !r.noshow && Number(r.match) === matchNum);
       Object.keys(responseObject).forEach((team) => {
         const t = responseObject[team];
-        t.displayAuto = t.auto ?? 0;
-        t.displayTele = t.tele ?? 0;
-        t.displayEnd = t.end ?? 0;
-        t.displayEPA = Math.round((t.displayAuto + t.displayTele + t.displayEnd) * 10) / 10;
+        const teamMatchRows = matchRows.filter((r) => String(r.team) === String(team));
+        if (teamMatchRows.length > 0) {
+          t.displayAuto = Math.round((teamMatchRows.reduce((s, r) => s + calcAuto(r), 0) / teamMatchRows.length) * 10) / 10;
+          t.displayTele = Math.round((teamMatchRows.reduce((s, r) => s + calcTele(r), 0) / teamMatchRows.length) * 10) / 10;
+          t.displayEnd = Math.round((teamMatchRows.reduce((s, r) => s + calcEnd(r), 0) / teamMatchRows.length) * 10) / 10;
+          t.displayEPA = Math.round((t.displayAuto + t.displayTele + t.displayEnd) * 10) / 10;
+        }
       });
     } else {
-      calculateLast3EPA(responseObject, rows);
       calculateDisplayEPA(responseObject);
     }
 
@@ -116,6 +122,8 @@ function initializeTeamData(row, auto, tele, end, frcAPITeamInfo) {
       dump: row.passingdump ? 1 : 0,
     },
     endgame: createEndgameData(row.endclimbposition),
+    // defense: 0=weak, 1=harassment, 2=game changing (only count when played defense)
+    defense: countDefenseRow(row),
     qualitative: {
       aggression: row.aggression,
       climbhazard: row.climbhazard,
@@ -168,6 +176,12 @@ function accumulateTeamData(teamData, row, auto, tele, end) {
     teamData.endgame[key] += endgameData[key];
   }
 
+  // Accumulate defense type (0=weak, 1=harassment, 2=game changing)
+  const dCount = countDefenseRow(row);
+  teamData.defense.weak += dCount.weak;
+  teamData.defense.harassment += dCount.harassment;
+  teamData.defense.gameChanging += dCount.gameChanging;
+
   // Accumulate qualitative ratings (sum them for averaging later)
   teamData.qualitative.aggression += row.aggression || 0;
   teamData.qualitative.climbhazard += row.climbhazard || 0;
@@ -182,13 +196,24 @@ function accumulateTeamData(teamData, row, auto, tele, end) {
   teamData.qualitative.bumpspeed += row.bumpspeed || 0;
 }
 
+// defense column: 0=weak, 1=harassment, 2=game changing. Only count when played defense.
+function countDefenseRow(row) {
+  const played = row.playeddefense === true || row.playeddefense === 'true' || row.defenseplayed === true || row.defenseplayed === 'true';
+  if (!played) return { weak: 0, harassment: 0, gameChanging: 0 };
+  const d = Number(row.defense);
+  if (d === 0) return { weak: 1, harassment: 0, gameChanging: 0 };
+  if (d === 1) return { weak: 0, harassment: 1, gameChanging: 0 };
+  if (d === 2) return { weak: 0, harassment: 0, gameChanging: 1 };
+  return { weak: 0, harassment: 0, gameChanging: 0 };
+}
+
 function createEndgameData(endclimbposition) {
-  // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1
-  if (!endclimbposition || endclimbposition === null || endclimbposition === undefined) {
+  // endclimbposition: 0=LeftL3, 1=LeftL2, 2=LeftL1, 3=CenterL3, 4=CenterL2, 5=CenterL1, 6=RightL3, 7=RightL2, 8=RightL1; null/undefined or >8 = none
+  if (endclimbposition == null || endclimbposition === undefined || endclimbposition < 0 || endclimbposition > 8) {
     return { L1: 0, L2: 0, L3: 0, None: 1 };
   }
   // Map integer to level: 0,3,6 = L3; 1,4,7 = L2; 2,5,8 = L1
-  const level = endclimbposition % 3; // 0=L3, 1=L2, 2=L1
+  const level = Number(endclimbposition) % 3; // 0=L3, 1=L2, 2=L1
   return {
     L1: level === 2 ? 1 : 0,
     L2: level === 1 ? 1 : 0,
@@ -230,6 +255,16 @@ function calculateAverages(responseObject, rows) {
           None: Math.round((100 * teamData.endgame.None) / locationSum),
         }
       : { L1: 0, L2: 0, L3: 0, None: 100 };
+
+    // Defense quality % from DB "defense" column (0=weak, 1=harassment, 2=game changing)
+    const defenseSum = teamData.defense.weak + teamData.defense.harassment + teamData.defense.gameChanging;
+    teamData.defense = defenseSum > 0
+      ? {
+          weak: Math.round((100 * teamData.defense.weak) / defenseSum),
+          harassment: Math.round((100 * teamData.defense.harassment) / defenseSum),
+          gameChanging: Math.round((100 * teamData.defense.gameChanging) / defenseSum),
+        }
+      : { weak: 0, harassment: 0, gameChanging: 0 };
 
     // Calculate qualitative ratings (average of non-negative values, -1 for not rated)
     const teamRows = rows.filter(row => row.team === parseInt(team) && !row.noshow);
@@ -300,6 +335,87 @@ function calculateLast3EPA(responseObject, rows) {
     responseObject[team].last3Tele = avg(last3Matches, "tele");
     responseObject[team].last3End = avg(last3Matches, "end");
     responseObject[team].last3EPA = avg(last3Matches, "epa");
+  });
+}
+
+// Compute passing %, endgame %, and qualitative averages from each team's last 3 matches only
+function calculateLast3Charts(responseObject, rows) {
+  Object.keys(responseObject).forEach(team => {
+    const teamRows = rows.filter(r => String(r.team) === String(team) && !r.noshow);
+    const matchGroups = {};
+    teamRows.forEach(row => {
+      if (!matchGroups[row.match]) matchGroups[row.match] = [];
+      matchGroups[row.match].push(row);
+    });
+    const sortedMatches = Object.keys(matchGroups)
+      .map(Number)
+      .sort((a, b) => a - b)
+      .slice(-3);
+    const last3Rows = sortedMatches.flatMap(m => matchGroups[m]);
+
+    const n = last3Rows.length;
+    if (n === 0) {
+      responseObject[team].last3Passing = { dump: 0, bulldozer: 0, shooter: 0 };
+      responseObject[team].last3Endgame = { None: 100, L1: 0, L2: 0, L3: 0 };
+      responseObject[team].last3Defense = { weak: 0, harassment: 0, gameChanging: 0 };
+      responseObject[team].last3Qualitative = null;
+      return;
+    }
+
+    // Passing: % of rows (matches) where each type was used
+    const dump = last3Rows.filter(r => r.passingdump).length;
+    const bulldozer = last3Rows.filter(r => r.passingbulldozer).length;
+    const shooter = last3Rows.filter(r => r.passingshooter).length;
+    responseObject[team].last3Passing = {
+      dump: Math.round((100 * dump) / n),
+      bulldozer: Math.round((100 * bulldozer) / n),
+      shooter: Math.round((100 * shooter) / n),
+    };
+
+    // Endgame: sum createEndgameData over last3 rows, then percentages
+    let L1 = 0, L2 = 0, L3 = 0, None = 0;
+    last3Rows.forEach(r => {
+      const eg = createEndgameData(r.endclimbposition);
+      L1 += eg.L1;
+      L2 += eg.L2;
+      L3 += eg.L3;
+      None += eg.None;
+    });
+    const sum = L1 + L2 + L3 + None;
+    responseObject[team].last3Endgame = sum > 0
+      ? {
+          None: Math.round((100 * None) / sum),
+          L1: Math.round((100 * L1) / sum),
+          L2: Math.round((100 * L2) / sum),
+          L3: Math.round((100 * L3) / sum),
+        }
+      : { None: 100, L1: 0, L2: 0, L3: 0 };
+
+    // Defense quality from DB "defense" (0=weak, 1=harassment, 2=game changing) in last 3 matches
+    let weak = 0, harassment = 0, gameChanging = 0;
+    last3Rows.forEach(r => {
+      const d = countDefenseRow(r);
+      weak += d.weak;
+      harassment += d.harassment;
+      gameChanging += d.gameChanging;
+    });
+    const defenseSum = weak + harassment + gameChanging;
+    responseObject[team].last3Defense = defenseSum > 0
+      ? {
+          weak: Math.round((100 * weak) / defenseSum),
+          harassment: Math.round((100 * harassment) / defenseSum),
+          gameChanging: Math.round((100 * gameChanging) / defenseSum),
+        }
+      : { weak: 0, harassment: 0, gameChanging: 0 };
+
+    // Qualitative: average (non-negative) over last3 rows
+    const qualKeys = ['aggression', 'climbhazard', 'hoppercapacity', 'maneuverability', 'durability', 'defenseevasion', 'climbspeed', 'fuelspeed', 'passingspeed', 'autodeclimbspeed', 'bumpspeed'];
+    const last3Qualitative = {};
+    qualKeys.forEach(key => {
+      const values = last3Rows.map(r => r[key]).filter(v => typeof v === 'number' && v >= 0);
+      last3Qualitative[key] = values.length > 0 ? avgNonNegative(values) : -1;
+    });
+    responseObject[team].last3Qualitative = last3Qualitative;
   });
 }
 

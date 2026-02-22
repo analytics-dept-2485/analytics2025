@@ -295,7 +295,7 @@ function ScoutingApp() {
     { qual: 'climbhazard', team1: filterNegative(data?.team4?.qualitative?.climbhazard) || 0, team2: filterNegative(data?.team5?.qualitative?.climbhazard) || 0, team3: filterNegative(data?.team6?.qualitative?.climbhazard) || 0 }
   ];
 
-  // Team View Data - Red alliance = red/pink (COLORS 3,4,5), Blue alliance = blue/green (COLORS 0,1,2)
+  // Team View Data (bottom 6 cards): always use last-3-matches EPA and last-3-matches charts; fallback to all-match data if no last3
   const colorIndex = (idx) => (idx < 3 ? idx + 3 : idx - 3);
   const teamsData = [
     // Red alliance teams
@@ -308,33 +308,32 @@ function ScoutingApp() {
     data.team6 || defaultTeam
   ].map((teamData, idx) => {
     const c = colorIndex(idx);
+    const useLast3 = teamData.last3EPA != null || teamData.last3Passing != null;
     return {
     number: teamData.team,
     name: teamData.teamName,
     color: COLORS[c][1],
     darkColor: COLORS[c][3],
     lightColor: COLORS[c][0],
-    epa: Math.round(teamData.displayEPA ?? teamData.last3EPA ?? 0),
-    autoEPA: Math.round(teamData.displayAuto ?? teamData.last3Auto ?? 0),
-    teleEPA: Math.round(teamData.displayTele ?? teamData.last3Tele ?? 0),
-    endgameEPA: Math.round(teamData.displayEnd ?? teamData.last3End ?? 0),
-    passingFreq: {
-      dump: teamData.passing?.dump ?? teamData.passingDump ?? teamData.dump ?? 0,
-      bulldozer: teamData.passing?.bulldozer ?? teamData.passingBulldozer ?? teamData.bulldozer ?? 0,
-      shooter: teamData.passing?.shooter ?? teamData.passingShooter ?? teamData.shooter ?? 0
-    },
-    // Note: This chart uses qualitative ratings (aggression, durability, defenseevasion), NOT the DB "defense" column (0=weak, 1=harassment, 2=game changing).
-    defenseQuality: {
-      harassment: teamData.qualitative?.aggression ? Math.round(teamData.qualitative.aggression * 10) : 0,
-      weak: teamData.qualitative?.durability ? Math.round(teamData.qualitative.durability * 10) : 0,
-      gameChanging: teamData.qualitative?.defenseevasion ? Math.round(teamData.qualitative.defenseevasion * 10) : 0
-    },
-    endgamePlacement: {
-      none: teamData.endgame?.None ?? teamData.endgame?.none ?? 0,
-      l1: teamData.endgame?.L1 ?? 0,
-      l2: teamData.endgame?.L2 ?? 0,
-      l3: teamData.endgame?.L3 ?? 0
-    }
+    // EPA: last 3 matches (or fewer if only 2/1 in DB)
+    epa: Math.round(teamData.last3EPA ?? teamData.displayEPA ?? 0),
+    autoEPA: Math.round(teamData.last3Auto ?? teamData.displayAuto ?? 0),
+    teleEPA: Math.round(teamData.last3Tele ?? teamData.displayTele ?? 0),
+    endgameEPA: Math.round(teamData.last3End ?? teamData.displayEnd ?? 0),
+    passingFreq: useLast3 && teamData.last3Passing
+      ? { dump: teamData.last3Passing.dump, bulldozer: teamData.last3Passing.bulldozer, shooter: teamData.last3Passing.shooter }
+      : {
+          dump: teamData.passing?.dump ?? teamData.passingDump ?? teamData.dump ?? 0,
+          bulldozer: teamData.passing?.bulldozer ?? teamData.passingBulldozer ?? teamData.bulldozer ?? 0,
+          shooter: teamData.passing?.shooter ?? teamData.passingShooter ?? teamData.shooter ?? 0
+        },
+    // Defense Quality from DB "defense" column: 0=weak, 1=harassment, 2=game changing
+    defenseQuality: (useLast3 && teamData.last3Defense)
+      ? { weak: teamData.last3Defense.weak, harassment: teamData.last3Defense.harassment, gameChanging: teamData.last3Defense.gameChanging }
+      : { weak: teamData.defense?.weak ?? 0, harassment: teamData.defense?.harassment ?? 0, gameChanging: teamData.defense?.gameChanging ?? 0 },
+    endgamePlacement: useLast3 && teamData.last3Endgame
+      ? { none: teamData.last3Endgame.None, l1: teamData.last3Endgame.L1, l2: teamData.last3Endgame.L2, l3: teamData.last3Endgame.L3 }
+      : { none: teamData.endgame?.None ?? teamData.endgame?.none ?? 0, l1: teamData.endgame?.L1 ?? 0, l2: teamData.endgame?.L2 ?? 0, l3: teamData.endgame?.L3 ?? 0 }
   }; });
 
   // Red alliance = red/pink tones (COLORS 3,4,5); Blue alliance = blue/green tones (COLORS 0,1,2)
@@ -402,7 +401,7 @@ function ScoutingApp() {
             )}
           </pre>
           <p style={{ fontSize: 12, color: '#666' }}>
-            Defense pie = qualitative.aggression (harassment), qualitative.durability (weak), qualitative.defenseevasion (game changing). DB &quot;defense&quot; (0/1/2) is not used here.
+            Defense pie = DB &quot;defense&quot; column: 0=weak, 1=harassment, 2=game changing (% of matches).
           </p>
         </div>
       )}
@@ -511,35 +510,40 @@ function TeamCard({ team }) {
   const endgameChartRef = useRef(null);
   const endgameChartInstance = useRef(null);
 
+  const hasDefenseData = team.defenseQuality && (team.defenseQuality.weak + team.defenseQuality.harassment + team.defenseQuality.gameChanging) > 0;
+
   useEffect(() => {
-    // Defense Quality - Pie Chart
+    // Defense Quality - Pie Chart (only when team has defense data)
     if (defenseChartRef.current) {
       if (defenseChartInstance.current) {
         defenseChartInstance.current.destroy();
+        defenseChartInstance.current = null;
       }
 
-      const ctx = defenseChartRef.current.getContext('2d');
-      const colors = [team.darkColor, team.color, team.lightColor || team.color];
+      if (hasDefenseData) {
+        const ctx = defenseChartRef.current.getContext('2d');
+        const colors = [team.darkColor, team.color, team.lightColor || team.color];
 
-      defenseChartInstance.current = new Chart(ctx, {
-        type: 'pie',
-        data: {
-          labels: ['Harassment', 'Weak', 'Game Changing'],
-          datasets: [{
-            data: [team.defenseQuality.harassment, team.defenseQuality.weak, team.defenseQuality.gameChanging],
-            backgroundColor: colors,
-            borderWidth: 2,
-            borderColor: '#fff'
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { position: 'right', labels: { font: { size: 11 }, padding: 8, boxWidth: 12 } }
+        defenseChartInstance.current = new Chart(ctx, {
+          type: 'pie',
+          data: {
+            labels: ['Harassment', 'Weak', 'Game Changing'],
+            datasets: [{
+              data: [team.defenseQuality.harassment, team.defenseQuality.weak, team.defenseQuality.gameChanging],
+              backgroundColor: colors,
+              borderWidth: 2,
+              borderColor: '#fff'
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { position: 'right', labels: { font: { size: 11 }, padding: 8, boxWidth: 12 } }
+            }
           }
-        }
-      });
+        });
+      }
     }
 
     // Endgame Placement - Pie Chart
@@ -549,7 +553,7 @@ function TeamCard({ team }) {
       }
 
       const ctx = endgameChartRef.current.getContext('2d');
-      const colors = [team.lightColor || team.color, team.color, team.darkColor, '#555'];
+      const colors = [team.lightColor || team.color, team.color, team.darkColor, '#6B2D5C'];
 
       endgameChartInstance.current = new Chart(ctx, {
         type: 'pie',
@@ -576,7 +580,7 @@ function TeamCard({ team }) {
       if (defenseChartInstance.current) defenseChartInstance.current.destroy();
       if (endgameChartInstance.current) endgameChartInstance.current.destroy();
     };
-  }, [team]);
+  }, [team, hasDefenseData]);
 
   return (
     <div className={styles.teamCard}>
@@ -607,7 +611,11 @@ function TeamCard({ team }) {
         <div className={styles.chartColumn}>
           <h3>Defense Quality</h3>
           <div className={styles.chartWrapper}>
-            <canvas ref={defenseChartRef}></canvas>
+            {hasDefenseData ? (
+              <canvas ref={defenseChartRef}></canvas>
+            ) : (
+              <p className={styles.noDefenseMessage}>Did not play defense</p>
+            )}
           </div>
         </div>
       </div>
