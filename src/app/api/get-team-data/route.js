@@ -15,7 +15,7 @@ export async function GET(request) {
   }
 
   // Fetch team data from database
-  let data = await sql`SELECT * FROM scc2025 WHERE team = ${team};`;
+  let data = await sql`SELECT * FROM phd2026 WHERE team = ${team};`;
   const rows = data.rows;
 
   if (rows.length === 0) {

@@ -17,7 +17,7 @@ export async function GET(request) {
   try {
     const { searchParams } = new URL(request?.url ?? '', 'http://localhost');
     const matchParam = searchParams.get('match');
-    const allRows = (await sql`SELECT * FROM scc2025;`).rows;
+    const allRows = (await sql`SELECT * FROM phd2026;`).rows;
     const matchOnly = matchParam != null && matchParam !== '' && !isNaN(parseInt(matchParam, 10));
     // Always use all rows to build team data (so we can compute last-3 for every team)
     let rows = allRows;

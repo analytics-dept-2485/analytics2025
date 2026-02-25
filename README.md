@@ -9,7 +9,7 @@ npm install
 Next, set up the database on Vercel with test data.
 ```sql
 
-CREATE TABLE scc2025 (
+CREATE TABLE eventCompetitionYear (
    ID serial PRIMARY KEY,
    -- Match Info
    ScoutName VARCHAR(255),
@@ -37,6 +37,7 @@ CREATE TABLE scc2025 (
    DefenseLocationTower BOOLEAN,
    DefenseLocationHub BOOLEAN,
    DefenseLocationNZ BOOLEAN,
+   DefenseLocationAZ BOOLEAN,
    DefenseLocationTrench BOOLEAN,
    DefenseLocationBump BOOLEAN,
    
@@ -73,11 +74,11 @@ CREATE TABLE scc2025 (
 );
 
 -- Example INSERT statement
-INSERT INTO scc2025 (
+INSERT INTO eventCompetitionYear (
    ScoutName, ScoutTeam, Team, Match, MatchType, NoShow,
    AutoClimb, AutoClimbPosition, AutoFuel, WinAuto,
    IntakeGround, IntakeOutpost, PassingBulldozer, PassingShooter, PassingDump, ShootWhileMove, TeleFuel,
-   DefenseLocationOutpost, DefenseLocationTower, DefenseLocationHub, DefenseLocationNZ, DefenseLocationTrench, DefenseLocationBump,
+   DefenseLocationOutpost, DefenseLocationTower, DefenseLocationHub, DefenseLocationNZ, DefenseLocationAZ, DefenseLocationTrench, DefenseLocationBump,
    EndClimbPosition, WideClimb,
    ShootingMechanism, Bump, Trench, StuckOnFuel, FuelPercent, PlayedDefense, Defense,
    Aggression, ClimbHazard, HopperCapacity, Maneuverability, Durability, DefenseEvasion,
@@ -88,7 +89,7 @@ VALUES (
    'John Doe', 2485, 4909, 12, 2, FALSE,
    1, 0, 15, TRUE,
    TRUE, FALSE, TRUE, TRUE, FALSE, TRUE, 42,
-   TRUE, TRUE, TRUE, FALSE, TRUE, FALSE,
+   TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, FALSE,
    2, FALSE,
    1, FALSE, TRUE, FALSE, 75, TRUE, 1,
    4, 2, 5, 4, 5, 3,
@@ -96,6 +97,5 @@ VALUES (
    'Performed well overall with strong fuel scoring.', 'did not break down', 'Played effective defense at outpost'
 );
 
--- If table already exists, add WideClimb column:
--- ALTER TABLE scc2025 ADD COLUMN IF NOT EXISTS WideClimb BOOLEAN DEFAULT FALSE;
+
 
