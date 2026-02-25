@@ -553,7 +553,7 @@ function TeamCard({ team }) {
       }
 
       const ctx = endgameChartRef.current.getContext('2d');
-      const colors = [team.lightColor || team.color, team.color, team.darkColor, '#6B2D5C'];
+      const colors = ['#6B2D5C', team.lightColor, team.color, team.darkColor];
 
       endgameChartInstance.current = new Chart(ctx, {
         type: 'pie',
