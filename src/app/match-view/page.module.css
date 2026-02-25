@@ -508,8 +508,9 @@
 @media screen and (max-width: 1400px) {
     .allianceBoard {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
+        flex-wrap: wrap;
     }
     
     .allianceColumn,
