@@ -537,7 +537,7 @@
     }
 } */
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 1150px) {
     .teamButtonsRow {
         flex-direction: column;
         gap: 10px;
@@ -568,11 +568,11 @@
     }
 
     .headWidthBlue {
-        width: 350px;
+        max-width: 330px;
     }
     
     .headWidthRed {
-        width: 350px;
+        max-width: 330px;
     }
 
     .centerColumn {
@@ -594,7 +594,7 @@
     }
     .allianceHeadRow {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         justify-content: center;
         align-items: center;
         align-content: center;
