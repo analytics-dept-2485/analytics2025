@@ -451,7 +451,7 @@ function ScoutingApp() {
               </div>
             </div>
           </div>
-          <div className={styles.allianceBoard}>
+          <div className={styles.allianceGraphs}>
             {/* Red Alliance - LEFT SIDE */}
             <div className={styles.allianceColumn}>
               <div className={styles.chartSection}>
@@ -553,7 +553,7 @@ function TeamCard({ team }) {
       }
 
       const ctx = endgameChartRef.current.getContext('2d');
-      const colors = ['#6B2D5C', team.lightColor, team.color, team.darkColor];
+      const colors = ['#a7a7a7', team.lightColor, team.color, team.darkColor];
 
       endgameChartInstance.current = new Chart(ctx, {
         type: 'pie',

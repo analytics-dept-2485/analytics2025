@@ -204,6 +204,12 @@
     flex-grow: 1;
 }
 
+.allianceGraphs {
+    display: flex;
+    justify-content: space-evenly;
+    flex-grow: 1;
+}
+
 .allianceColumn {
     flex: 1;
     min-width: 350px;
@@ -500,6 +506,12 @@
         flex-direction: row;
         align-items: center;
     }
+
+    .allianceGraphs {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
     
     .allianceColumn,
     .centerColumn {
@@ -509,17 +521,19 @@
 
     .allianceHeadRow {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
+        flex-wrap: wrap;
     }
 
     .headWidthBlue {
         width: 600px;
-        margin-left: 20px;
     }
     
 .headWidthRed {
         width: 600px;
-        margin-right: 20px;
     }
 }
 
@@ -553,18 +567,12 @@
         
     }
 
-    .allianceHeadRow {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-    }
-
     .headWidthBlue {
-        width: 375px;
+        width: 350px;
     }
     
     .headWidthRed {
-        width: 375px;
+        width: 350px;
     }
 
     .centerColumn {
