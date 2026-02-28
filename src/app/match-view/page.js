@@ -539,7 +539,7 @@ function TeamCard({ team }) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              legend: { position: 'right', labels: { font: { size: 11 }, padding: 8, boxWidth: 12 } }
+              legend: { position: 'top', labels: { font: { size: 11 }, padding: 8, boxWidth: 12 } }
             }
           }
         });
