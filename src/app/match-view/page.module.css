@@ -587,4 +587,17 @@
         width: 300px;
         margin: auto;
     }
+    .allianceGraphs {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .allianceHeadRow {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        align-content: center;
+        flex-wrap: wrap;
+    }
 }
