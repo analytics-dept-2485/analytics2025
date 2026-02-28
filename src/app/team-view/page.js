@@ -399,6 +399,7 @@ function TeamView() {
                wonAuto={data.wonAuto}
              />
          </div>
+      <h4 className={styles.graphTitle}>Auto Climb Success</h4>
       <div className={styles.autoBox}>
         <div className={styles.autoPieBox}>
           <Endgame
