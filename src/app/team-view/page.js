@@ -399,15 +399,15 @@ function TeamView() {
                wonAuto={data.wonAuto}
              />
          </div>
-      <h4 className={styles.graphTitle}>Auto Climb Success</h4>
       <div className={styles.autoBox}>
+        <VBox color1={Colors[1][2]} color2={Colors[1][0]} color3={Colors[1][2]} title={"Median Fuel"} value={data.autoMedianFuel}/>
+        <h4 className={styles.graphTitle}>Auto Climb Success</h4>
         <div className={styles.autoPieBox}>
           <Endgame
             data={autoPieData}
             color={Colors[1]}
           />
         </div>
-       <VBox color1={Colors[1][2]} color2={Colors[1][0]} color3={Colors[1][2]} title={"Median Fuel"} value={data.autoMedianFuel}/>
       </div>
      </div>
 
