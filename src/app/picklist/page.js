@@ -31,7 +31,6 @@ export default function Picklist() {
       Array.from(urlParams).filter(([key]) => weightKeys.includes(key))
     );
     setWeights(urlWeights);
-  
     // Alliance data parsing
     const urlAlliances = {};
     const urlTeamsToExclude = new Array(32).fill('');
